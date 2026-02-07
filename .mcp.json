@@ -3,7 +3,7 @@
     "meigen": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "meigen"],
+      "args": ["-y", "meigen@latest"],
       "env": {
         "MEIGEN_API_TOKEN": "${MEIGEN_API_TOKEN}",
         "OPENAI_API_KEY": "${OPENAI_API_KEY}",
