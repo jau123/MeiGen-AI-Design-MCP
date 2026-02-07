@@ -43,26 +43,30 @@ MeiGen-Art 走了一条不同的路：它赋予你的 AI 助手**专业的创意
 
 ## 安装
 
-### Claude Code
+### Claude Code（插件方式 — 推荐）
 
-一行命令，无需 clone 或构建：
-
-```bash
-claude mcp add --transport stdio meigen -- npx -y meigen
-```
-
-安装时传入 API Key：
+以插件形式安装，一步获得 **MCP 工具 + 创意技能**：
 
 ```bash
-claude mcp add --transport stdio meigen \
-  --env MEIGEN_API_TOKEN=meigen_sk_xxx \
-  -- npx -y meigen
+# 添加插件源
+/plugin marketplace add jau123/MeiGen-Art
+
+# 安装插件
+/plugin install meigen@meigen-marketplace
 ```
 
-也可以安装后通过交互式向导配置：
+安装后运行配置向导：
 
 ```
 /meigen:setup
+```
+
+### Claude Code（仅 MCP Server）
+
+如果只需要 MCP 工具，不需要技能：
+
+```bash
+claude mcp add --transport stdio meigen -- npx -y meigen
 ```
 
 ### OpenClaw

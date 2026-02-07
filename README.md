@@ -43,26 +43,30 @@ MeiGen-Art takes a different approach: it gives your AI assistant **professional
 
 ## Installation
 
-### Claude Code
+### Claude Code (Plugin — Recommended)
 
-One command — no clone, no build:
-
-```bash
-claude mcp add --transport stdio meigen -- npx -y meigen
-```
-
-To pass an API key at install time:
+Install as a plugin to get both **MCP tools + creative skills** in one step:
 
 ```bash
-claude mcp add --transport stdio meigen \
-  --env MEIGEN_API_TOKEN=meigen_sk_xxx \
-  -- npx -y meigen
+# Add the marketplace
+/plugin marketplace add jau123/MeiGen-Art
+
+# Install the plugin
+/plugin install meigen@meigen-marketplace
 ```
 
-Or configure later via the interactive setup wizard:
+After installing, run the setup wizard to configure your provider:
 
 ```
 /meigen:setup
+```
+
+### Claude Code (MCP Server Only)
+
+If you only want the MCP tools without skills:
+
+```bash
+claude mcp add --transport stdio meigen -- npx -y meigen
 ```
 
 ### OpenClaw

@@ -9,5 +9,11 @@
   "repository": "https://github.com/jau123/MeiGen-Art",
   "license": "MIT",
   "keywords": ["image-generation", "ai-art", "creative", "prompt-engineering", "mcp"],
-  "skills": "./skills/"
+  "skills": "./skills/",
+  "mcpServers": {
+    "meigen": {
+      "command": "npx",
+      "args": ["-y", "meigen"]
+    }
+  }
 }

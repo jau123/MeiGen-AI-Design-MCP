@@ -1,12 +1,14 @@
 {
-  "meigen": {
-    "type": "stdio",
-    "command": "node",
-    "args": ["${CLAUDE_PLUGIN_ROOT}/bin/meigen-mcp.js"],
-    "env": {
-      "MEIGEN_API_TOKEN": "${MEIGEN_API_TOKEN}",
-      "OPENAI_API_KEY": "${OPENAI_API_KEY}",
-      "OPENAI_BASE_URL": "${OPENAI_BASE_URL}"
+  "mcpServers": {
+    "meigen": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/bin/meigen-mcp.js"],
+      "env": {
+        "MEIGEN_API_TOKEN": "${MEIGEN_API_TOKEN}",
+        "OPENAI_API_KEY": "${OPENAI_API_KEY}",
+        "OPENAI_BASE_URL": "${OPENAI_BASE_URL}"
+      }
     }
   }
 }

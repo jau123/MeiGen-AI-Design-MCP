@@ -1,0 +1,20 @@
+{
+  "name": "meigen-marketplace",
+  "owner": {
+    "name": "MeiGen",
+    "url": "https://www.meigen.ai"
+  },
+  "plugins": [
+    {
+      "name": "meigen",
+      "source": "./",
+      "description": "MeiGen-Art: AI-powered visual creative expert — search inspiration, enhance prompts, and generate images",
+      "version": "0.1.0",
+      "author": {
+        "name": "MeiGen"
+      },
+      "homepage": "https://www.meigen.ai",
+      "repository": "https://github.com/jau123/MeiGen-Art"
+    }
+  ]
+}
