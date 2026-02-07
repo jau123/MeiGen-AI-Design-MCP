@@ -41,7 +41,7 @@ async function notify(extra: RequestHandlerExtra<ServerRequest, ServerNotificati
 export const generateImageSchema = {
   prompt: z.string().describe('The image generation prompt'),
   model: z.string().optional()
-    .describe('Model name. For OpenAI-compatible: gpt-image-1, dall-e-3, etc. For MeiGen: use model IDs from list_models.'),
+    .describe('Model name. For OpenAI-compatible: gpt-image-1.5, dall-e-3, etc. For MeiGen: use model IDs from list_models.'),
   size: z.string().optional()
     .describe('Image size for OpenAI-compatible providers: "1024x1024", "1536x1024", "auto". MeiGen/ComfyUI: use aspectRatio instead.'),
   aspectRatio: z.string().optional()
@@ -49,7 +49,7 @@ export const generateImageSchema = {
   quality: z.string().optional()
     .describe('Image quality for OpenAI-compatible providers: "low", "medium", "high"'),
   referenceImages: z.array(z.string()).optional()
-    .describe('Public image URLs (http/https) for style/content guidance. Sources: gallery image URLs from search_gallery/get_inspiration, Image URLs from previous generate_image results, or URLs from upload_reference_image. Local file paths are NOT supported — use upload_reference_image to convert local files to URLs first. Works with all providers: MeiGen, OpenAI (gpt-image-1), ComfyUI (requires LoadImage node in workflow).'),
+    .describe('Public image URLs (http/https) for style/content guidance. Sources: gallery image URLs from search_gallery/get_inspiration, Image URLs from previous generate_image results, or URLs from upload_reference_image. Local file paths are NOT supported — use upload_reference_image to convert local files to URLs first. Works with all providers: MeiGen, OpenAI (gpt-image-1.5), ComfyUI (requires LoadImage node in workflow).'),
   provider: z.enum(['openai', 'meigen', 'comfyui']).optional()
     .describe('Which provider to use. Auto-detected from configuration if not specified.'),
   workflow: z.string().optional()
@@ -71,7 +71,7 @@ export function registerGenerateImage(server: McpServer, apiClient: MeiGenApiCli
         return {
           content: [{
             type: 'text' as const,
-            text: 'No image generation providers configured.\n\nQuickest way to start:\n1. Get a MeiGen API token at https://www.meigen.ai (sign in → avatar → Settings → API Keys)\n2. Run /meigen:setup and paste your token\n\nOr configure one of:\n- MEIGEN_API_TOKEN: MeiGen platform (Nanobanana Pro, GPT image 1.5, Seedream 4.5)\n- OPENAI_API_KEY: OpenAI/compatible API (gpt-image-1, etc.)\n- Import a ComfyUI workflow for local GPU generation',
+            text: 'No image generation providers configured.\n\nQuickest way to start:\n1. Get a MeiGen API token at https://www.meigen.ai (sign in → avatar → Settings → API Keys)\n2. Run /meigen:setup and paste your token\n\nOr configure one of:\n- MEIGEN_API_TOKEN: MeiGen platform (Nanobanana Pro, GPT image 1.5, Seedream 4.5)\n- OPENAI_API_KEY: OpenAI/compatible API (gpt-image-1.5, etc.)\n- Import a ComfyUI workflow for local GPU generation',
           }],
           isError: true,
         }

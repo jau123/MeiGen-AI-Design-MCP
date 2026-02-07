@@ -1,6 +1,6 @@
 /**
  * OpenAI-compatible Provider
- * Supports gpt-image-1, DALL-E 3, and any OpenAI-compatible service (Together AI, DeepInfra, etc.)
+ * Supports gpt-image-1.5, DALL-E 3, and any OpenAI-compatible service (Together AI, DeepInfra, etc.)
  */
 
 import type { ImageProvider, ImageGenerationRequest, ImageGenerationResult } from './types.js'
@@ -45,7 +45,7 @@ export class OpenAIProvider implements ImageProvider {
       body.quality = request.quality
     }
 
-    // gpt-image-1 supports reference images via the image parameter
+    // gpt-image-1.5 supports reference images via the image parameter
     // DALL-E series does not support image input in the generations endpoint
     if (request.referenceImages?.length && !model.startsWith('dall-e')) {
       body.image = request.referenceImages

@@ -74,60 +74,27 @@ The wizard walks you through:
 
 ### OpenClaw
 
-Our skills follow the [Agent Skills](https://agentskills.io) open standard, so they work directly in OpenClaw.
-
-**Skills only** — copy the skills into your workspace:
-
-```bash
-cp -r skills/* ~/.openclaw/workspace/skills/
-```
-
-**Skills + MCP tools** — also add the MCP server via [MCP adapter](https://github.com/androidStern/openclaw-mcp-adapter):
-
-```json
-{
-  "plugins": {
-    "openclaw-mcp-adapter": {
-      "servers": {
-        "meigen": {
-          "transport": "stdio",
-          "command": "npx",
-          "args": ["-y", "meigen@latest"],
-          "env": {
-            "MEIGEN_API_TOKEN": "meigen_sk_..."
-          }
-        }
-      }
-    }
-  }
-}
-```
+Our skills follow the [Agent Skills](https://agentskills.io) open standard. Copy them into your OpenClaw workspace and they work directly. For MCP tools, use OpenClaw's MCP adapter to connect the MeiGen server.
 
 ### Other MCP-Compatible Hosts
 
-Add to your `.mcp.json` or equivalent config:
+Add to your MCP config (e.g. `.mcp.json`, `claude_desktop_config.json`, etc.):
 
 ```json
 {
   "mcpServers": {
     "meigen": {
-      "type": "stdio",
       "command": "npx",
       "args": ["-y", "meigen@latest"],
       "env": {
-        "MEIGEN_API_TOKEN": "meigen_sk_...",
-        "OPENAI_API_KEY": "sk-...",
-        "OPENAI_BASE_URL": "https://api.openai.com",
-        "OPENAI_MODEL": "gpt-image-1"
+        "MEIGEN_API_TOKEN": "meigen_sk_..."
       }
     }
   }
 }
 ```
 
-> Only include the env vars you need. `MEIGEN_API_TOKEN` for MeiGen platform, `OPENAI_*` for OpenAI-compatible APIs.
-
-> **Tip:** Even without an API key, free features (inspiration search, prompt enhancement, model listing) work immediately.
+> **Tip:** Even without an API key, free features (inspiration search, prompt enhancement, model listing) work immediately. Configure your provider via `~/.config/meigen/config.json` or environment variables — see [Configuration](#configuration).
 
 ---
 
@@ -209,13 +176,13 @@ Run generation on your own GPU with full control over models, samplers, and work
 
 ### OpenAI-Compatible API
 
-Bring your own API key for OpenAI (gpt-image-1), Together AI, Fireworks AI, or any OpenAI-compatible service.
+Bring your own API key for OpenAI (gpt-image-1.5), Together AI, Fireworks AI, or any OpenAI-compatible service.
 
 ```json
 {
   "openaiApiKey": "sk-...",
   "openaiBaseUrl": "https://api.openai.com",
-  "openaiModel": "gpt-image-1"
+  "openaiModel": "gpt-image-1.5"
 }
 ```
 
@@ -246,7 +213,7 @@ Environment variables take priority over the config file.
 | `MEIGEN_API_TOKEN` | MeiGen platform token |
 | `OPENAI_API_KEY` | OpenAI / compatible API key |
 | `OPENAI_BASE_URL` | API base URL (default: `https://api.openai.com`) |
-| `OPENAI_MODEL` | Default model (default: `gpt-image-1`) |
+| `OPENAI_MODEL` | Default model (default: `gpt-image-1.5`) |
 | `COMFYUI_URL` | ComfyUI server URL (default: `http://localhost:8188`) |
 
 ---

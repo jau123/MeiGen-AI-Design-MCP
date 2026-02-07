@@ -74,60 +74,27 @@ MeiGen-Art 走了一条不同的路：它赋予你的 AI 助手**专业的创意
 
 ### OpenClaw
 
-我们的技能遵循 [Agent Skills](https://agentskills.io) 开放标准，可直接在 OpenClaw 中使用。
-
-**仅技能** — 复制到工作区：
-
-```bash
-cp -r skills/* ~/.openclaw/workspace/skills/
-```
-
-**技能 + MCP 工具** — 同时通过 [MCP adapter](https://github.com/androidStern/openclaw-mcp-adapter) 添加 MCP server：
-
-```json
-{
-  "plugins": {
-    "openclaw-mcp-adapter": {
-      "servers": {
-        "meigen": {
-          "transport": "stdio",
-          "command": "npx",
-          "args": ["-y", "meigen@latest"],
-          "env": {
-            "MEIGEN_API_TOKEN": "meigen_sk_..."
-          }
-        }
-      }
-    }
-  }
-}
-```
+我们的技能遵循 [Agent Skills](https://agentskills.io) 开放标准，可复制到 OpenClaw 工作区直接使用。如需 MCP 工具，通过 OpenClaw 的 MCP adapter 连接 MeiGen server 即可。
 
 ### 其他 MCP 兼容客户端
 
-添加到 `.mcp.json` 或对应配置文件：
+添加到 MCP 配置文件（如 `.mcp.json`、`claude_desktop_config.json` 等）：
 
 ```json
 {
   "mcpServers": {
     "meigen": {
-      "type": "stdio",
       "command": "npx",
       "args": ["-y", "meigen@latest"],
       "env": {
-        "MEIGEN_API_TOKEN": "meigen_sk_...",
-        "OPENAI_API_KEY": "sk-...",
-        "OPENAI_BASE_URL": "https://api.openai.com",
-        "OPENAI_MODEL": "gpt-image-1"
+        "MEIGEN_API_TOKEN": "meigen_sk_..."
       }
     }
   }
 }
 ```
 
-> 只需填写你用到的环境变量。`MEIGEN_API_TOKEN` 用于 MeiGen 平台，`OPENAI_*` 用于 OpenAI 兼容 API。
-
-> **提示：** 即使没有 API Key，免费功能（灵感搜索、提示词增强、模型列表）也可以直接使用。
+> **提示：** 即使没有 API Key，免费功能（灵感搜索、提示词增强、模型列表）也可以直接使用。通过 `~/.config/meigen/config.json` 或环境变量配置你的后端——详见[配置](#配置)。
 
 ---
 
@@ -209,13 +176,13 @@ MeiGen-Art 支持三种图片生成后端，可以配置一个或多个——助
 
 ### OpenAI 兼容 API
 
-使用你自己的 API Key 接入 OpenAI（gpt-image-1）、Together AI、Fireworks AI 或任何 OpenAI 兼容服务。
+使用你自己的 API Key 接入 OpenAI（gpt-image-1.5）、Together AI、Fireworks AI 或任何 OpenAI 兼容服务。
 
 ```json
 {
   "openaiApiKey": "sk-...",
   "openaiBaseUrl": "https://api.openai.com",
-  "openaiModel": "gpt-image-1"
+  "openaiModel": "gpt-image-1.5"
 }
 ```
 
@@ -246,7 +213,7 @@ MeiGen-Art 支持三种图片生成后端，可以配置一个或多个——助
 | `MEIGEN_API_TOKEN` | MeiGen 平台 Token |
 | `OPENAI_API_KEY` | OpenAI / 兼容 API Key |
 | `OPENAI_BASE_URL` | API 地址（默认：`https://api.openai.com`） |
-| `OPENAI_MODEL` | 默认模型（默认：`gpt-image-1`） |
+| `OPENAI_MODEL` | 默认模型（默认：`gpt-image-1.5`） |
 | `COMFYUI_URL` | ComfyUI 服务地址（默认：`http://localhost:8188`） |
 
 ---

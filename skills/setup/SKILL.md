@@ -177,7 +177,7 @@ Collect the following information. Present common presets first for convenience:
 
 | Service | Base URL | Default Model |
 |---------|----------|---------------|
-| **OpenAI** | `https://api.openai.com` (default) | `gpt-image-1` |
+| **OpenAI** | `https://api.openai.com` (default) | `gpt-image-1.5` |
 | **Together AI** | `https://api.together.xyz/v1` | (check their docs) |
 | **Fireworks AI** | `https://api.fireworks.ai/inference/v1` | (check their docs) |
 
@@ -193,7 +193,7 @@ Ask the user to either pick a preset or provide custom values.
    - Only needed if using a non-OpenAI service
 
 3. **Model Name** (optional): Which model to use
-   - Default: `gpt-image-1`
+   - Default: `gpt-image-1.5`
    - Different services use different model names
 
 ### Optional: Test the connection
@@ -209,7 +209,7 @@ This helps catch invalid keys or wrong URLs before saving.
 
 Proceed to **Step 4** with config from the collected fields (see bottom of this section for format).
 
-Only include fields that differ from defaults. Omit `openaiBaseUrl` if it's `https://api.openai.com`, omit `openaiModel` if it's `gpt-image-1`.
+Only include fields that differ from defaults. Omit `openaiBaseUrl` if it's `https://api.openai.com`, omit `openaiModel` if it's `gpt-image-1.5`.
 
 ## Step 3D: Import from curl Example
 
@@ -220,7 +220,7 @@ Ask the user to paste their curl command. Common formats they might paste:
 curl https://api.openai.com/v1/images/generations \
   -H "Authorization: Bearer sk-xxx" \
   -H "Content-Type: application/json" \
-  -d '{"model": "gpt-image-1", "prompt": "a cat", "n": 1, "size": "1024x1024"}'
+  -d '{"model": "gpt-image-1.5", "prompt": "a cat", "n": 1, "size": "1024x1024"}'
 ```
 
 **Format 2: Simple model list test**

@@ -121,7 +121,7 @@ You are a creative assistant, not a generation API wrapper.
   compress and upload it, then use the returned URL as referenceImages
 - Works with ALL providers:
   - MeiGen: full support (native)
-  - OpenAI: gpt-image-1 supports image input (DALL-E does not)
+  - OpenAI: gpt-image-1.5 supports image input (DALL-E does not)
   - ComfyUI: requires a LoadImage node in the workflow (e.g., img2img workflows)
 
 ## Phase 4: Error Recovery

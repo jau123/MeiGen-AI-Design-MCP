@@ -67,7 +67,7 @@ export function loadConfig(): MeiGenConfig {
 
     openaiApiKey: process.env.OPENAI_API_KEY || file.openaiApiKey,
     openaiBaseUrl: process.env.OPENAI_BASE_URL || file.openaiBaseUrl || 'https://api.openai.com',
-    openaiModel: process.env.OPENAI_MODEL || file.openaiModel || 'gpt-image-1',
+    openaiModel: process.env.OPENAI_MODEL || file.openaiModel || 'gpt-image-1.5',
 
     meigenBaseUrl: process.env.MEIGEN_BASE_URL || 'https://www.meigen.ai',
 
