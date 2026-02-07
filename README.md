@@ -43,35 +43,33 @@ MeiGen-Art takes a different approach: it gives your AI assistant **professional
 
 ## Installation
 
-### Claude Code (Plugin — Recommended)
-
-Install as a plugin to get both **MCP tools + creative skills** in one step:
+### Claude Code
 
 ```bash
-# Add the marketplace
+# Add the plugin source
 /plugin marketplace add jau123/MeiGen-Art
 
-# Install the plugin
+# Install
 /plugin install meigen@meigen-marketplace
 ```
 
-After installing, run the setup wizard to configure your provider:
+Then run the setup wizard to configure your image generation provider:
 
 ```
 /meigen:setup
 ```
 
-### Claude Code (MCP Server Only)
-
-If you only want the MCP tools without skills:
-
-```bash
-claude mcp add --transport stdio meigen -- npx -y meigen
-```
-
 ### OpenClaw
 
-Add to your `~/.openclaw/openclaw.json` (requires [MCP adapter](https://github.com/androidStern/openclaw-mcp-adapter)):
+Our skills follow the [Agent Skills](https://agentskills.io) open standard, so they work directly in OpenClaw.
+
+**Skills only** — copy the skills into your workspace:
+
+```bash
+cp -r skills/* ~/.openclaw/workspace/skills/
+```
+
+**Skills + MCP tools** — also add the MCP server via [MCP adapter](https://github.com/androidStern/openclaw-mcp-adapter):
 
 ```json
 {
@@ -92,7 +90,7 @@ Add to your `~/.openclaw/openclaw.json` (requires [MCP adapter](https://github.c
 }
 ```
 
-### Any MCP-Compatible Host
+### Other MCP-Compatible Hosts
 
 Add to your `.mcp.json` or equivalent config:
 

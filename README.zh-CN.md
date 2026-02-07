@@ -43,15 +43,13 @@ MeiGen-Art 走了一条不同的路：它赋予你的 AI 助手**专业的创意
 
 ## 安装
 
-### Claude Code（插件方式 — 推荐）
-
-以插件形式安装，一步获得 **MCP 工具 + 创意技能**：
+### Claude Code
 
 ```bash
 # 添加插件源
 /plugin marketplace add jau123/MeiGen-Art
 
-# 安装插件
+# 安装
 /plugin install meigen@meigen-marketplace
 ```
 
@@ -61,17 +59,17 @@ MeiGen-Art 走了一条不同的路：它赋予你的 AI 助手**专业的创意
 /meigen:setup
 ```
 
-### Claude Code（仅 MCP Server）
-
-如果只需要 MCP 工具，不需要技能：
-
-```bash
-claude mcp add --transport stdio meigen -- npx -y meigen
-```
-
 ### OpenClaw
 
-添加到 `~/.openclaw/openclaw.json`（需要 [MCP adapter](https://github.com/androidStern/openclaw-mcp-adapter)）：
+我们的技能遵循 [Agent Skills](https://agentskills.io) 开放标准，可直接在 OpenClaw 中使用。
+
+**仅技能** — 复制到工作区：
+
+```bash
+cp -r skills/* ~/.openclaw/workspace/skills/
+```
+
+**技能 + MCP 工具** — 同时通过 [MCP adapter](https://github.com/androidStern/openclaw-mcp-adapter) 添加 MCP server：
 
 ```json
 {
