@@ -19,7 +19,7 @@
 </p>
 
 <p align="center">
-  <a href="#快速开始">快速开始</a> •
+  <a href="#安装">安装</a> •
   <a href="#它能做什么">它能做什么</a> •
   <a href="#生成后端">生成后端</a> •
   <a href="#配置">配置</a>
@@ -41,37 +41,64 @@ LibreArt 走了一条不同的路：它赋予你的 AI 助手**专业的创意�
 
 ---
 
-## 快速开始
+## 安装
 
 ### Claude Code
 
+一行命令，无需 clone 或构建：
+
 ```bash
-claude plugin add libreart
+claude mcp add --transport stdio meigen -- npx -y meigen
 ```
 
-然后运行配置向导：
+安装时传入 API Key：
+
+```bash
+claude mcp add --transport stdio meigen \
+  --env MEIGEN_API_TOKEN=meigen_sk_xxx \
+  -- npx -y meigen
+```
+
+也可以安装后通过交互式向导配置：
 
 ```
 /meigen:setup
 ```
 
-### 手动安装
+### OpenClaw
 
-```bash
-git clone https://github.com/jau123/meigen-mcp-server.git
-cd meigen-mcp-server
-npm install && npm run build
+添加到 `~/.openclaw/openclaw.json`（需要 [MCP adapter](https://github.com/androidStern/openclaw-mcp-adapter)）：
+
+```json
+{
+  "plugins": {
+    "openclaw-mcp-adapter": {
+      "servers": {
+        "meigen": {
+          "transport": "stdio",
+          "command": "npx",
+          "args": ["-y", "meigen"],
+          "env": {
+            "MEIGEN_API_TOKEN": "meigen_sk_..."
+          }
+        }
+      }
+    }
+  }
+}
 ```
 
-添加到你的 `.mcp.json`：
+### 其他 MCP 兼容客户端
+
+添加到 `.mcp.json` 或对应配置文件：
 
 ```json
 {
   "mcpServers": {
     "meigen": {
       "type": "stdio",
-      "command": "node",
-      "args": ["/path/to/meigen-mcp-server/bin/meigen-mcp.js"],
+      "command": "npx",
+      "args": ["-y", "meigen"],
       "env": {
         "MEIGEN_API_TOKEN": "meigen_sk_..."
       }

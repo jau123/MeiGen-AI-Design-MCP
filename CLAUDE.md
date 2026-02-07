@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-LibreArt (package name: `libreart`) is an MCP (Model Context Protocol) server that gives LLMs AI image generation capabilities. It supports three provider backends: MeiGen platform API, OpenAI-compatible APIs, and local ComfyUI workflows.
+LibreArt (package name: `meigen`) is an MCP (Model Context Protocol) server that gives LLMs AI image generation capabilities. It supports three provider backends: MeiGen platform API, OpenAI-compatible APIs, and local ComfyUI workflows.
 
 ## Commands
 

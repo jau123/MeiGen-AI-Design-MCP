@@ -41,37 +41,64 @@ LibreArt takes a different approach: it gives your AI assistant **professional c
 
 ---
 
-## Quick Start
+## Installation
 
 ### Claude Code
 
+One command — no clone, no build:
+
 ```bash
-claude plugin add libreart
+claude mcp add --transport stdio meigen -- npx -y meigen
 ```
 
-Then run the setup wizard:
+To pass an API key at install time:
+
+```bash
+claude mcp add --transport stdio meigen \
+  --env MEIGEN_API_TOKEN=meigen_sk_xxx \
+  -- npx -y meigen
+```
+
+Or configure later via the interactive setup wizard:
 
 ```
 /meigen:setup
 ```
 
-### Manual Installation
+### OpenClaw
 
-```bash
-git clone https://github.com/jau123/meigen-mcp-server.git
-cd meigen-mcp-server
-npm install && npm run build
+Add to your `~/.openclaw/openclaw.json` (requires [MCP adapter](https://github.com/androidStern/openclaw-mcp-adapter)):
+
+```json
+{
+  "plugins": {
+    "openclaw-mcp-adapter": {
+      "servers": {
+        "meigen": {
+          "transport": "stdio",
+          "command": "npx",
+          "args": ["-y", "meigen"],
+          "env": {
+            "MEIGEN_API_TOKEN": "meigen_sk_..."
+          }
+        }
+      }
+    }
+  }
+}
 ```
 
-Add to your `.mcp.json`:
+### Any MCP-Compatible Host
+
+Add to your `.mcp.json` or equivalent config:
 
 ```json
 {
   "mcpServers": {
     "meigen": {
       "type": "stdio",
-      "command": "node",
-      "args": ["/path/to/meigen-mcp-server/bin/meigen-mcp.js"],
+      "command": "npx",
+      "args": ["-y", "meigen"],
       "env": {
         "MEIGEN_API_TOKEN": "meigen_sk_..."
       }
