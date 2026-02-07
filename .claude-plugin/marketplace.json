@@ -7,7 +7,7 @@
   "plugins": [
     {
       "name": "meigen",
-      "source": "./",
+      "source": "./plugin",
       "description": "MeiGen-Art: AI-powered visual creative expert — search inspiration, enhance prompts, and generate images",
       "version": "0.1.2",
       "author": {
