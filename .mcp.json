@@ -1,12 +1,6 @@
 {
   "meigen": {
     "command": "npx",
-    "args": ["-y", "meigen@latest"],
-    "env": {
-      "MEIGEN_API_TOKEN": "${MEIGEN_API_TOKEN}",
-      "OPENAI_API_KEY": "${OPENAI_API_KEY}",
-      "OPENAI_BASE_URL": "${OPENAI_BASE_URL}",
-      "OPENAI_MODEL": "${OPENAI_MODEL}"
-    }
+    "args": ["-y", "meigen@latest"]
   }
 }
