@@ -26,6 +26,18 @@ import { Semaphore } from '../lib/semaphore.js'
 const apiSemaphore = new Semaphore(4)
 const comfyuiSemaphore = new Semaphore(1)
 
+/** Safe notification — silently ignores if client doesn't support logging */
+async function notify(extra: RequestHandlerExtra<ServerRequest, ServerNotification>, message: string) {
+  try {
+    await extra.sendNotification({
+      method: 'notifications/message',
+      params: { level: 'info', logger: 'generate_image', data: message },
+    })
+  } catch {
+    // Client doesn't support logging — ignore
+  }
+}
+
 export const generateImageSchema = {
   prompt: z.string().describe('The image generation prompt'),
   model: z.string().optional()
@@ -184,24 +196,14 @@ async function generateWithMeiGen(
   }
 
   // Notify: generation submitted
-  await extra.sendNotification({
-    method: 'notifications/message',
-    params: { level: 'info', logger: 'generate_image', data: 'Image generation submitted, waiting for result...' },
-  })
+  await notify(extra, 'Image generation submitted, waiting for result...')
 
   // 2. Poll until completed (with progress notifications)
   const status = await apiClient.waitForGeneration(
     genResponse.generationId,
     300_000,
     async (elapsedMs) => {
-      await extra.sendNotification({
-        method: 'notifications/message',
-        params: {
-          level: 'info',
-          logger: 'generate_image',
-          data: `Still generating... (${Math.round(elapsedMs / 1000)}s elapsed)`,
-        },
-      })
+      await notify(extra, `Still generating... (${Math.round(elapsedMs / 1000)}s elapsed)`)
     },
   )
 
@@ -268,10 +270,7 @@ async function generateWithComfyUI(
   }
 
   // Notify: generation submitted
-  await extra.sendNotification({
-    method: 'notifications/message',
-    params: { level: 'info', logger: 'generate_image', data: `Submitting workflow "${workflowName}" to ComfyUI...` },
-  })
+  await notify(extra, `Submitting workflow "${workflowName}" to ComfyUI...`)
 
   const provider = new ComfyUIProvider(config.comfyuiUrl || 'http://localhost:8188')
   const result = await provider.generate(
@@ -279,14 +278,7 @@ async function generateWithComfyUI(
     prompt,
     { width, height, negativePrompt, referenceImages },
     async (elapsedMs) => {
-      await extra.sendNotification({
-        method: 'notifications/message',
-        params: {
-          level: 'info',
-          logger: 'generate_image',
-          data: `Still generating... (${Math.round(elapsedMs / 1000)}s elapsed)`,
-        },
-      })
+      await notify(extra, `Still generating... (${Math.round(elapsedMs / 1000)}s elapsed)`)
     },
   )
 
