@@ -50,11 +50,9 @@ MeiGen-Art 是一个开源的 **MCP Server**（插件），连接你的 AI 助�
 ## 实际效果
 
 <p align="center">
-  <a href="https://www.youtube.com/watch?v=JQ3DZ1DXqvs">
-    <img src="https://img.youtube.com/vi/JQ3DZ1DXqvs/maxresdefault.jpg" alt="观看演示" width="600">
-  </a>
-  <br>
-  <sub>▶ 观看：在 Claude Code 中用自然语言生成专业图片</sub>
+  <video src="https://qiaowenlong-1317904822.cos.accelerate.myqcloud.com/github/git.mp4" controls width="600">
+    浏览器不支持视频标签。<a href="https://youtu.be/JQ3DZ1DXqvs">在 YouTube 观看</a>。
+  </video>
 </p>
 
 ### Logo 设计 — 多方案 + 迭代

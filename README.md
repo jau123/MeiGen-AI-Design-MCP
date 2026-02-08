@@ -50,11 +50,9 @@ MeiGen-Art is an open-source **MCP Server** (plugin) that bridges your AI assist
 ## See It in Action
 
 <p align="center">
-  <a href="https://www.youtube.com/watch?v=JQ3DZ1DXqvs">
-    <img src="https://img.youtube.com/vi/JQ3DZ1DXqvs/maxresdefault.jpg" alt="Watch Demo" width="600">
-  </a>
-  <br>
-  <sub>▶ Watch: Generate professional images with natural language in Claude Code</sub>
+  <video src="https://qiaowenlong-1317904822.cos.accelerate.myqcloud.com/github/git.mp4" controls width="600">
+    Your browser does not support the video tag. <a href="https://youtu.be/JQ3DZ1DXqvs">Watch on YouTube</a>.
+  </video>
 </p>
 
 ### Logo Design — Multiple Directions + Iteration
