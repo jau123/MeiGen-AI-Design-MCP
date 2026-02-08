@@ -1,9 +1,9 @@
 <h1 align="center">
-  MeiGen-Art — Visual Engine for Claude Code & MCP Hosts
+  MeiGen-Art: AI Image Generation MCP Server
 </h1>
 
 <p align="center">
-  <strong>The MCP plugin that turns your AI assistant into a local creative studio.<br>Search prompts, generate images, iterate — all through natural conversation.</strong>
+  <strong>Turn Claude Code / OpenClaw into your local Lovart.<br>Local ComfyUI, 1,300+ prompt library, multi-direction parallel generation.</strong>
 </p>
 
 <p align="center">
@@ -30,7 +30,7 @@
 
 ## What Is This?
 
-MeiGen-Art is an open-source **MCP Server** (plugin) that bridges your AI assistant and professional image generation tools. Think of it as installing a "graphics card driver" for Claude Code — once added, your AI can search visual references, enhance prompts, and generate images directly in the terminal.
+MeiGen-Art is an open-source **MCP Server** (plugin) that bridges your AI assistant and professional image generation tools. Think of it as installing a "graphics card driver" for Claude Code or OpenClaw — once added, your AI can search visual references, enhance prompts, and generate images directly in the terminal.
 
 **No API key required for free features** — inspiration search, prompt enhancement, and model browsing work out of the box.
 
@@ -50,8 +50,8 @@ MeiGen-Art is an open-source **MCP Server** (plugin) that bridges your AI assist
 ## See It in Action
 
 <p align="center">
-  <a href="https://qiaowenlong-1317904822.cos.accelerate.myqcloud.com/github/git.mp4">
-    <img src="assets/demo-thumbnail.jpg" alt="Watch Demo" width="600">
+  <a href="https://www.youtube.com/watch?v=JQ3DZ1DXqvs">
+    <img src="https://img.youtube.com/vi/JQ3DZ1DXqvs/maxresdefault.jpg" alt="Watch Demo" width="600">
   </a>
   <br>
   <sub>▶ Watch: Generate professional images with natural language in Claude Code</sub>
@@ -152,6 +152,10 @@ The wizard walks you through:
 1. **Choose a provider** — local ComfyUI, MeiGen Cloud, or OpenAI-compatible API
 2. **Enter credentials** — ComfyUI URL, API token, or key
 3. **Done** — restart Claude Code once more, then start generating
+
+### OpenClaw
+
+Our skills follow the [Agent Skills](https://agentskills.io) open standard — copy them into your OpenClaw workspace and they work directly. For MCP tools, use OpenClaw's MCP adapter to connect the MeiGen server.
 
 ### Other MCP-Compatible Hosts
 

@@ -1,9 +1,9 @@
 <h1 align="center">
-  MeiGen-Art — Claude Code & MCP 视觉引擎插件
+  MeiGen-Art: AI 图片生成 MCP Server
 </h1>
 
 <p align="center">
-  <strong>给你的 AI 助手装上视觉引擎。<br>搜索提示词、生成图片、迭代优化 — 全部在对话中完成。</strong>
+  <strong>让你的 Claude Code / OpenClaw 变成本地版 Lovart。<br>本地 ComfyUI、1,300+ 提示词库、多方案并行生成。</strong>
 </p>
 
 <p align="center">
@@ -30,7 +30,7 @@
 
 ## 这是什么？
 
-MeiGen-Art 是一个开源的 **MCP Server**（插件），连接你的 AI 助手和专业图片生成工具。可以理解为给 Claude Code 装了一个「显卡驱动」— 装上后，你的 AI 就能搜索视觉参考、增强提示词、直接在终端里生成图片。
+MeiGen-Art 是一个开源的 **MCP Server**（插件），连接你的 AI 助手和专业图片生成工具。可以理解为给 Claude Code 或 OpenClaw 装了一个「显卡驱动」— 装上后，你的 AI 就能搜索视觉参考、增强提示词、直接在终端里生成图片。
 
 **免费功能无需 API Key** — 灵感搜索、提示词增强、模型浏览，装完即用。
 
@@ -50,8 +50,8 @@ MeiGen-Art 是一个开源的 **MCP Server**（插件），连接你的 AI 助�
 ## 实际效果
 
 <p align="center">
-  <a href="https://qiaowenlong-1317904822.cos.accelerate.myqcloud.com/github/git.mp4">
-    <img src="assets/demo-thumbnail.jpg" alt="观看演示" width="600">
+  <a href="https://www.youtube.com/watch?v=JQ3DZ1DXqvs">
+    <img src="https://img.youtube.com/vi/JQ3DZ1DXqvs/maxresdefault.jpg" alt="观看演示" width="600">
   </a>
   <br>
   <sub>▶ 观看：在 Claude Code 中用自然语言生成专业图片</sub>
@@ -152,6 +152,10 @@ AI:   以 #3 为风格参考...
 1. **选择后端** — 本地 ComfyUI、MeiGen 云端、或 OpenAI 兼容 API
 2. **输入凭证** — ComfyUI 地址、API Token 或 Key
 3. **完成** — 再次重启 Claude Code，即可开始生图
+
+### OpenClaw
+
+我们的技能遵循 [Agent Skills](https://agentskills.io) 开放标准，可直接复制到 OpenClaw 工作区使用。如需 MCP 工具，通过 OpenClaw 的 MCP adapter 连接 MeiGen server 即可。
 
 ### 其他 MCP 兼容客户端
 
