@@ -1,28 +1,25 @@
-<p align="center">
-  <img src="assets/banner.jpg" alt="MeiGen-Art Banner" width="600">
-</p>
-
 <h1 align="center">
-  MeiGen-Art — Visual Creative Expert
+  MeiGen-Art — Visual Engine for Claude Code & MCP Hosts
 </h1>
 
 <p align="center">
-  <strong>Turn your AI assistant into a creative director for image generation</strong><br>
-  <sub>MCP plugin for Claude Code, OpenClaw, and any MCP-compatible host</sub>
+  <strong>The MCP plugin that turns your AI assistant into a local creative studio.<br>Search prompts, generate images, iterate — all through natural conversation.</strong>
 </p>
 
 <p align="center">
-  <a href="https://www.meigen.ai"><img src="https://img.shields.io/badge/Gallery-meigen.ai-blue?style=flat-square" alt="Gallery"></a>
-  <a href="#tools"><img src="https://img.shields.io/badge/Tools-7-green?style=flat-square" alt="7 Tools"></a>
-  <a href="#providers"><img src="https://img.shields.io/badge/Providers-3-orange?style=flat-square" alt="3 Providers"></a>
+  <a href="https://www.npmjs.com/package/meigen"><img src="https://img.shields.io/npm/v/meigen?style=flat-square&color=blue" alt="npm version"></a>
+  <a href="https://www.npmjs.com/package/meigen"><img src="https://img.shields.io/npm/dm/meigen?style=flat-square&color=green" alt="npm downloads"></a>
+  <img src="https://img.shields.io/badge/Type-MCP_Server-blue?style=flat-square" alt="MCP Server">
+  <img src="https://img.shields.io/badge/Local-ComfyUI-green?style=flat-square" alt="ComfyUI Support">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-lightgrey?style=flat-square" alt="MIT"></a>
 </p>
 
 <p align="center">
-  <a href="#quick-start">Quick Start</a> •
-  <a href="#what-can-it-do">What Can It Do</a> •
-  <a href="#providers">Providers</a> •
-  <a href="#configuration">Configuration</a>
+  <a href="#quick-start">Quick Start</a> &bull;
+  <a href="#see-it-in-action">Demo</a> &bull;
+  <a href="#features">Features</a> &bull;
+  <a href="#providers">Providers</a> &bull;
+  <a href="#slash-commands">Commands</a>
 </p>
 
 <p align="center">
@@ -31,33 +28,117 @@
 
 ---
 
-## Why MeiGen-Art?
+## What Is This?
 
-Most AI image tools are either simple prompt-in-image-out APIs, or complex UIs that require expertise.
+MeiGen-Art is an open-source **MCP Server** (plugin) that bridges your AI assistant and professional image generation tools. Think of it as installing a "graphics card driver" for Claude Code — once added, your AI can search visual references, enhance prompts, and generate images directly in the terminal.
 
-MeiGen-Art takes a different approach: it gives your AI assistant **professional creative knowledge** — 1,300+ curated trending prompts, style-specific enhancement techniques, and multi-step workflow orchestration — so you can describe what you want in plain language, and get production-quality results.
+**No API key required for free features** — inspiration search, prompt enhancement, and model browsing work out of the box.
 
-**No prompt engineering skills needed.** Just talk to your AI assistant like you would to a creative director.
+### Why Install This Plugin?
+
+<table>
+<tr>
+<td width="25%" align="center"><strong>Local GPU Generation</strong><br><sub>Connect your ComfyUI to generate on your own hardware — free, private, fully controlled</sub></td>
+<td width="25%" align="center"><strong>1,300+ Prompt Library</strong><br><sub>Search curated trending prompts like a local Lovart — find references before you generate</sub></td>
+<td width="25%" align="center"><strong>Multi-Direction Output</strong><br><sub>AI autonomously produces multiple creative directions in parallel — you just pick</sub></td>
+<td width="25%" align="center"><strong>Cloud Fallback</strong><br><sub>No GPU? Use MeiGen Cloud or your own OpenAI key as a seamless backup</sub></td>
+</tr>
+</table>
 
 ---
 
-## Installation
+## See It in Action
 
-### Claude Code
+<p align="center">
+  <a href="https://qiaowenlong-1317904822.cos.accelerate.myqcloud.com/github/git.mp4">
+    <img src="assets/demo-thumbnail.jpg" alt="Watch Demo" width="600">
+  </a>
+  <br>
+  <sub>▶ Watch: Generate professional images with natural language in Claude Code</sub>
+</p>
+
+### Logo Design — Multiple Directions + Iteration
+
+```
+You:  Design a logo for my coffee brand "Dawn Brew"
+
+AI:   Here are 4 creative directions:
+      ┌─────────────────────────────────────────────────────┐
+      │  Which direction(s) do you want to try?             │
+      │  ☐ 1. Modern Minimal — clean geometry, negative     │
+      │  ☐ 2. Vintage Badge — retro emblem, craft feel      │
+      │  ☐ 3. Hand-drawn — organic lines, artisan warmth    │
+      │  ☐ 4. All of the above                              │
+      └─────────────────────────────────────────────────────┘
+
+You:  [selects 1 and 3]
+
+AI:   Generating 2 images in parallel...
+      ✓ Direction 1: Modern Minimal
+        Image URL: https://images.meigen.art/xxx1.png
+        Saved to: ~/Pictures/meigen/2026-02-08_dawn-brew-minimal.png
+      ✓ Direction 3: Hand-drawn
+        Image URL: https://images.meigen.art/xxx2.png
+        Saved to: ~/Pictures/meigen/2026-02-08_dawn-brew-handdrawn.png
+
+You:  I like Direction 1. Put it on a mug and a t-shirt.
+
+AI:   Using Direction 1 as reference, generating 2 mockups in parallel...
+      ✓ Mug mockup saved to: ~/Pictures/meigen/2026-02-08_dawn-brew-mug.png
+      ✓ T-shirt mockup saved to: ~/Pictures/meigen/2026-02-08_dawn-brew-tshirt.png
+```
+
+### Product Photo — Brief Description to Pro Image
+
+```
+You:  Product photo for a perfume bottle
+
+AI:   Your description is brief — enhancing with professional details...
+      Added: studio rim lighting, white marble surface, soft bokeh background,
+      35mm lens at f/2.8, warm amber tones, editorial composition
+
+      ✓ Image URL: https://images.meigen.art/xxx3.png
+        Saved to: ~/Pictures/meigen/2026-02-08_perfume.png
+        (auto-opened in Preview)
+```
+
+### Inspiration Search to Reference Generation
+
+```
+You:  /meigen:find cyberpunk
+
+AI:   Found 6 results:
+      1. Neon-lit street scene — 12k views
+      2. Cyberpunk portrait with visor — 8k views
+      3. Futuristic cityscape at night — 15k views
+      ...
+
+You:  #3 looks cool, generate something similar but with a samurai
+
+AI:   Using #3 as style reference...
+      ✓ Image URL: https://images.meigen.art/xxx4.png
+        Saved to: ~/Pictures/meigen/2026-02-08_cyberpunk-samurai.png
+```
+
+---
+
+## Quick Start
+
+### Claude Code Plugin (Recommended)
 
 ```bash
-# Add the plugin source
+# Add the plugin marketplace
 /plugin marketplace add jau123/MeiGen-Art
 
 # Install
 /plugin install meigen@meigen-marketplace
 ```
 
-**After installation, restart Claude Code** (close and reopen, or open a new terminal tab) to activate the plugin.
+**Restart Claude Code** after installation (close and reopen, or open a new terminal tab).
 
 #### First-Time Setup
 
-Once restarted, free features work immediately — try asking:
+Free features work immediately after restart — try:
 
 > "Search for some creative inspiration"
 
@@ -68,17 +149,13 @@ To unlock image generation, run the setup wizard:
 ```
 
 The wizard walks you through:
-1. **Choose a provider** — MeiGen Platform (recommended, supports Nanobanana Pro / GPT image 1.5 / Seedream 4.5), local ComfyUI, or OpenAI-compatible API
-2. **Enter credentials** — API token, key, or ComfyUI URL. You can also paste a `curl` command and it auto-extracts everything
+1. **Choose a provider** — local ComfyUI, MeiGen Cloud, or OpenAI-compatible API
+2. **Enter credentials** — ComfyUI URL, API token, or key
 3. **Done** — restart Claude Code once more, then start generating
-
-### OpenClaw
-
-Our skills follow the [Agent Skills](https://agentskills.io) open standard. Copy them into your OpenClaw workspace and they work directly. For MCP tools, use OpenClaw's MCP adapter to connect the MeiGen server.
 
 ### Other MCP-Compatible Hosts
 
-Add to your MCP config (e.g. `.mcp.json`, `claude_desktop_config.json`, etc.):
+Add to your MCP config (e.g. `.mcp.json`, `claude_desktop_config.json`):
 
 ```json
 {
@@ -94,65 +171,78 @@ Add to your MCP config (e.g. `.mcp.json`, `claude_desktop_config.json`, etc.):
 }
 ```
 
-> **Tip:** Even without an API key, free features (inspiration search, prompt enhancement, model listing) work immediately. Configure your provider via `~/.config/meigen/config.json` or environment variables — see [Configuration](#configuration).
+> Free features (inspiration search, prompt enhancement, model listing) work without any API key.
 
 ---
 
-## What Can It Do
+<h2 id="features">Features</h2>
 
-### 1. Explore & Get Inspired
-
-> "Help me think of something for a social media post"
-
-When you're not sure what to create, the assistant browses the curated gallery of 1,300+ trending prompts, shows you visual previews, and lets you pick a style before generating anything.
-
-### 2. Simple Idea to Pro Image
-
-> "A cat sitting in a Japanese garden"
-
-Short descriptions get automatically enhanced into professional prompts with specific visual details — lighting, composition, lens, color palette — then generated. No prompt engineering knowledge needed.
-
-### 3. Batch & Variant Generation
-
-> "Design 4 different logo concepts for a coffee brand"
-
-The assistant writes distinct creative directions for each variant, generates them in parallel (up to 4 at once), and presents the results with comparative commentary.
-
-### 4. Multi-Step Creative Workflow
-
-> "Create a logo, then show me how it looks on a mug and a t-shirt"
-
-The assistant chains generation steps: creates the base image first, then uses it as a reference to generate product mockups — maintaining visual consistency across the series.
-
-### 5. Reference Image Style Transfer
-
-> "Use this local photo as a style reference for my new image"
-
-Local images are automatically compressed and uploaded. The returned URL works as a reference across all three providers — for style transfer, composition guidance, or img2img workflows.
-
----
-
-<h2 id="tools">Tools</h2>
+### MCP Tools
 
 | Tool | Free | Description |
 |------|------|-------------|
 | `search_gallery` | Yes | Search 1,300+ curated trending prompts with visual previews |
 | `get_inspiration` | Yes | Get full prompt, all images, and metadata for any gallery entry |
-| `enhance_prompt` | Yes | Transform a brief idea into a professional image prompt (runs locally) |
+| `enhance_prompt` | Yes | Transform a brief idea into a professional image prompt |
 | `list_models` | Yes | List available models across all configured providers |
 | `upload_reference_image` | Yes | Compress and upload a local image for use as a reference |
 | `comfyui_workflow` | Yes | Manage ComfyUI workflow templates: list, view, import, modify, delete |
 | `generate_image` | Key | Generate an image — routes to the best available provider automatically |
 
+### Slash Commands
+
+| Command | Description |
+|---------|-------------|
+| `/meigen:gen <prompt>` | Quick generate — skip conversation, go straight to image |
+| `/meigen:find <keywords>` | Search 1,300+ curated prompts for inspiration |
+| `/meigen:models` | Browse and switch AI models for this session |
+| `/meigen:ref <file>` | Upload a local image as reference, get a URL back |
+| `/meigen:setup` | Interactive provider configuration wizard |
+
+### Smart Agents
+
+MeiGen uses specialized sub-agents for efficient parallel execution:
+
+| Agent | Purpose |
+|-------|---------|
+| `image-generator` | Executes `generate_image` in isolated context — enables true parallel generation |
+| `prompt-crafter` | Writes multiple distinct prompts for batch generation (runs on Haiku for cost efficiency) |
+| `gallery-researcher` | Deep gallery exploration without cluttering the main conversation (runs on Haiku) |
+
+### Output Styles
+
+Switch creative modes with `/output-style`:
+
+- **Creative Director** — Art direction mode with visual storytelling, mood boards, and design thinking
+- **Minimal** — Just images and file paths, no commentary. Ideal for batch workflows
+
+### Automation Hooks
+
+- **Config Check** — Validates provider configuration on session start, guides setup if missing
+- **Auto-Open** — Generated images automatically open in Preview (macOS)
+
 ---
 
 <h2 id="providers">Providers</h2>
 
-MeiGen-Art supports three image generation backends. You can configure one or multiple — the assistant auto-selects the best available, or you can specify per-request.
+MeiGen-Art supports three image generation backends. Configure one or multiple — the system auto-selects the best available.
 
-### MeiGen Platform (Recommended)
+### ComfyUI — Local & Free
 
-Cloud API with multiple model options: Nanobanana Pro, GPT image 1.5, Seedream 4.5, and more.
+Run generation on your own GPU with full control over models, samplers, and workflow parameters. Import any ComfyUI API-format workflow — MeiGen auto-detects KSampler, CLIPTextEncode, EmptyLatentImage, and LoadImage nodes.
+
+```json
+{
+  "comfyuiUrl": "http://localhost:8188",
+  "comfyuiDefaultWorkflow": "txt2img"
+}
+```
+
+> Perfect for Flux, SDXL, or any model you run locally. Your images never leave your machine.
+
+### MeiGen Cloud
+
+Cloud API with multiple models: Nanobanana Pro, GPT image 1.5, Seedream 4.5, and more. No GPU required.
 
 **Get your API token:**
 1. Sign in at [meigen.ai](https://www.meigen.ai)
@@ -163,20 +253,9 @@ Cloud API with multiple model options: Nanobanana Pro, GPT image 1.5, Seedream 4
 { "meigenApiToken": "meigen_sk_..." }
 ```
 
-### ComfyUI (Local)
-
-Run generation on your own GPU with full control over models, samplers, and workflow parameters. Import any ComfyUI API-format workflow.
-
-```json
-{
-  "comfyuiUrl": "http://localhost:8188",
-  "comfyuiDefaultWorkflow": "txt2img"
-}
-```
-
 ### OpenAI-Compatible API
 
-Bring your own API key for OpenAI (gpt-image-1.5), Together AI, Fireworks AI, or any OpenAI-compatible service.
+Bring your own API key for OpenAI (gpt-image-1.5), Together AI, Fireworks AI, or any compatible service.
 
 ```json
 {
