@@ -37,17 +37,6 @@ An open-source MCP Server (installed via plugin marketplace) that gives LLMs cre
 - Built-in 1,300+ curated prompt templates and fine-tuned prompt engineering techniques that turn requirements into concrete image generation tasks
 - Parallel batch generation and sub-agent execution to keep the main context window clean
 
-### Why Install This Plugin?
-
-<table>
-<tr>
-<td width="25%" align="center"><strong>Local GPU Generation</strong><br><sub>Connect your ComfyUI to generate on your own hardware — free, private, fully controlled</sub></td>
-<td width="25%" align="center"><strong>1,300+ Prompt Library</strong><br><sub>Search curated trending prompts like a local Lovart — find references before you generate</sub></td>
-<td width="25%" align="center"><strong>Multi-Direction Output</strong><br><sub>AI autonomously produces multiple creative directions in parallel — you just pick</sub></td>
-<td width="25%" align="center"><strong>Cloud Fallback</strong><br><sub>No GPU? Use MeiGen Cloud or your own OpenAI key as a seamless backup</sub></td>
-</tr>
-</table>
-
 ---
 
 ## See It in Action

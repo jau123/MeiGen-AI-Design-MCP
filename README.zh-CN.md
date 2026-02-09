@@ -37,17 +37,6 @@
 - 内置 1,300+ 优质提示词模板和精心调试的提示词撰写技巧，把需求转化为具象的生图任务
 - 支持并行批量任务和子 Agent 调用，避免主窗口上下文膨胀
 
-### 为什么装这个插件？
-
-<table>
-<tr>
-<td width="25%" align="center"><strong>本地 GPU 生图</strong><br><sub>接入你的 ComfyUI，用自己的显卡生成 — 免费、私密、完全可控</sub></td>
-<td width="25%" align="center"><strong>1,300+ 提示词库</strong><br><sub>像本地版 Lovart 一样搜索精选提示词 — 先找参考再生成</sub></td>
-<td width="25%" align="center"><strong>多方案自主产出</strong><br><sub>AI 自动并行生成多套创意方向 — 你只需要选</sub></td>
-<td width="25%" align="center"><strong>云端备选</strong><br><sub>没有 GPU？用 MeiGen 云端或你自己的 OpenAI Key 无缝替代</sub></td>
-</tr>
-</table>
-
 ---
 
 ## 实际效果
