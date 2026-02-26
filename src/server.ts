@@ -202,7 +202,7 @@ export function createServer() {
 
   // Free features (no configuration required)
   registerEnhancePrompt(server)
-  registerSearchGallery(server)
+  registerSearchGallery(server, config)
   registerListModels(server, apiClient, config)
   registerGetInspiration(server, apiClient)
   registerManagePreferences(server)
