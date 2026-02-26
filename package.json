@@ -1,6 +1,6 @@
 {
   "name": "meigen",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Visual creative expert plugin — search inspiration, enhance prompts, and generate AI images with intelligent workflow orchestration",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
