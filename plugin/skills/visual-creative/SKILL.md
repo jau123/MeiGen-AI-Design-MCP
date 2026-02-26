@@ -82,7 +82,7 @@ The server auto-detects the best provider and model.
 
 | Tool | Purpose | Cost |
 |------|---------|------|
-| `search_gallery` | Search MeiGen's curated gallery of 1300+ AI-generated images | Free |
+| `search_gallery` | Semantic search across AI image prompts — finds conceptually similar results, not just keyword matches. Also supports category browsing. | Free |
 | `get_inspiration` | Get the full prompt and image URLs for a gallery entry | Free |
 | `enhance_prompt` | Get a system prompt to expand a brief description into a detailed prompt | Free |
 | `list_models` | List available AI models (only when user asks to see/switch models) | Free |

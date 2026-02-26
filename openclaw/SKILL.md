@@ -1,7 +1,7 @@
 ---
 name: creative-toolkit
 description: Generate images from text with multi-provider routing — supports Nanobanana Pro, GPT Image, Seedream, and local ComfyUI workflows. Includes 1,300+ curated prompts and style-aware prompt enhancement. Use when users want to create images, design assets, enhance prompts, or manage AI art workflows.
-version: 1.0.3
+version: 1.0.4
 homepage: https://github.com/jau123/MeiGen-AI-Design-MCP
 metadata: {"clawdbot":{"emoji":"🎨","requires":{"bins":["mcporter"],"env":["MEIGEN_API_TOKEN"]},"primaryEnv":"MEIGEN_API_TOKEN"}}
 ---
@@ -106,7 +106,7 @@ Multiple providers can be configured simultaneously. Auto-detection priority: Me
 
 | Tool | What it does |
 |------|-------------|
-| `search_gallery` | Search 1,300+ curated prompts by keyword, style, or category. Returns prompt text, thumbnails, and metadata. |
+| `search_gallery` | Semantic search across AI image prompts — finds conceptually similar results, not just keyword matches. Also supports category filtering and curated browsing. Returns prompt text, thumbnails, and metadata. |
 | `get_inspiration` | Get the full prompt and high-res images for any gallery entry. Use after `search_gallery` to get copyable prompts. |
 | `enhance_prompt` | Expand a brief idea (e.g. "a cat in space") into a detailed, style-aware prompt with lighting, composition, and material directions. Supports three styles: realistic, anime, illustration. |
 | `list_models` | List all available models across configured providers with capabilities and supported features. |
@@ -157,11 +157,16 @@ Reference images work across all providers.
 
 ### Gallery exploration
 
-```
-1. search_gallery query="product photography" category="Product"
-   → Browse thumbnails and prompts
+Semantic search understands intent — "dreamy portrait with soft light" finds relevant results even without exact keyword matches:
 
-2. get_inspiration id="<entry_id>"
+```
+1. search_gallery query="dreamy portrait with soft light"
+   → Finds semantically similar prompts with thumbnails
+
+2. search_gallery category="Product"
+   → Browse by category from 1,300+ curated prompts
+
+3. get_inspiration id="<entry_id>"
    → Get full prompt text — copy and modify for your own generation
 ```
 
