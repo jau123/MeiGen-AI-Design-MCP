@@ -1,6 +1,6 @@
 ---
 name: creative-toolkit
-description: Generate images from text with multi-provider routing — supports Nanobanana Pro, GPT Image, Seedream, and local ComfyUI workflows. Includes 1,300+ curated prompts and style-aware prompt enhancement. Use when users want to create images, design assets, enhance prompts, or manage AI art workflows.
+description: Generate images from text with multi-provider routing — supports Nanobanana 2, Seedream 5.0, GPT Image, and local ComfyUI workflows. Includes 1,300+ curated prompts and style-aware prompt enhancement. Use when users want to create images, design assets, enhance prompts, or manage AI art workflows.
 version: 1.0.4
 homepage: https://github.com/jau123/MeiGen-AI-Design-MCP
 metadata: {"clawdbot":{"emoji":"🎨","requires":{"bins":["mcporter"],"env":["MEIGEN_API_TOKEN"]},"primaryEnv":"MEIGEN_API_TOKEN"}}
@@ -190,7 +190,7 @@ Semantic search understands intent — "dreamy portrait with soft light" finds r
 
 | | MeiGen Platform | OpenAI-Compatible | ComfyUI (Local) |
 |---|---|---|---|
-| **Models** | Nanobanana Pro, GPT Image 1.5, Seedream 4.5, etc. | Any model at the endpoint | Any checkpoint on your machine |
+| **Models** | Nanobanana 2, Seedream 5.0, GPT Image 1.5, etc. | Any model at the endpoint | Any checkpoint on your machine |
 | **Reference images** | Native support | gpt-image-1.5 only | Requires LoadImage node |
 | **Concurrency** | Up to 4 parallel | Up to 4 parallel | 1 at a time (GPU constraint) |
 | **Latency** | 10-30s typical | Varies by provider | Depends on hardware |

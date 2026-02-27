@@ -215,7 +215,7 @@ Run generation on your own GPU with full control over models, samplers, and work
 
 ### MeiGen Cloud
 
-Cloud API with multiple models: Nanobanana Pro, GPT image 1.5, Seedream 4.5, and more. No GPU required.
+Cloud API with multiple models: Nanobanana 2, Seedream 5.0, GPT image 1.5, and more. No GPU required.
 
 **Get your API token:**
 1. Sign in at [meigen.ai](https://www.meigen.ai)

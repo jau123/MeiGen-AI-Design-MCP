@@ -25,6 +25,9 @@ import {
 import { Semaphore } from '../lib/semaphore.js'
 import { addRecentGeneration } from '../lib/preferences.js'
 
+// Default model for MeiGen provider when user doesn't specify one
+const MEIGEN_DEFAULT_MODEL = 'nanobanana-2'
+
 // Concurrency control: ComfyUI serial (local GPU), API max 4 parallel
 const apiSemaphore = new Semaphore(4)
 const comfyuiSemaphore = new Semaphore(1)
@@ -91,7 +94,7 @@ export function registerGenerateImage(server: McpServer, apiClient: MeiGenApiCli
         return {
           content: [{
             type: 'text' as const,
-            text: 'No image generation providers configured.\n\nQuickest way to start:\n1. Get a MeiGen API token at https://www.meigen.ai (sign in → avatar → Settings → API Keys)\n2. Run /meigen:setup and paste your token\n\nOr configure one of:\n- MEIGEN_API_TOKEN: MeiGen platform (Nanobanana Pro, GPT image 1.5, Seedream 4.5)\n- OPENAI_API_KEY: OpenAI/compatible API (gpt-image-1.5, etc.)\n- Import a ComfyUI workflow for local GPU generation',
+            text: 'No image generation providers configured.\n\nQuickest way to start:\n1. Get a MeiGen API token at https://www.meigen.ai (sign in → avatar → Settings → API Keys)\n2. Run /meigen:setup and paste your token\n\nOr configure one of:\n- MEIGEN_API_TOKEN: MeiGen platform (Nanobanana 2, Seedream 5.0, GPT image 1.5)\n- OPENAI_API_KEY: OpenAI/compatible API (gpt-image-1.5, etc.)\n- Import a ComfyUI workflow for local GPU generation',
           }],
           isError: true,
         }
@@ -201,7 +204,7 @@ async function generateWithMeiGen(
   // 1. Submit generation request
   const genResponse = await apiClient.generateImage({
     prompt,
-    modelId: model,
+    modelId: model || MEIGEN_DEFAULT_MODEL,
     aspectRatio: aspectRatio || '1:1',
     referenceImages,
   })
@@ -241,10 +244,10 @@ async function generateWithMeiGen(
 
   const savedPath = saveImageLocally(base64, mimeType)
 
-  addRecentGeneration({ prompt, provider: 'meigen', model: model || 'default', aspectRatio })
+  addRecentGeneration({ prompt, provider: 'meigen', model: model || MEIGEN_DEFAULT_MODEL, aspectRatio })
 
   const lines = [`Image generated successfully.`]
-  lines.push(`- Provider: MeiGen (model: ${model || 'default'})`)
+  lines.push(`- Provider: MeiGen (model: ${model || MEIGEN_DEFAULT_MODEL})`)
   lines.push(`- Image URL: ${status.imageUrl}`)
   if (savedPath) lines.push(`- Saved to: ${savedPath}`)
   lines.push(`\nYou can use the Image URL as referenceImages for follow-up generation.`)

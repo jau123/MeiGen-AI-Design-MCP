@@ -215,7 +215,7 @@ MeiGen MCP 支持三种图片生成后端，可以配置一个或多个 — 系�
 
 ### MeiGen 云端
 
-云端 API，支持多种模型：Nanobanana Pro、GPT image 1.5、Seedream 4.5 等。无需 GPU。
+云端 API，支持多种模型：Nanobanana 2、Seedream 5.0、GPT image 1.5 等。无需 GPU。
 
 **获取 API Token：**
 1. 登录 [meigen.ai](https://www.meigen.ai)

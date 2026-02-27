@@ -46,7 +46,7 @@ Present these options to the user:
 
 ### Option A: MeiGen Platform (Recommended)
 
-- Supports **Nanobanana Pro**, **GPT image 1.5**, **Seedream 4.5** and more
+- Supports **Nanobanana 2**, **Seedream 5.0**, **GPT image 1.5** and more
 - Reference image support for style transfer
 - No additional accounts needed — just get a token from meigen.ai
 
