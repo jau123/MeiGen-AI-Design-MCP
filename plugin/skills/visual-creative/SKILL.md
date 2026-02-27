@@ -148,6 +148,22 @@ Task 4: "Call generate_image with prompt: '[prompt 4]', aspectRatio: '1:1'. Retu
 
 **Sources**: gallery URLs, previous generation URLs, `upload_reference_image` for local files.
 
+## MeiGen Model Pricing
+
+When a user asks about models or costs, refer to this table:
+
+| Model | Credits | 4K | Best For |
+|-------|---------|-----|----------|
+| Nanobanana 2 (default) | 5 | Yes | General purpose, high quality |
+| Seedream 5.0 Lite | 5 | Yes | Fast, stylized imagery |
+| GPT Image 1.5 | 2 | No | Budget-friendly |
+| Nanobanana Pro | 10 | Yes | Premium quality |
+| Seedream 4.5 | 5 | Yes | Stylized, wide ratio support |
+| Midjourney Niji 7 | 15 | No | Anime and illustration |
+
+When no model is specified, the server defaults to Nanobanana 2 (5 credits).
+To use a specific model, pass `model: "<model-id>"` to `generate_image` (e.g., `model: "seedream-5.0-lite"`).
+
 ## Reference Image Best Practices
 
 - `referenceImages` takes an array of public URLs: `["https://..."]`

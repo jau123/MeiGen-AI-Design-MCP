@@ -197,6 +197,19 @@ Semantic search understands intent — "dreamy portrait with soft light" finds r
 | **Cost** | Token-based credits | Provider billing | Free (your hardware) |
 | **Offline** | No | No | Yes |
 
+## MeiGen Model Pricing
+
+| Model | Credits | 4K | Best For |
+|-------|---------|-----|----------|
+| Nanobanana 2 (default) | 5 | Yes | General purpose, high quality |
+| Seedream 5.0 Lite | 5 | Yes | Fast, stylized imagery |
+| GPT Image 1.5 | 2 | No | Budget-friendly |
+| Nanobanana Pro | 10 | Yes | Premium quality |
+| Seedream 4.5 | 5 | Yes | Stylized, wide ratio support |
+| Midjourney Niji 7 | 15 | No | Anime and illustration |
+
+When no model is specified, the server defaults to Nanobanana 2.
+
 ## Prompt Enhancement Styles
 
 `enhance_prompt` supports three style modes, each producing different types of detail:
