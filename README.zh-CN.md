@@ -1,5 +1,5 @@
 <h1 align="center">
-  MeiGen AI Design MCP <a href="https://github.com/SamurAIGPT/awesome-openclaw"><img src="https://img.shields.io/badge/Awesome-OpenClaw-fc60a8?style=flat-square&logo=awesomelists&logoColor=white" alt="Awesome OpenClaw"></a>
+  MeiGen AI Design MCP <a href="https://github.com/punkpeye/awesome-mcp-servers"><img src="https://awesome.re/mentioned-badge.svg" alt="Mentioned in Awesome MCP Servers"></a>
 </h1>
 
 <p align="center">
