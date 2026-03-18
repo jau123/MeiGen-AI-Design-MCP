@@ -1,5 +1,5 @@
 <h1 align="center">
-  MeiGen AI Design MCP <a href="https://github.com/punkpeye/awesome-mcp-servers"><img src="https://awesome.re/mentioned-badge.svg" alt="Mentioned in Awesome MCP Servers"></a>
+  MeiGen AI Design MCP <a href="https://github.com/punkpeye/awesome-mcp-servers"><img src="https://awesome.re/mentioned-badge.svg" alt="Mentioned in Awesome MCP Servers"></a> <a href="https://github.com/wshobson/agents/tree/main/plugins/meigen-ai-design"><img src="https://img.shields.io/badge/wshobson%2Fagents-Featured-blue?style=flat&logo=github" alt="Featured in wshobson/agents"></a>
 </h1>
 
 <p align="center">
@@ -89,6 +89,18 @@
 ```
 
 **安装完成后重启 Claude Code**（关闭再打开，或新建终端标签页）。
+
+**其他插件市场** — 也可通过 [wshobson/agents](https://github.com/wshobson/agents)（30k+ stars）安装：
+
+```bash
+/plugin marketplace add wshobson/agents
+/plugin install meigen-ai-design@claude-code-workflows
+```
+
+> 该市场不包含 MCP 服务配置。安装后需手动添加到项目 `.mcp.json`：
+> ```json
+> { "mcpServers": { "meigen": { "command": "npx", "args": ["-y", "meigen@1.2.5"] } } }
+> ```
 
 #### 首次配置
 

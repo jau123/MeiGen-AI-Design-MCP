@@ -1,5 +1,5 @@
 <h1 align="center">
-  MeiGen AI Design MCP <a href="https://github.com/punkpeye/awesome-mcp-servers"><img src="https://awesome.re/mentioned-badge.svg" alt="Mentioned in Awesome MCP Servers"></a>
+  MeiGen AI Design MCP <a href="https://github.com/punkpeye/awesome-mcp-servers"><img src="https://awesome.re/mentioned-badge.svg" alt="Mentioned in Awesome MCP Servers"></a> <a href="https://github.com/wshobson/agents/tree/main/plugins/meigen-ai-design"><img src="https://img.shields.io/badge/wshobson%2Fagents-Featured-blue?style=flat&logo=github" alt="Featured in wshobson/agents"></a>
 </h1>
 
 <p align="center">
@@ -89,6 +89,18 @@ An open-source MCP Server (installed via plugin marketplace) that gives LLMs cre
 ```
 
 **Restart Claude Code** after installation (close and reopen, or open a new terminal tab).
+
+**Alternative marketplace** — also available via [wshobson/agents](https://github.com/wshobson/agents) (30k+ stars):
+
+```bash
+/plugin marketplace add wshobson/agents
+/plugin install meigen-ai-design@claude-code-workflows
+```
+
+> This marketplace doesn't bundle MCP server config. After installing, add to your project's `.mcp.json`:
+> ```json
+> { "mcpServers": { "meigen": { "command": "npx", "args": ["-y", "meigen@1.2.5"] } } }
+> ```
 
 #### First-Time Setup
 
