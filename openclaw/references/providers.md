@@ -46,7 +46,9 @@ Multiple providers can be configured simultaneously. Auto-detection priority: Me
 | GPT Image 1.5 | 2 | No | Budget-friendly |
 | Nanobanana Pro | 10 | Yes | Premium quality |
 | Seedream 4.5 | 5 | Yes | Stylized, wide ratio support |
-| Midjourney Niji 7 | 15 | No | Anime and illustration |
+| Midjourney Niji 7 | 15 | No | **Anime and illustration ONLY** |
+
+> **Niji 7 Warning**: This model is exclusively for anime/illustration styles. Do NOT use it for photorealistic, product photography, or non-anime content. Raw mode is OFF by default to maximize anime style quality. When enhancing prompts for Niji 7, always use `style: 'anime'` in `enhance_prompt`. Returns 4 candidate images per generation (other models return 1).
 
 When no model is specified, the server defaults to Nanobanana 2.
 

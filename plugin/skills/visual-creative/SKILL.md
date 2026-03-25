@@ -159,10 +159,18 @@ When a user asks about models or costs, refer to this table:
 | GPT Image 1.5 | 2 | No | Budget-friendly |
 | Nanobanana Pro | 10 | Yes | Premium quality |
 | Seedream 4.5 | 5 | Yes | Stylized, wide ratio support |
-| Midjourney Niji 7 | 15 | No | Anime and illustration |
+| Midjourney Niji 7 | 15 | No | **Anime and illustration ONLY** |
 
 When no model is specified, the server defaults to Nanobanana 2 (5 credits).
 To use a specific model, pass `model: "<model-id>"` to `generate_image` (e.g., `model: "seedream-5.0-lite"`).
+
+### Midjourney Niji 7 — Important Notes
+
+- **Anime/illustration ONLY**: Niji 7 is exclusively designed for anime and illustration styles. Do NOT use it for photorealistic, product, or non-anime content — use Nanobanana 2 or Seedream instead.
+- **Raw mode is OFF by default**: This ensures Niji 7's anime style optimization is fully applied. Do not enable raw mode unless the user specifically requests a less stylized output.
+- **Always use `style: 'anime'` with `enhance_prompt`**: When the user intends to generate with Niji 7, pass `style: 'anime'` to `enhance_prompt` — the default `realistic` style produces prompts that are poorly suited for Niji 7.
+- **Returns 4 images per generation**: Unlike other models that return 1 image, Niji 7 returns 4 candidate images per request. All 4 are saved and viewable in the image detail dialog.
+- **Slowest and most expensive**: 15 credits, ~60s generation time, max 1 reference image.
 
 ## Reference Image Best Practices
 

@@ -41,6 +41,7 @@ export interface MeiGenGenerationResponse {
 export interface MeiGenGenerationStatus {
   status: 'pending' | 'processing' | 'completed' | 'failed'
   imageUrl: string | null
+  imageUrls: string[] | null
   error: string | null
 }
 

@@ -99,7 +99,7 @@
 
 > 该市场不包含 MCP 服务配置。安装后需手动添加到项目 `.mcp.json`：
 > ```json
-> { "mcpServers": { "meigen": { "command": "npx", "args": ["-y", "meigen@1.2.5"] } } }
+> { "mcpServers": { "meigen": { "command": "npx", "args": ["-y", "meigen@1.2.6"] } } }
 > ```
 
 #### 首次配置

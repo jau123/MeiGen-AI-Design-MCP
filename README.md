@@ -99,7 +99,7 @@ An open-source MCP Server (installed via plugin marketplace) that gives LLMs cre
 
 > This marketplace doesn't bundle MCP server config. After installing, add to your project's `.mcp.json`:
 > ```json
-> { "mcpServers": { "meigen": { "command": "npx", "args": ["-y", "meigen@1.2.5"] } } }
+> { "mcpServers": { "meigen": { "command": "npx", "args": ["-y", "meigen@1.2.6"] } } }
 > ```
 
 #### First-Time Setup
@@ -135,13 +135,17 @@ This writes the correct MCP config file with the right format and path for your 
 
 ### OpenClaw
 
-Install from [ClawHub](https://clawhub.ai/jau123/creative-toolkit), or use the CLI:
+Install the skill from [ClawHub](https://clawhub.ai/jau123/creative-toolkit):
 
 ```bash
 npx clawhub@latest install creative-toolkit
 ```
 
-Our skills follow the [Agent Skills](https://agentskills.io) open standard — copy them into your OpenClaw workspace and they work directly. For MCP tools, use OpenClaw's MCP adapter to connect the MeiGen server.
+Or install the full plugin (includes commands, skills, and MCP server):
+
+```bash
+openclaw plugins install meigen-ai-design
+```
 
 ### Other MCP-Compatible Hosts
 

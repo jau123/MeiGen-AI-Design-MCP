@@ -1,7 +1,7 @@
 ---
 name: "AI Image Generation & Editor — Nanobanana, GPT Image, ComfyUI"
-description: Generate images from text with multi-provider routing — supports Nanobanana 2, Seedream 5.0, GPT Image, and local ComfyUI workflows. Includes 1,300+ curated prompts and style-aware prompt enhancement. Use when users want to create images, design assets, enhance prompts, or manage AI art workflows.
-version: 1.0.15
+description: Generate images from text with multi-provider routing — supports Nanobanana 2, Seedream 5.0, GPT Image, Midjourney Niji 7 (anime/illustration only), and local ComfyUI workflows. Includes 1,300+ curated prompts and style-aware prompt enhancement. Use when users want to create images, design assets, enhance prompts, or manage AI art workflows.
+version: 1.0.16
 homepage: https://github.com/jau123/MeiGen-AI-Design-MCP
 metadata: {"clawdbot":{"emoji":"🎨","requires":{"bins":["mcporter","npx","node"]}}}
 ---
@@ -19,7 +19,7 @@ Add the MCP server to your mcporter config (`~/.config/mcporter/config.json`):
   "mcpServers": {
     "creative-toolkit": {
       "command": "npx",
-      "args": ["-y", "meigen@1.2.5"]
+      "args": ["-y", "meigen@1.2.6"]
     }
   }
 }
@@ -79,6 +79,10 @@ Do NOT write creative commentary about what the image "looks like".
 ### Never specify model or provider
 
 Do NOT pass `model` or `provider` to `generate_image` unless the user explicitly asks. The server auto-selects the best available provider and model.
+
+### Midjourney Niji 7 is anime-only
+
+Niji 7 is exclusively designed for anime and illustration styles. Do NOT use it for photorealistic, product photography, or non-anime content — use Nanobanana 2 or Seedream instead. When enhancing prompts for Niji 7, always pass `style: 'anime'` to `enhance_prompt` (the default `realistic` produces prompts poorly suited for anime models). Raw mode is OFF by default to maximize anime style quality — do not enable it unless the user specifically requests less stylized output. Note: Niji 7 returns 4 candidate images per generation (other models return 1).
 
 ### Always confirm before generating multiple images
 

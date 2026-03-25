@@ -11,7 +11,7 @@ This plugin requires the `meigen` MCP server. Add it to your project's `.mcp.jso
   "mcpServers": {
     "meigen": {
       "command": "npx",
-      "args": ["-y", "meigen@1.2.5"]
+      "args": ["-y", "meigen@1.2.6"]
     }
   }
 }

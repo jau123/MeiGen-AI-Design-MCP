@@ -84,7 +84,7 @@ export const generateImageSchema = {
 export function registerGenerateImage(server: McpServer, apiClient: MeiGenApiClient, config: MeiGenConfig) {
   server.tool(
     'generate_image',
-    'Generate an image using AI. Supports MeiGen platform, local ComfyUI, or OpenAI-compatible APIs. Tip: get prompts from get_inspiration() or enhance_prompt(), and use gallery image URLs as referenceImages for style guidance.',
+    'Generate an image using AI. Supports MeiGen platform, local ComfyUI, or OpenAI-compatible APIs. Tip: get prompts from get_inspiration() or enhance_prompt(), and use gallery image URLs as referenceImages for style guidance. Note: Midjourney Niji 7 is for anime/illustration ONLY — do not use it for photorealistic content. When enhancing prompts for Niji 7, always use enhance_prompt with style "anime".',
     generateImageSchema,
     { readOnlyHint: false, destructiveHint: true },
     async ({ prompt, model, size, aspectRatio, quality, referenceImages, provider: requestedProvider, workflow, negativePrompt }, extra) => {
@@ -229,12 +229,15 @@ async function generateWithMeiGen(
     throw new Error(status.error || 'Generation failed')
   }
 
-  if (!status.imageUrl) {
+  // Use imageUrls array if available (e.g., Niji 7 returns 4 candidates), fall back to imageUrl
+  const allImageUrls = status.imageUrls?.length ? status.imageUrls : (status.imageUrl ? [status.imageUrl] : [])
+
+  if (allImageUrls.length === 0) {
     throw new Error('No image URL in completed generation')
   }
 
-  // Download image for local save
-  const imageRes = await fetch(status.imageUrl)
+  // Download first image for local save
+  const imageRes = await fetch(allImageUrls[0])
   if (!imageRes.ok) {
     throw new Error(`Failed to download generated image: ${imageRes.status}`)
   }
@@ -248,9 +251,16 @@ async function generateWithMeiGen(
 
   const lines = [`Image generated successfully.`]
   lines.push(`- Provider: MeiGen (model: ${model || MEIGEN_DEFAULT_MODEL})`)
-  lines.push(`- Image URL: ${status.imageUrl}`)
+
+  if (allImageUrls.length > 1) {
+    lines.push(`- ${allImageUrls.length} candidate images returned:`)
+    allImageUrls.forEach((url, i) => lines.push(`  ${i + 1}. ${url}`))
+  } else {
+    lines.push(`- Image URL: ${allImageUrls[0]}`)
+  }
+
   if (savedPath) lines.push(`- Saved to: ${savedPath}`)
-  lines.push(`\nYou can use the Image URL as referenceImages for follow-up generation.`)
+  lines.push(`\nYou can use any Image URL as referenceImages for follow-up generation.`)
 
   return {
     content: [{ type: 'text' as const, text: lines.join('\n') }],

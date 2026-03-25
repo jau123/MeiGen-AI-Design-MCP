@@ -25,7 +25,7 @@
 
 ## Security & Privacy
 
-**Pinned package**: This skill runs as an MCP server via `npx meigen@1.2.5` (pinned version, not floating). The package is published on [npmjs.com](https://www.npmjs.com/package/meigen) with full source code at [GitHub](https://github.com/jau123/MeiGen-AI-Design-MCP). No code is obfuscated or minified beyond standard TypeScript compilation.
+**Pinned package**: This skill runs as an MCP server via `npx meigen@1.2.6` (pinned version, not floating). The package is published on [npmjs.com](https://www.npmjs.com/package/meigen) with full source code at [GitHub](https://github.com/jau123/MeiGen-AI-Design-MCP). No code is obfuscated or minified beyond standard TypeScript compilation.
 
 **Reference images**: The `upload_reference_image` tool compresses a user-specified image (max 2MB, 2048px) for use as a style reference in generation. This is always user-initiated and requires explicit invocation — no files are accessed automatically. Uploaded images expire after 24 hours. ComfyUI users can skip uploading entirely by passing local file paths directly to `generate_image`.
 

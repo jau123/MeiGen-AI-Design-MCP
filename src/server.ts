@@ -104,6 +104,13 @@ User wants a base design plus derivative applications.
 - Do NOT call list_models to "pick the cheapest model" — just generate.
   list_models is for when the USER wants to browse or switch models.
 
+### Midjourney Niji 7 — anime/illustration ONLY
+- Niji 7 is exclusively for anime and illustration styles. Do NOT use it for photorealistic, product, or non-anime content — use Nanobanana 2 or Seedream instead.
+- When enhancing prompts for Niji 7, always pass \`style: 'anime'\` to \`enhance_prompt\` — the default \`realistic\` produces prompts poorly suited for anime models.
+- Raw mode is OFF by default to maximize anime style quality — do not enable it unless the user specifically requests less stylized output.
+- Niji 7 returns 4 candidate images per generation (other models return 1). All 4 URLs are listed in the result.
+- Slowest and most expensive: 15 credits, ~60s generation time, max 1 reference image.
+
 ### Single image
 Call generate_image with just the prompt (and aspectRatio if needed).
 Do NOT specify provider or model.
@@ -201,7 +208,7 @@ export function createServer() {
   const apiClient = new MeiGenApiClient(config)
 
   const server = new McpServer(
-    { name: 'meigen', version: '1.2.5' },
+    { name: 'meigen', version: '1.2.6' },
     { instructions: SERVER_INSTRUCTIONS },
   )
 

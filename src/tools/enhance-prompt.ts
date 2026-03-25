@@ -10,7 +10,7 @@ import { getSystemPrompt, type PromptStyle } from '../lib/prompts.js'
 export const enhancePromptSchema = {
   prompt: z.string().describe('The simple prompt to enhance (e.g., "a cat in a garden")'),
   style: z.enum(['realistic', 'anime', 'illustration']).optional().default('realistic')
-    .describe('Target visual style: realistic (photorealistic), anime (2D/Japanese), illustration (concept art)'),
+    .describe('Target visual style: realistic (photorealistic), anime (2D/Japanese), illustration (concept art). IMPORTANT: Use "anime" when the user intends to generate with Midjourney Niji 7 — the default "realistic" produces prompts poorly suited for anime models.'),
 }
 
 export function registerEnhancePrompt(server: McpServer) {
