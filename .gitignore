@@ -5,3 +5,6 @@ dist/
 .env
 .env.*
 CLAUDE.md
+.claude/
+docs/
+MeiGen-skills-creator.zip
