@@ -76,6 +76,10 @@ An open-source MCP Server (installed via plugin marketplace) that gives LLMs cre
 
 ---
 
+## Hosted deployment
+
+A hosted deployment is available on [Fronteir AI](https://fronteir.ai/mcp/jau123-meigen-ai-design-mcp).
+
 ## Quick Start
 
 ### Claude Code Plugin (Recommended)
