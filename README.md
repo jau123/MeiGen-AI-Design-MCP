@@ -31,7 +31,7 @@
 
 ## What Is This?
 
-An open-source MCP Server (installed via plugin marketplace) that gives LLMs creative and aesthetic capabilities through 8 tools and carefully designed skills, enabling them to handle complex design tasks. It teaches LLMs how to use various image generation models effectively, delivering professional results through reference images and multi-direction parallel workflows.
+An open-source MCP Server (installed via plugin marketplace) that gives LLMs creative and aesthetic capabilities through 7 tools and carefully designed skills, enabling them to handle complex design tasks. It teaches LLMs how to use various image generation models effectively, delivering professional results through reference images and multi-direction parallel workflows.
 
 - Works with local ComfyUI — no external API dependency; also easily integrates with any custom API
 - Built-in 1,500+ curated prompt templates from [nanobanana-trending-prompts](https://github.com/jau123/nanobanana-trending-prompts) and fine-tuned prompt engineering techniques that turn requirements into concrete image generation tasks
@@ -99,7 +99,7 @@ An open-source MCP Server (installed via plugin marketplace) that gives LLMs cre
 
 > This marketplace doesn't bundle MCP server config. After installing, add to your project's `.mcp.json`:
 > ```json
-> { "mcpServers": { "meigen": { "command": "npx", "args": ["-y", "meigen@1.2.6"] } } }
+> { "mcpServers": { "meigen": { "command": "npx", "args": ["-y", "meigen@1.2.7"] } } }
 > ```
 
 #### First-Time Setup
@@ -179,10 +179,9 @@ Add to your MCP config (e.g. `.mcp.json`, `claude_desktop_config.json`):
 | `get_inspiration` | Yes | Get full prompt, all images, and metadata for any gallery entry |
 | `enhance_prompt` | Yes | Transform a brief idea into a professional image prompt |
 | `list_models` | Yes | List available models across all configured providers |
-| `upload_reference_image` | Yes | Compress and upload a local image for use as a reference |
 | `comfyui_workflow` | Yes | Manage ComfyUI workflow templates: list, view, import, modify, delete |
 | `manage_preferences` | Yes | Remember your preferred style, aspect ratio, model, and favorite prompts |
-| `generate_image` | Key | Generate an image — routes to the best available provider automatically |
+| `generate_image` | Key | Generate an image — routes to the best available provider automatically. Local reference images are auto-compressed and uploaded. |
 
 ### Slash Commands
 
@@ -191,7 +190,6 @@ Add to your MCP config (e.g. `.mcp.json`, `claude_desktop_config.json`):
 | `/meigen:gen <prompt>` | Quick generate — skip conversation, go straight to image |
 | `/meigen:find <keywords>` | Search 1,300+ curated prompts for inspiration |
 | `/meigen:models` | Browse and switch AI models for this session |
-| `/meigen:ref <file>` | Upload a local image as reference, get a URL back |
 | `/meigen:setup` | Interactive provider configuration wizard |
 
 ### Smart Agents

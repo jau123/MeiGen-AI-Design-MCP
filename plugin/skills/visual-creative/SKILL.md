@@ -144,9 +144,9 @@ Task 4: "Call generate_image with prompt: '[prompt 4]', aspectRatio: '1:1'. Retu
 
 ### Mode 5: Reference Image Generation
 
-**Flow**: Get reference URL → `generate_image` with `referenceImages` parameter + detailed prompt.
+**Flow**: Get reference URL or local file path → `generate_image` with `referenceImages` parameter + detailed prompt.
 
-**Sources**: gallery URLs, previous generation URLs, `upload_reference_image` for local files.
+**Sources**: gallery URLs, previous generation URLs, or local file paths (auto-uploaded when needed).
 
 ## MeiGen Model Pricing
 
@@ -174,11 +174,12 @@ To use a specific model, pass `model: "<model-id>"` to `generate_image` (e.g., `
 
 ## Reference Image Best Practices
 
-- `referenceImages` takes an array of public URLs: `["https://..."]`
+- `referenceImages` accepts URLs or local file paths: `["https://...", "/path/to/image.jpg"]`
+- Local files are automatically compressed and uploaded when needed
 - Always pair with a detailed text prompt — reference guides style, prompt guides content
 - From gallery: `get_inspiration` returns image URLs
 - From generation: `generate_image` returns Image URL in its response
-- From local file: call `upload_reference_image` first to get a URL
+- From local file: just pass the path directly — no separate upload step needed
 
 ## Prompt Engineering Quick Reference
 

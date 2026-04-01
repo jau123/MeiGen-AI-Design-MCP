@@ -99,7 +99,7 @@
 
 > 该市场不包含 MCP 服务配置。安装后需手动添加到项目 `.mcp.json`：
 > ```json
-> { "mcpServers": { "meigen": { "command": "npx", "args": ["-y", "meigen@1.2.6"] } } }
+> { "mcpServers": { "meigen": { "command": "npx", "args": ["-y", "meigen@1.2.7"] } } }
 > ```
 
 #### 首次配置
@@ -175,10 +175,9 @@ npx clawhub@latest install creative-toolkit
 | `get_inspiration` | 是 | 获取某条提示词的完整内容、所有图片和元数据 |
 | `enhance_prompt` | 是 | 将简短想法转化为专业图片提示词 |
 | `list_models` | 是 | 列出所有已配置后端的可用模型 |
-| `upload_reference_image` | 是 | 压缩并上传本地图片，用作参考图 |
 | `comfyui_workflow` | 是 | 管理 ComfyUI 工作流模板：列表、查看、导入、修改、删除 |
 | `manage_preferences` | 是 | 记住你偏好的风格、比例、模型和收藏的提示词 |
-| `generate_image` | 需要 Key | 生成图片 — 自动路由到最佳可用后端 |
+| `generate_image` | 需要 Key | 生成图片 — 自动路由到最佳可用后端。本地参考图自动压缩上传。 |
 
 ### 快捷命令
 
@@ -187,7 +186,6 @@ npx clawhub@latest install creative-toolkit
 | `/meigen:gen <提示词>` | 快速生图 — 跳过对话，直接生成 |
 | `/meigen:find <关键词>` | 搜索 1,300+ 精选提示词获取灵感 |
 | `/meigen:models` | 浏览和切换当前会话的 AI 模型 |
-| `/meigen:ref <文件路径>` | 上传本地图片作为参考图，返回 URL |
 | `/meigen:setup` | 交互式后端配置向导 |
 
 ### 智能 Agent

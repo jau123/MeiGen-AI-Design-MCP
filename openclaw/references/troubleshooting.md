@@ -15,19 +15,16 @@
 -> Run `list_models` to see available models for your configured providers.
 
 **Reference image rejected**
--> Reference images require accessible URLs. Use `upload_reference_image` to prepare local files first. ComfyUI users can pass local file paths directly.
+-> Pass local file paths or public URLs directly to `generate_image`'s `referenceImages` parameter. Local files are automatically compressed and uploaded.
 
-**Upload returns "Not found" or path error**
--> Always use the `upload_reference_image` MCP tool — never try to replicate its internal logic. The tool handles the full preparation pipeline automatically. If it is unavailable, ask the user to provide an image URL directly instead.
-
-**Reference image URL expired**
--> URLs from `upload_reference_image` expire after 24 hours. Re-upload the image if the URL is no longer accessible.
+**Reference image path not found**
+-> Verify the file path exists and is an absolute path. Supported formats: JPEG, PNG, WebP, GIF.
 
 ## Security & Privacy
 
-**Pinned package**: This skill runs as an MCP server via `npx meigen@1.2.6` (pinned version, not floating). The package is published on [npmjs.com](https://www.npmjs.com/package/meigen) with full source code at [GitHub](https://github.com/jau123/MeiGen-AI-Design-MCP). No code is obfuscated or minified beyond standard TypeScript compilation.
+**Pinned package**: This skill runs as an MCP server via `npx meigen@1.2.7` (pinned version, not floating). The package is published on [npmjs.com](https://www.npmjs.com/package/meigen) with full source code at [GitHub](https://github.com/jau123/MeiGen-AI-Design-MCP). No code is obfuscated or minified beyond standard TypeScript compilation.
 
-**Reference images**: The `upload_reference_image` tool compresses a user-specified image (max 2MB, 2048px) for use as a style reference in generation. This is always user-initiated and requires explicit invocation — no files are accessed automatically. Uploaded images expire after 24 hours. ComfyUI users can skip uploading entirely by passing local file paths directly to `generate_image`.
+**Reference images**: When local file paths are passed to `generate_image`'s `referenceImages`, the image is compressed (max 2MB, 2048px) and temporarily uploaded for API providers. This is always user-initiated — no files are accessed automatically. ComfyUI passes local files directly to the workflow without uploading.
 
 **API tokens**: `MEIGEN_API_TOKEN` is stored locally in environment variables or `~/.config/meigen/config.json` with `chmod 600` permissions. Tokens are only sent to the configured provider's API endpoint and never logged or transmitted elsewhere.
 

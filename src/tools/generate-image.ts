@@ -6,7 +6,7 @@
  */
 
 import { z } from 'zod'
-import { writeFileSync, mkdirSync } from 'fs'
+import { existsSync, writeFileSync, mkdirSync } from 'fs'
 import { join } from 'path'
 import { homedir } from 'os'
 import { randomBytes } from 'crypto'
@@ -24,6 +24,7 @@ import {
 } from '../lib/providers/comfyui.js'
 import { Semaphore } from '../lib/semaphore.js'
 import { addRecentGeneration } from '../lib/preferences.js'
+import { processAndUploadImage } from '../lib/upload.js'
 
 // Default model for MeiGen provider when user doesn't specify one
 const MEIGEN_DEFAULT_MODEL = 'nanobanana-2'
@@ -61,6 +62,45 @@ async function notify(extra: RequestHandlerExtra<ServerRequest, ServerNotificati
   }
 }
 
+/** Check if a string looks like a local file path (not a URL) */
+function isLocalPath(ref: string): boolean {
+  if (ref.startsWith('http://') || ref.startsWith('https://')) return false
+  if (ref.startsWith('file://')) return true
+  return ref.startsWith('/') || ref.startsWith('~') || /^[A-Z]:\\/i.test(ref)
+}
+
+/** Resolve file:// URIs and ~ prefix to absolute paths */
+function resolveLocalPath(ref: string): string {
+  if (ref.startsWith('file://')) return ref.slice(7)
+  if (ref.startsWith('~')) return homedir() + ref.slice(1)
+  return ref
+}
+
+/**
+ * Resolve local file paths in referenceImages to public URLs by uploading them.
+ * URLs are passed through unchanged. ComfyUI is skipped (handles local files natively).
+ */
+async function resolveReferenceImages(
+  refs: string[] | undefined,
+  config: MeiGenConfig,
+  notifyFn: (msg: string) => Promise<void>,
+): Promise<string[] | undefined> {
+  if (!refs || refs.length === 0) return refs
+
+  return Promise.all(refs.map(async (ref) => {
+    if (!isLocalPath(ref)) return ref
+
+    const filePath = resolveLocalPath(ref)
+    if (!existsSync(filePath)) {
+      throw new Error(`Reference image not found: ${filePath}`)
+    }
+
+    await notifyFn(`Uploading reference image: ${filePath}...`)
+    const result = await processAndUploadImage(filePath, config)
+    return result.publicUrl
+  }))
+}
+
 export const generateImageSchema = {
   prompt: z.string().describe('The image generation prompt'),
   model: z.string().optional()
@@ -72,7 +112,7 @@ export const generateImageSchema = {
   quality: z.string().optional()
     .describe('Image quality for OpenAI-compatible providers: "low", "medium", "high"'),
   referenceImages: z.array(z.string()).optional()
-    .describe('Image references for style/content guidance. For MeiGen and OpenAI-compatible providers: public URLs (http/https) only — use upload_reference_image to convert local files to URLs. For ComfyUI: also accepts local file paths directly (no upload needed, requires LoadImage node in workflow). Sources: gallery URLs from search_gallery/get_inspiration, URLs from previous generate_image results, URLs from upload_reference_image, or local file paths (ComfyUI only).'),
+    .describe('Image references for style/content guidance. Accepts both public URLs (http/https) and local file paths. Local files are automatically compressed and uploaded when needed. For ComfyUI: local files are passed directly to the workflow (requires LoadImage node). Sources: gallery URLs from search_gallery/get_inspiration, URLs from previous generate_image results, or local file paths.'),
   provider: z.enum(['openai', 'meigen', 'comfyui']).optional()
     .describe('Which provider to use. Auto-detected from configuration if not specified.'),
   workflow: z.string().optional()
@@ -118,11 +158,16 @@ export function registerGenerateImage(server: McpServer, apiClient: MeiGenApiCli
       }
 
       try {
+        // Auto-upload local reference images for API providers (ComfyUI handles local files natively)
+        const resolvedRefs = providerType !== 'comfyui'
+          ? await resolveReferenceImages(referenceImages, config, (msg) => notify(extra, msg))
+          : referenceImages
+
         switch (providerType) {
           case 'openai': {
             await apiSemaphore.acquire()
             try {
-              return await generateWithOpenAI(config, prompt, model, size, quality, referenceImages)
+              return await generateWithOpenAI(config, prompt, model, size, quality, resolvedRefs)
             } finally {
               apiSemaphore.release()
             }
@@ -130,7 +175,7 @@ export function registerGenerateImage(server: McpServer, apiClient: MeiGenApiCli
           case 'meigen': {
             await apiSemaphore.acquire()
             try {
-              return await generateWithMeiGen(apiClient, prompt, model, aspectRatio, referenceImages, extra)
+              return await generateWithMeiGen(apiClient, prompt, model, aspectRatio, resolvedRefs, extra)
             } finally {
               apiSemaphore.release()
             }

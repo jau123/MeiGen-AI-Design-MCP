@@ -12,7 +12,6 @@ import { registerListModels } from './tools/list-models.js'
 import { registerGetInspiration } from './tools/get-inspiration.js'
 import { registerGenerateImage } from './tools/generate-image.js'
 import { registerComfyuiWorkflow } from './tools/comfyui-workflow.js'
-import { registerUploadReferenceImage } from './tools/upload-reference-image.js'
 import { registerManagePreferences } from './tools/manage-preferences.js'
 
 const SERVER_INSTRUCTIONS = `You are an AI image creation assistant powered by MeiGen MCP.
@@ -25,7 +24,7 @@ If generate_image returns "No image generation providers configured", guide the 
 2. Then run /meigen:setup and paste the token
 3. Restart Claude Code to activate
 
-Free features (search_gallery, enhance_prompt, get_inspiration, list_models) work without any API key.
+Free features (search_gallery, enhance_prompt, get_inspiration, list_models, manage_preferences) work without any API key.
 
 ## Phase 0.5: Load User Preferences
 
@@ -72,8 +71,9 @@ How to tell: the prompt has specific visual details, style references,
 ### D. EDIT/MODIFY — user provides an existing image and asks for changes
 User wants to modify an existing image: add text, change background, adjust colors, remove elements, etc.
 -> Do NOT enhance or expand the prompt. Keep it minimal and edit-focused.
--> Upload the reference image (if local), then generate with a short, literal prompt
+-> Pass the image (URL or local path) as referenceImages, then generate with a short, literal prompt
    describing ONLY the edit, e.g. "Add the text 'meigen.ai' at the bottom of this image"
+-> Local files are automatically compressed and uploaded when needed — just pass the path
 -> The reference image carries all the visual context — the prompt only needs to describe the change
 -> NEVER re-describe the entire original image in the prompt
 How to tell: user provides/references an image AND describes a specific change (not a new creation)
@@ -160,19 +160,14 @@ Example: "design a logo, then make mockups"
   or "Ready to create extensions from one of these?"
 
 ### referenceImages rules:
-- For MeiGen and OpenAI-compatible APIs: public URLs (http/https) only
-- For ComfyUI: also accepts local file paths directly (no upload needed)
-- Valid sources: gallery URLs, previous generation URLs, URLs from upload_reference_image,
-  or local file paths (ComfyUI only)
-- If user wants to use a local image with MeiGen/OpenAI-compatible providers, call
-  upload_reference_image(filePath) to compress and upload it, then use the returned URL
-- Note: URLs from upload_reference_image expire in 24 hours — re-upload if needed later
-- If user is using ComfyUI and has a local image, pass the file path directly
-  to referenceImages — no upload_reference_image call needed
+- Accepts both public URLs (http/https) and local file paths for ALL providers
+- Local files are automatically compressed (max 2MB, 2048px) and uploaded when needed
+- For ComfyUI: local files are passed directly to the workflow (more efficient, no upload)
+- Valid sources: gallery URLs, previous generation URLs, or local file paths
 - Works with ALL providers:
-  - MeiGen: full support (native, URLs only)
-  - OpenAI-compatible: most models support image input via URLs (depends on your model/provider)
-  - ComfyUI: requires a LoadImage node in the workflow (URLs or local file paths)
+  - MeiGen: full support (local files auto-uploaded)
+  - OpenAI-compatible: most models support image input (local files auto-uploaded)
+  - ComfyUI: requires a LoadImage node in the workflow (local files passed directly)
 
 ## Phase 4: Error Recovery
 
@@ -208,7 +203,7 @@ export function createServer() {
   const apiClient = new MeiGenApiClient(config)
 
   const server = new McpServer(
-    { name: 'meigen', version: '1.2.6' },
+    { name: 'meigen', version: '1.2.7' },
     { instructions: SERVER_INSTRUCTIONS },
   )
 
@@ -218,9 +213,6 @@ export function createServer() {
   registerListModels(server, apiClient, config)
   registerGetInspiration(server, apiClient)
   registerManagePreferences(server)
-
-  // Reference image upload (compress + upload to R2)
-  registerUploadReferenceImage(server, config)
 
   // ComfyUI workflow management
   registerComfyuiWorkflow(server, config)
