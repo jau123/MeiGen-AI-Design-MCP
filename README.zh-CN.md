@@ -135,13 +135,17 @@ npx meigen init claude      # Claude Code（项目级）
 
 ### OpenClaw
 
-从 [ClawHub](https://clawhub.ai/jau123/creative-toolkit) 安装，或使用 CLI：
+从 [ClawHub](https://clawhub.ai/plugins/meigen-ai-design) 安装完整插件（包含命令、技能和 MCP 服务）：
+
+```bash
+openclaw bundles install clawhub:meigen-ai-design
+```
+
+或仅安装技能（不含命令/agents）：
 
 ```bash
 npx clawhub@latest install creative-toolkit
 ```
-
-我们的技能遵循 [Agent Skills](https://agentskills.io) 开放标准，可直接复制到 OpenClaw 工作区使用。如需 MCP 工具，通过 OpenClaw 的 MCP adapter 连接 MeiGen server 即可。
 
 ### 其他 MCP 兼容客户端
 

@@ -135,16 +135,16 @@ This writes the correct MCP config file with the right format and path for your 
 
 ### OpenClaw
 
-Install the skill from [ClawHub](https://clawhub.ai/jau123/creative-toolkit):
+Install the full plugin from [ClawHub](https://clawhub.ai/plugins/meigen-ai-design) (includes commands, skills, and MCP server):
+
+```bash
+openclaw bundles install clawhub:meigen-ai-design
+```
+
+Or install only the skill (no commands/agents):
 
 ```bash
 npx clawhub@latest install creative-toolkit
-```
-
-Or install the full plugin (includes commands, skills, and MCP server):
-
-```bash
-openclaw plugins install meigen-ai-design
 ```
 
 ### Other MCP-Compatible Hosts
