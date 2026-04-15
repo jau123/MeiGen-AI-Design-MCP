@@ -15,16 +15,16 @@
 -> Run `list_models` to see available models for your configured providers.
 
 **Reference image rejected**
--> Pass local file paths or public URLs directly to `generate_image`'s `referenceImages` parameter. Local files are automatically compressed and uploaded.
+-> Pass local file paths or URLs directly to `generate_image`'s `referenceImages` parameter. Local files are compressed locally (max 2MB, 2048px) and prepared for the selected provider.
 
 **Reference image path not found**
 -> Verify the file path exists and is an absolute path. Supported formats: JPEG, PNG, WebP, GIF.
 
 ## Security & Privacy
 
-**Pinned package**: This skill runs as an MCP server via `npx meigen@1.2.7` (pinned version, not floating). The package is published on [npmjs.com](https://www.npmjs.com/package/meigen) with full source code at [GitHub](https://github.com/jau123/MeiGen-AI-Design-MCP). No code is obfuscated or minified beyond standard TypeScript compilation.
+**Pinned package**: This skill runs as an MCP server via `npx meigen@1.2.8` (pinned version, not floating). The package is published on [npmjs.com](https://www.npmjs.com/package/meigen) with full source code at [GitHub](https://github.com/jau123/MeiGen-AI-Design-MCP). No code is obfuscated or minified beyond standard TypeScript compilation.
 
-**Reference images**: When local file paths are passed to `generate_image`'s `referenceImages`, the image is compressed (max 2MB, 2048px) and temporarily uploaded for API providers. This is always user-initiated — no files are accessed automatically. ComfyUI passes local files directly to the workflow without uploading.
+**Reference images**: Reference images are always user-initiated — the server only reads a file when the user explicitly passes its path to `generate_image`. Local files are resized in-memory (max 2MB, 2048px) before being handed to the user's configured image provider. No files are accessed automatically or indexed in the background. ComfyUI routes local files directly into the local workflow without any network hop.
 
 **API tokens**: `MEIGEN_API_TOKEN` is stored locally in environment variables or `~/.config/meigen/config.json` with `chmod 600` permissions. Tokens are only sent to the configured provider's API endpoint and never logged or transmitted elsewhere.
 

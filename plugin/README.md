@@ -68,7 +68,6 @@ export OPENAI_MODEL=gpt-image-1                      # or your provider's model
 |---------|-------------|
 | `/meigen:gen <prompt>` | Quick image generation — skips intent assessment |
 | `/meigen:find <keywords>` | Quick gallery search — browse inspiration |
-| `/meigen:ref <file path>` | Upload a local image as reference |
 | `/meigen:models` | List available models and switch default |
 
 ## Troubleshooting

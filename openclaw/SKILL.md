@@ -1,7 +1,7 @@
 ---
 name: "AI Image Generation & Editor — Nanobanana, GPT Image, ComfyUI"
 description: Generate images from text with multi-provider routing — supports Nanobanana 2, Seedream 5.0, GPT Image, Midjourney V7 (photorealistic), Midjourney Niji 7 (anime/illustration only), and local ComfyUI workflows. Includes 1,300+ curated prompts and style-aware prompt enhancement. Use when users want to create images, design assets, enhance prompts, or manage AI art workflows.
-version: 1.0.23
+version: 1.0.24
 homepage: https://github.com/jau123/MeiGen-AI-Design-MCP
 metadata: {"clawdbot":{"emoji":"🎨","requires":{"bins":["mcporter","npx","node"]}}}
 ---
@@ -19,7 +19,7 @@ Add the MCP server to your mcporter config (`~/.config/mcporter/config.json`):
   "mcpServers": {
     "creative-toolkit": {
       "command": "npx",
-      "args": ["-y", "meigen@1.2.7"]
+      "args": ["-y", "meigen@1.2.8"]
     }
   }
 }
@@ -58,7 +58,7 @@ Set credentials in `~/.clawdbot/.env`, `~/.config/meigen/config.json`, or add an
 | Tool | What it does |
 |------|-------------|
 | `generate_image` | Generate an image from a text prompt. Routes to the best available provider. Supports aspect ratio, seed, and reference images. |
-| `generate_image` (with local paths) | Pass local file paths directly in `referenceImages` — images are auto-compressed (max 2MB, 2048px) and uploaded when needed. ComfyUI passes local files directly to the workflow. |
+| `generate_image` (with local paths) | Pass local file paths directly in `referenceImages` — images are auto-compressed locally (max 2MB, 2048px) and prepared for the selected provider. ComfyUI handles local files entirely within the local workflow. |
 | `comfyui_workflow` | List, view, import, modify, and delete ComfyUI workflow templates. Adjust steps, CFG scale, sampler, and checkpoint without editing JSON. |
 | `manage_preferences` | Save and load user preferences (default style, aspect ratio, style notes, favorite prompts). |
 
@@ -158,7 +158,7 @@ Use an existing image to guide visual style. Pass URLs or local file paths direc
 
 ```
 generate_image prompt="coffee mug mockup with this logo" referenceImages=["~/Desktop/my-logo.png"]
-   -> Local files are auto-compressed (max 2MB, 2048px) and uploaded
+   -> Local files are auto-compressed (max 2MB, 2048px) and prepared for the selected provider
 ```
 
 Reference image sources: gallery URLs, previous generation URLs, or local file paths. All providers accept local paths — they are automatically handled.

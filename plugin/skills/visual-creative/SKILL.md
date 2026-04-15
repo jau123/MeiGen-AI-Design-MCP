@@ -148,7 +148,7 @@ Task 4: "Call generate_image with prompt: '[prompt 4]'. Return the full response
 
 **Flow**: Get reference URL or local file path → `generate_image` with `referenceImages` parameter + detailed prompt.
 
-**Sources**: gallery URLs, previous generation URLs, or local file paths (auto-uploaded when needed).
+**Sources**: gallery URLs, previous generation URLs, or local file paths (auto-compressed and prepared for the selected provider when needed).
 
 ## MeiGen Model Pricing
 
@@ -169,7 +169,7 @@ To use a specific model, pass `model: "<model-id>"` to `generate_image` (e.g., `
 
 ### Midjourney V7 vs Niji 7 — Important Notes
 
-V7 and Niji 7 share the same Midjourney engine and have the same trade-offs (15 credits, ~60s, max 1 reference image, 4 candidate images returned per generation, all advanced params run with fixed server-side defaults that cannot be tuned from MCP). They differ in **content focus** and **how to enhance prompts**:
+V7 and Niji 7 share the same Midjourney engine and have the same trade-offs (15 credits, ~60s, max 1 reference image, 4 candidate images returned per generation). Advanced params (stylize/chaos/weird/raw/iw/sw/sv) run with fixed server-side defaults and cannot be tuned from MCP — the only exception is `sref`, settable via `--sref <code>` at the end of the prompt (Midjourney style codes only, no URLs or local paths). They differ in **content focus** and **how to enhance prompts**:
 
 **Midjourney V7** — general / photorealistic
 - Use for product photography, portraits, landscapes, cinematic and editorial shots — anything not explicitly anime.
@@ -186,11 +186,11 @@ V7 and Niji 7 share the same Midjourney engine and have the same trade-offs (15 
 ## Reference Image Best Practices
 
 - `referenceImages` accepts URLs or local file paths: `["https://...", "/path/to/image.jpg"]`
-- Local files are automatically compressed and uploaded when needed
+- Local files are compressed in-memory (max 2MB, 2048px) and prepared for the selected provider when needed
 - Always pair with a detailed text prompt — reference guides style, prompt guides content
 - From gallery: `get_inspiration` returns image URLs
 - From generation: `generate_image` returns Image URL in its response
-- From local file: just pass the path directly — no separate upload step needed
+- From local file: just pass the path directly — the server handles preparation
 
 ## Prompt Engineering Quick Reference
 
