@@ -123,7 +123,7 @@ export class MeiGenApiClient {
     const body: Record<string, unknown> = {
       prompt: params.prompt,
       modelId: params.modelId,
-      aspectRatio: params.aspectRatio || '1:1',
+      aspectRatio: params.aspectRatio || 'auto',
       resolution: params.resolution || '2K',
     }
     if (params.referenceImages && params.referenceImages.length > 0) {

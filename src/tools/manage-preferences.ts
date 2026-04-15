@@ -22,7 +22,7 @@ export const managePreferencesSchema = {
   style: z.string().optional()
     .describe('set: preferred default style (e.g. "realistic", "anime", "illustration")'),
   aspectRatio: z.string().optional()
-    .describe('set: preferred default aspect ratio (e.g. "16:9", "1:1")'),
+    .describe('set: preferred default aspect ratio. Use "auto" (recommended) to let MeiGen infer per-prompt, or pin a value like "16:9", "1:1", "9:16".'),
   model: z.string().optional()
     .describe('set: preferred default model name'),
   provider: z.enum(['openai', 'meigen', 'comfyui']).optional()

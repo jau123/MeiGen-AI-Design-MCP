@@ -46,7 +46,7 @@ This applies to: choosing directions, confirming extensions, selecting models.
 Each agent prompt must be self-contained. Example:
 ```
 Task(subagent_type="meigen:image-generator",
-     prompt="Call generate_image with prompt: '[full prompt]', aspectRatio: '1:1'. Do NOT specify model or provider.")
+     prompt="Call generate_image with prompt: '[full prompt]'. Do NOT specify model or provider. Omit aspectRatio unless the user explicitly asks for a specific ratio — MeiGen auto-infers the best ratio from the prompt.")
 ```
 
 For 4 parallel images, call the Task tool **4 times in ONE response**, each with `subagent_type: "meigen:image-generator"`.
@@ -86,7 +86,7 @@ The server auto-detects the best provider and model.
 | `get_inspiration` | Get the full prompt and image URLs for a gallery entry | Free |
 | `enhance_prompt` | Get a system prompt to expand a brief description into a detailed prompt | Free |
 | `list_models` | List available AI models (only when user asks to see/switch models) | Free |
-| `manage_preferences` | Read/save user preferences: default style, aspect ratio, model, favorites | Free |
+| `manage_preferences` | Read/save user preferences: default style, aspect ratio (`"auto"` recommended), model, favorites | Free |
 | `generate_image` | Generate an image using AI | Requires API key |
 
 ## Agent Delegation
@@ -120,12 +120,14 @@ The server auto-detects the best provider and model.
 
 **Task agent spawn example** (4 directions):
 ```
-In a SINGLE response, call the Task tool 4 times:
+In a SINGLE response, call the Task tool 4 times. Omit aspectRatio — the server
+auto-infers per prompt. Only pin a ratio when the user asked for one specifically
+(e.g. square avatars → pass aspectRatio: '1:1' to all four).
 
-Task 1: "Call generate_image with prompt: '[prompt 1]', aspectRatio: '1:1'. Return the full response."
-Task 2: "Call generate_image with prompt: '[prompt 2]', aspectRatio: '1:1'. Return the full response."
-Task 3: "Call generate_image with prompt: '[prompt 3]', aspectRatio: '1:1'. Return the full response."
-Task 4: "Call generate_image with prompt: '[prompt 4]', aspectRatio: '1:1'. Return the full response."
+Task 1: "Call generate_image with prompt: '[prompt 1]'. Return the full response."
+Task 2: "Call generate_image with prompt: '[prompt 2]'. Return the full response."
+Task 3: "Call generate_image with prompt: '[prompt 3]'. Return the full response."
+Task 4: "Call generate_image with prompt: '[prompt 4]'. Return the full response."
 ```
 
 ### Mode 3: Creative + Extensions (Multi-step)
@@ -159,18 +161,27 @@ When a user asks about models or costs, refer to this table:
 | GPT Image 1.5 | 2 | No | Budget-friendly |
 | Nanobanana Pro | 10 | Yes | Premium quality |
 | Seedream 4.5 | 5 | Yes | Stylized, wide ratio support |
+| Midjourney V7 | 15 | No | **Photorealistic / general aesthetic** |
 | Midjourney Niji 7 | 15 | No | **Anime and illustration ONLY** |
 
 When no model is specified, the server defaults to Nanobanana 2 (5 credits).
 To use a specific model, pass `model: "<model-id>"` to `generate_image` (e.g., `model: "seedream-5.0-lite"`).
 
-### Midjourney Niji 7 — Important Notes
+### Midjourney V7 vs Niji 7 — Important Notes
 
-- **Anime/illustration ONLY**: Niji 7 is exclusively designed for anime and illustration styles. Do NOT use it for photorealistic, product, or non-anime content — use Nanobanana 2 or Seedream instead.
-- **Raw mode is OFF by default**: This ensures Niji 7's anime style optimization is fully applied. Do not enable raw mode unless the user specifically requests a less stylized output.
-- **Always use `style: 'anime'` with `enhance_prompt`**: When the user intends to generate with Niji 7, pass `style: 'anime'` to `enhance_prompt` — the default `realistic` style produces prompts that are poorly suited for Niji 7.
-- **Returns 4 images per generation**: Unlike other models that return 1 image, Niji 7 returns 4 candidate images per request. All 4 are saved and viewable in the image detail dialog.
-- **Slowest and most expensive**: 15 credits, ~60s generation time, max 1 reference image.
+V7 and Niji 7 share the same Midjourney engine and have the same trade-offs (15 credits, ~60s, max 1 reference image, 4 candidate images returned per generation, all advanced params run with fixed server-side defaults that cannot be tuned from MCP). They differ in **content focus** and **how to enhance prompts**:
+
+**Midjourney V7** — general / photorealistic
+- Use for product photography, portraits, landscapes, cinematic and editorial shots — anything not explicitly anime.
+- Default stylize is 0 — output stays close to the prompt.
+- When using `enhance_prompt`, pass `style: 'realistic'` (the default).
+
+**Midjourney Niji 7** — anime / illustration ONLY
+- Do NOT use for photorealistic, product, or non-anime content — use Nanobanana 2 or Seedream instead.
+- Default stylize is 100 — output is more stylized; the server also auto-appends `anime illustration style` if your prompt doesn't already mention anime.
+- When using `enhance_prompt`, ALWAYS pass `style: 'anime'` — the default `realistic` produces prompts that are poorly suited for Niji 7.
+
+**Common to both** — they're the slowest and most expensive image models. Returns 4 candidate images per request (all saved, viewable in the image detail dialog).
 
 ## Reference Image Best Practices
 

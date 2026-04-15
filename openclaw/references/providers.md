@@ -46,9 +46,13 @@ Multiple providers can be configured simultaneously. Auto-detection priority: Me
 | GPT Image 1.5 | 2 | No | Budget-friendly |
 | Nanobanana Pro | 10 | Yes | Premium quality |
 | Seedream 4.5 | 5 | Yes | Stylized, wide ratio support |
+| Midjourney V7 | 15 | No | **Photorealistic / general aesthetic** |
 | Midjourney Niji 7 | 15 | No | **Anime and illustration ONLY** |
 
-> **Niji 7 Warning**: This model is exclusively for anime/illustration styles. Do NOT use it for photorealistic, product photography, or non-anime content. Raw mode is OFF by default to maximize anime style quality. When enhancing prompts for Niji 7, always use `style: 'anime'` in `enhance_prompt`. Returns 4 candidate images per generation (other models return 1).
+> **Midjourney V7 vs Niji 7**: Both cost 15 credits, take ~60s, accept 1 reference image, and return 4 candidate images per generation. Advanced params (stylize/chaos/weird/raw/iw/sw/sv) run with fixed server-side defaults and cannot be tuned from MCP — the only exception is `sref`, which can be set via `--sref <code>` at the end of the prompt (Midjourney style codes only, no URLs). The two differ in **content focus** and **prompt enhancement style**:
+>
+> - **V7** — general / photorealistic. Use for product photography, portraits, landscapes, cinematic shots. Default stylize is 0 (closer to your prompt). When enhancing, use `style: 'realistic'` in `enhance_prompt`.
+> - **Niji 7** — anime / illustration ONLY. Do NOT use for photorealistic, product photography, or non-anime content. Default stylize is 100 (more stylized). When enhancing, ALWAYS use `style: 'anime'` in `enhance_prompt` — the default `realistic` produces prompts poorly suited for anime models.
 
 When no model is specified, the server defaults to Nanobanana 2.
 

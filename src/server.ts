@@ -104,12 +104,20 @@ User wants a base design plus derivative applications.
 - Do NOT call list_models to "pick the cheapest model" — just generate.
   list_models is for when the USER wants to browse or switch models.
 
-### Midjourney Niji 7 — anime/illustration ONLY
-- Niji 7 is exclusively for anime and illustration styles. Do NOT use it for photorealistic, product, or non-anime content — use Nanobanana 2 or Seedream instead.
-- When enhancing prompts for Niji 7, always pass \`style: 'anime'\` to \`enhance_prompt\` — the default \`realistic\` produces prompts poorly suited for anime models.
-- Raw mode is OFF by default to maximize anime style quality — do not enable it unless the user specifically requests less stylized output.
-- Niji 7 returns 4 candidate images per generation (other models return 1). All 4 URLs are listed in the result.
-- Slowest and most expensive: 15 credits, ~60s generation time, max 1 reference image.
+### Midjourney V7 vs Niji 7 — pick the right one
+Both are 15 credits, ~60s, 1 reference image max, and return 4 candidate images per generation. Advanced params (stylize/chaos/weird/raw/iw/sw/sv) run with fixed server-side defaults and cannot be tuned from MCP — the only exception is \`sref\` (see below). They differ in content focus and prompt enhancement style:
+
+- **Midjourney V7** (\`model: "midjourney-v7"\`) — general / photorealistic. Use for product photography, portraits, landscapes, cinematic and editorial shots. Default stylize is 0 (closer to the prompt). When using \`enhance_prompt\`, pass \`style: 'realistic'\` (the default).
+- **Midjourney Niji 7** (\`model: "midjourney-niji7"\`) — anime / illustration ONLY. Do NOT use for photorealistic, product, or non-anime content — use Nanobanana 2 or Seedream instead. Default stylize is 100 and the server auto-appends \`anime illustration style\` if your prompt lacks anime keywords. When using \`enhance_prompt\`, ALWAYS pass \`style: 'anime'\` — the default \`realistic\` produces prompts poorly suited for anime models.
+
+### Midjourney V7 / Niji 7 — how to write the prompt
+
+- **Aspect ratio**: pass via the \`aspectRatio\` parameter, or omit it to let the server auto-infer. Do NOT write \`--ar\` in the prompt.
+- **Style reference (sref)**: only add \`--sref <code>\` at the end of the prompt when the user gives you a Midjourney style code — numeric (e.g. \`3799554500\`) or text (e.g. \`niji-cute-v1\`). Example: \`a girl in a garden --sref 3799554500\`.
+  - Do NOT pass URLs or local file paths to \`--sref\` from MCP — only style codes are supported here.
+  - For any image-based reference (content OR style), pass the image via \`referenceImages\` instead.
+  - Never invent or guess style codes — omit sref entirely when the user hasn't provided one.
+- **All other \`--flags\`** (including \`--chaos\`, \`--weird\`, \`--stylize\`, \`--raw\`, \`--iw\`, \`--v\`, \`--style\`, \`--no\`, \`--tile\`, \`--niji\`, \`--seed\`, \`--q\`, etc.) and legacy MJ syntax (\`::N\` prompt weights, \`[option|option]\` permutations) are silently stripped by the server. \`--sref <code>\` is the only exception. Express every other intent in natural language.
 
 ### Single image
 Call generate_image with just the prompt (and aspectRatio if needed).
@@ -203,7 +211,7 @@ export function createServer() {
   const apiClient = new MeiGenApiClient(config)
 
   const server = new McpServer(
-    { name: 'meigen', version: '1.2.7' },
+    { name: 'meigen', version: '1.2.8' },
     { instructions: SERVER_INSTRUCTIONS },
   )
 

@@ -5,7 +5,8 @@
 
 /**
  * Realistic/general style enhancement prompt
- * For Gemini, Seedream, and other photorealistic models
+ * For Gemini (Nanobanana 2 / Pro), Seedream, GPT Image, Midjourney V7,
+ * and other photorealistic / general-purpose models
  */
 export const REALISTIC_SYSTEM_PROMPT = `# Role
 You are a Senior Visual Logic Analyst specializing in reverse-engineering imagery for next-generation, high-reasoning AI models (like Gemini 3 Pro Image).
