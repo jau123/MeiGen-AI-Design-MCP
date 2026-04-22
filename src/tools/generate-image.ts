@@ -27,7 +27,7 @@ import { addRecentGeneration } from '../lib/preferences.js'
 import { processAndUploadImage } from '../lib/upload.js'
 
 // Default model for MeiGen provider when user doesn't specify one
-const MEIGEN_DEFAULT_MODEL = 'nanobanana-2'
+const MEIGEN_DEFAULT_MODEL = 'gpt-image-2'
 
 // Concurrency control: ComfyUI serial (local GPU), API max 4 parallel
 const apiSemaphore = new Semaphore(4)
@@ -104,7 +104,7 @@ async function resolveReferenceImages(
 export const generateImageSchema = {
   prompt: z.string().describe('The image generation prompt'),
   model: z.string().optional()
-    .describe('Model name. For OpenAI-compatible providers: any model your API supports (e.g., gpt-image-1.5, dall-e-3, flux, etc.). For MeiGen: use model IDs from list_models.'),
+    .describe('Model name. For OpenAI-compatible providers: any model ID your endpoint supports. For MeiGen: use model IDs from list_models.'),
   size: z.string().optional()
     .describe('Image size for OpenAI-compatible providers: "1024x1024", "1536x1024", "auto". MeiGen/ComfyUI: use aspectRatio instead.'),
   aspectRatio: z.string().optional()
@@ -134,7 +134,7 @@ export function registerGenerateImage(server: McpServer, apiClient: MeiGenApiCli
         return {
           content: [{
             type: 'text' as const,
-            text: 'No image generation providers configured.\n\nQuickest way to start:\n1. Get a MeiGen API token at https://www.meigen.ai (sign in → avatar → Settings → API Keys)\n2. Run /meigen:setup and paste your token\n\nOr configure one of:\n- MEIGEN_API_TOKEN: MeiGen platform (Nanobanana 2, Seedream 5.0, GPT image 1.5)\n- OPENAI_API_KEY: Any OpenAI-compatible API — bring your own key, model, and endpoint\n- Import a ComfyUI workflow for local GPU generation',
+            text: 'No image generation providers configured.\n\nQuickest way to start:\n1. Get a MeiGen API token at https://www.meigen.ai (sign in → avatar → Settings → API Keys)\n2. Run /meigen:setup and paste your token\n\nOr configure one of:\n- MEIGEN_API_TOKEN: MeiGen platform (GPT Image 2.0, Nanobanana 2, Seedream 5.0, Midjourney V7)\n- OPENAI_API_KEY: Any OpenAI-compatible API — bring your own key, model, and endpoint\n- Import a ComfyUI workflow for local GPU generation',
           }],
           isError: true,
         }

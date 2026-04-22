@@ -108,7 +108,7 @@ User wants a base design plus derivative applications.
 Both are 15 credits, ~60s, 1 reference image max, and return 4 candidate images per generation. Advanced params (stylize/chaos/weird/raw/iw/sw/sv) run with fixed server-side defaults and cannot be tuned from MCP — the only exception is \`sref\` (see below). They differ in content focus and prompt enhancement style:
 
 - **Midjourney V7** (\`model: "midjourney-v7"\`) — general / photorealistic. Use for product photography, portraits, landscapes, cinematic and editorial shots. Default stylize is 0 (closer to the prompt). When using \`enhance_prompt\`, pass \`style: 'realistic'\` (the default).
-- **Midjourney Niji 7** (\`model: "midjourney-niji7"\`) — anime / illustration ONLY. Do NOT use for photorealistic, product, or non-anime content — use Nanobanana 2 or Seedream instead. Default stylize is 100 and the server auto-appends \`anime illustration style\` if your prompt lacks anime keywords. When using \`enhance_prompt\`, ALWAYS pass \`style: 'anime'\` — the default \`realistic\` produces prompts poorly suited for anime models.
+- **Midjourney Niji 7** (\`model: "midjourney-niji7"\`) — anime / illustration ONLY. Do NOT use for photorealistic, product, or non-anime content — use GPT Image 2.0 or Nanobanana 2 instead. Default stylize is 100 and the server auto-appends \`anime illustration style\` if your prompt lacks anime keywords. When using \`enhance_prompt\`, ALWAYS pass \`style: 'anime'\` — the default \`realistic\` produces prompts poorly suited for anime models.
 
 ### Midjourney V7 / Niji 7 — how to write the prompt
 
@@ -211,7 +211,7 @@ export function createServer() {
   const apiClient = new MeiGenApiClient(config)
 
   const server = new McpServer(
-    { name: 'meigen', version: '1.2.8' },
+    { name: 'meigen', version: '1.2.9' },
     { instructions: SERVER_INSTRUCTIONS },
   )
 

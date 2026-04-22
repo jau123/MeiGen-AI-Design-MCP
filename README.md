@@ -99,7 +99,7 @@ An open-source MCP Server (installed via plugin marketplace) that gives LLMs cre
 
 > This marketplace doesn't bundle MCP server config. After installing, add to your project's `.mcp.json`:
 > ```json
-> { "mcpServers": { "meigen": { "command": "npx", "args": ["-y", "meigen@1.2.8"] } } }
+> { "mcpServers": { "meigen": { "command": "npx", "args": ["-y", "meigen@1.2.9"] } } }
 > ```
 
 #### First-Time Setup
@@ -235,7 +235,7 @@ Run generation on your own GPU with full control over models, samplers, and work
 
 ### MeiGen Cloud
 
-Cloud API with multiple models: Nanobanana 2, Seedream 5.0, GPT image 1.5, and more. No GPU required.
+Cloud API with multiple models: GPT Image 2.0, Nanobanana 2, Seedream 5.0, and more. No GPU required.
 
 **Get your API token:**
 1. Sign in at [meigen.ai](https://www.meigen.ai)
@@ -285,7 +285,7 @@ Environment variables take priority over the config file.
 | `MEIGEN_API_TOKEN` | MeiGen platform token |
 | `OPENAI_API_KEY` | Your API key (any OpenAI-compatible provider) |
 | `OPENAI_BASE_URL` | API base URL — change this to use Together AI, Fireworks AI, etc. |
-| `OPENAI_MODEL` | Model name at your provider (e.g., `gpt-image-1.5`, `flux-schnell`) |
+| `OPENAI_MODEL` | Model ID supported by your endpoint |
 | `COMFYUI_URL` | ComfyUI server URL (default: `http://localhost:8188`) |
 
 ---

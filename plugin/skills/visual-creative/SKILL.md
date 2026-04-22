@@ -156,15 +156,15 @@ When a user asks about models or costs, refer to this table:
 
 | Model | Credits | 4K | Best For |
 |-------|---------|-----|----------|
-| Nanobanana 2 (default) | 5 | Yes | General purpose, high quality |
-| Seedream 5.0 Lite | 5 | Yes | Fast, stylized imagery |
-| GPT Image 1.5 | 2 | No | Budget-friendly |
+| GPT Image 2.0 (default) | 10 | No | **Near-perfect text rendering** in posters/logos |
+| Nanobanana 2 | 5 | Yes | General purpose, high quality |
 | Nanobanana Pro | 10 | Yes | Premium quality |
-| Seedream 4.5 | 5 | Yes | Stylized, wide ratio support |
+| Seedream 5.0 Lite | 5 | Yes | Fast, stylized imagery |
+| Seedream 4.5 | 5 | Yes | Previous-gen alternative |
 | Midjourney V7 | 15 | No | **Photorealistic / general aesthetic** |
 | Midjourney Niji 7 | 15 | No | **Anime and illustration ONLY** |
 
-When no model is specified, the server defaults to Nanobanana 2 (5 credits).
+When no model is specified, the server defaults to GPT Image 2.0 (10 credits).
 To use a specific model, pass `model: "<model-id>"` to `generate_image` (e.g., `model: "seedream-5.0-lite"`).
 
 ### Midjourney V7 vs Niji 7 — Important Notes
@@ -177,7 +177,7 @@ V7 and Niji 7 share the same Midjourney engine and have the same trade-offs (15 
 - When using `enhance_prompt`, pass `style: 'realistic'` (the default).
 
 **Midjourney Niji 7** — anime / illustration ONLY
-- Do NOT use for photorealistic, product, or non-anime content — use Nanobanana 2 or Seedream instead.
+- Do NOT use for photorealistic, product, or non-anime content — use GPT Image 2.0 or Nanobanana 2 instead.
 - Default stylize is 100 — output is more stylized; the server also auto-appends `anime illustration style` if your prompt doesn't already mention anime.
 - When using `enhance_prompt`, ALWAYS pass `style: 'anime'` — the default `realistic` produces prompts that are poorly suited for Niji 7.
 

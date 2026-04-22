@@ -22,7 +22,7 @@
 
 ## Security & Privacy
 
-**Pinned package**: This skill runs as an MCP server via `npx meigen@1.2.8` (pinned version, not floating). The package is published on [npmjs.com](https://www.npmjs.com/package/meigen) with full source code at [GitHub](https://github.com/jau123/MeiGen-AI-Design-MCP). No code is obfuscated or minified beyond standard TypeScript compilation.
+**Pinned package**: This skill runs as an MCP server via `npx meigen@1.2.9` (pinned version, not floating). The package is published on [npmjs.com](https://www.npmjs.com/package/meigen) with full source code at [GitHub](https://github.com/jau123/MeiGen-AI-Design-MCP). No code is obfuscated or minified beyond standard TypeScript compilation.
 
 **Reference images**: Reference images are always user-initiated — the server only reads a file when the user explicitly passes its path to `generate_image`. Local files are resized in-memory (max 2MB, 2048px) before being handed to the user's configured image provider. No files are accessed automatically or indexed in the background. ComfyUI routes local files directly into the local workflow without any network hop.
 

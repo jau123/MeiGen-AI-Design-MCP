@@ -5,7 +5,7 @@
 
 /**
  * Realistic/general style enhancement prompt
- * For Gemini (Nanobanana 2 / Pro), Seedream, GPT Image, Midjourney V7,
+ * For GPT Image, Nanobanana (Gemini), Seedream, Midjourney V7,
  * and other photorealistic / general-purpose models
  */
 export const REALISTIC_SYSTEM_PROMPT = `# Role

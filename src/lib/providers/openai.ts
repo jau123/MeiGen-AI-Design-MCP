@@ -1,6 +1,6 @@
 /**
  * OpenAI-compatible Provider
- * Supports gpt-image-1.5, DALL-E 3, and any OpenAI-compatible service (Together AI, DeepInfra, etc.)
+ * Works with any OpenAI-compatible `/v1/images/generations` endpoint — user supplies key, base URL, and model name.
  */
 
 import type { ImageProvider, ImageGenerationRequest, ImageGenerationResult } from './types.js'

@@ -4,7 +4,7 @@
 
 | | MeiGen Platform | OpenAI-Compatible | ComfyUI (Local) |
 |---|---|---|---|
-| **Models** | Nanobanana 2, Seedream 5.0, GPT Image 1.5, etc. | Any model at the endpoint | Any checkpoint on your machine |
+| **Models** | GPT Image 2.0, Nanobanana 2, Seedream 5.0, etc. | Any model at the endpoint | Any checkpoint on your machine |
 | **Reference images** | Native support | Depends on your model/provider | Requires LoadImage node |
 | **Concurrency** | Up to 4 parallel | Up to 4 parallel | 1 at a time (GPU constraint) |
 | **Latency** | 10-30s typical | Varies by provider | Depends on hardware |
@@ -41,11 +41,11 @@ Multiple providers can be configured simultaneously. Auto-detection priority: Me
 
 | Model | Credits | 4K | Best For |
 |-------|---------|-----|----------|
-| Nanobanana 2 (default) | 5 | Yes | General purpose, high quality |
-| Seedream 5.0 Lite | 5 | Yes | Fast, stylized imagery |
-| GPT Image 1.5 | 2 | No | Budget-friendly |
+| GPT Image 2.0 (default) | 10 | No | **Near-perfect text rendering** in posters/logos |
+| Nanobanana 2 | 5 | Yes | General purpose, high quality |
 | Nanobanana Pro | 10 | Yes | Premium quality |
-| Seedream 4.5 | 5 | Yes | Stylized, wide ratio support |
+| Seedream 5.0 Lite | 5 | Yes | Fast, stylized imagery |
+| Seedream 4.5 | 5 | Yes | Previous-gen alternative |
 | Midjourney V7 | 15 | No | **Photorealistic / general aesthetic** |
 | Midjourney Niji 7 | 15 | No | **Anime and illustration ONLY** |
 
@@ -54,7 +54,7 @@ Multiple providers can be configured simultaneously. Auto-detection priority: Me
 > - **V7** — general / photorealistic. Use for product photography, portraits, landscapes, cinematic shots. Default stylize is 0 (closer to your prompt). When enhancing, use `style: 'realistic'` in `enhance_prompt`.
 > - **Niji 7** — anime / illustration ONLY. Do NOT use for photorealistic, product photography, or non-anime content. Default stylize is 100 (more stylized). When enhancing, ALWAYS use `style: 'anime'` in `enhance_prompt` — the default `realistic` produces prompts poorly suited for anime models.
 
-When no model is specified, the server defaults to Nanobanana 2.
+When no model is specified, the server defaults to GPT Image 2.0.
 
 ## Prompt Enhancement Styles
 
