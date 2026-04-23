@@ -26,9 +26,10 @@ import { Semaphore } from '../lib/semaphore.js'
 import { addRecentGeneration } from '../lib/preferences.js'
 import { processAndUploadImage } from '../lib/upload.js'
 
-// Default model for MeiGen provider when user doesn't specify one
-// gpt-image-2 维护期间默认回退到 nanobanana-2
-const MEIGEN_DEFAULT_MODEL = 'nanobanana-2'
+// MCP 不再硬编码 MeiGen 默认模型。
+// 用户不传 model 时,MeiGen 后端会按 DB is_default=true 的行决定,
+// 响应里回传实际使用的 modelId,MCP 据此展示给用户。
+// 好处: 后端切默认(比如 gpt-image-2 维护/恢复)不需要发 npm 版本。
 
 // Concurrency control: ComfyUI serial (local GPU), API max 4 parallel
 const apiSemaphore = new Semaphore(4)
@@ -252,10 +253,10 @@ async function generateWithMeiGen(
   extra: RequestHandlerExtra<ServerRequest, ServerNotification>,
 ) {
   // 1. Submit generation request
+  // model / resolution / quality 不强制填充默认值;缺省时由 MeiGen 后端按 DB 决定
   const genResponse = await apiClient.generateImage({
     prompt,
-    modelId: model || MEIGEN_DEFAULT_MODEL,
-    // 默认 'auto'：主站会基于 prompt 和模型 supported_ratios 推断最合适的比例
+    modelId: model,
     aspectRatio: aspectRatio || 'auto',
     resolution,
     quality,
@@ -300,10 +301,14 @@ async function generateWithMeiGen(
 
   const savedPath = saveImageLocally(base64, mimeType)
 
-  addRecentGeneration({ prompt, provider: 'meigen', model: model || MEIGEN_DEFAULT_MODEL, aspectRatio })
+  // 优先用后端返回的 modelId(反映真实使用的模型,包含 is_default 解析结果);
+  // 若后端未回传(旧版 backend),用用户显式传入的 model,再 fallback 到占位
+  const actualModel = genResponse.modelId || model || 'meigen-default'
+
+  addRecentGeneration({ prompt, provider: 'meigen', model: actualModel, aspectRatio })
 
   const lines = [`Image generated successfully.`]
-  lines.push(`- Provider: MeiGen (model: ${model || MEIGEN_DEFAULT_MODEL})`)
+  lines.push(`- Provider: MeiGen (model: ${actualModel})`)
 
   if (allImageUrls.length > 1) {
     lines.push(`- ${allImageUrls.length} candidate images returned:`)

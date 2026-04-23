@@ -45,6 +45,8 @@ export interface MeiGenModel {
 export interface MeiGenGenerationResponse {
   success: boolean
   generationId?: string
+  modelId?: string        // 后端返回实际使用的模型 ID(MCP 没传 modelId 时走 DB is_default)
+  creditsUsed?: number
   error?: string
 }
 
@@ -131,15 +133,19 @@ export class MeiGenApiClient {
       throw new Error('MEIGEN_API_TOKEN is required for image generation via MeiGen')
     }
 
-    // 默认分辨率按模型区分: gpt-image-2 产品默认 1K(10 积分),其他模型沿用 2K
-    // 用 startsWith 覆盖未来衍生型号(如 gpt-image-2-mini),避免掉回 2K
-    const defaultResolution = params.modelId?.startsWith('gpt-image-2') ? '1K' : '2K'
-
+    // 不在 MCP 侧硬编码模型/分辨率默认值:
+    // - modelId 缺省时,让 MeiGen 后端按 DB is_default=true 决定(每个模型的真默认)
+    // - resolution 缺省时,让后端按该模型的 extra_config.defaultResolution 决定
+    // 这样 MCP 升级周期和后端模型配置完全解耦
     const body: Record<string, unknown> = {
       prompt: params.prompt,
-      modelId: params.modelId,
       aspectRatio: params.aspectRatio || 'auto',
-      resolution: params.resolution || defaultResolution,
+    }
+    if (params.modelId) {
+      body.modelId = params.modelId
+    }
+    if (params.resolution) {
+      body.resolution = params.resolution
     }
     if (params.quality) {
       body.quality = params.quality
