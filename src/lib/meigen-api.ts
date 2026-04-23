@@ -114,6 +114,7 @@ export class MeiGenApiClient {
     modelId?: string
     aspectRatio?: string
     resolution?: string
+    quality?: string
     referenceImages?: string[]
   }): Promise<MeiGenGenerationResponse> {
     if (!this.apiToken) {
@@ -125,6 +126,9 @@ export class MeiGenApiClient {
       modelId: params.modelId,
       aspectRatio: params.aspectRatio || 'auto',
       resolution: params.resolution || '2K',
+    }
+    if (params.quality) {
+      body.quality = params.quality
     }
     if (params.referenceImages && params.referenceImages.length > 0) {
       body.referenceImages = params.referenceImages

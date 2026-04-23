@@ -109,8 +109,10 @@ export const generateImageSchema = {
     .describe('Image size for OpenAI-compatible providers: "1024x1024", "1536x1024", "auto". MeiGen/ComfyUI: use aspectRatio instead.'),
   aspectRatio: z.string().optional()
     .describe('Aspect ratio for MeiGen provider. Use "auto" (recommended, default when omitted) to let MeiGen infer the best ratio from the prompt content. Explicit values: "1:1", "3:4", "4:3", "16:9", "9:16", "21:9", "2:3", "3:2", "4:5", "5:4", etc. (model-dependent). ComfyUI: use comfyui_workflow modify to adjust dimensions before generating.'),
+  resolution: z.string().optional()
+    .describe('Resolution tier. MeiGen: "1K" / "2K" / "3K" / "4K" depending on model (see list_models). OpenAI: not used (use size instead).'),
   quality: z.string().optional()
-    .describe('Image quality for OpenAI-compatible providers: "low", "medium", "high"'),
+    .describe('Image quality. MeiGen gpt-image-2: "low" (Standard, cheaper) or "medium" (Pro, default). OpenAI-compatible providers also accept "high".'),
   referenceImages: z.array(z.string()).optional()
     .describe('Image references for style/content guidance. Accepts both public URLs (http/https) and local file paths. Local files are automatically compressed and uploaded when needed. For ComfyUI: local files are passed directly to the workflow (requires LoadImage node). Sources: gallery URLs from search_gallery/get_inspiration, URLs from previous generate_image results, or local file paths.'),
   provider: z.enum(['openai', 'meigen', 'comfyui']).optional()
@@ -127,7 +129,7 @@ export function registerGenerateImage(server: McpServer, apiClient: MeiGenApiCli
     'Generate an image using AI. Supports MeiGen platform, local ComfyUI, or OpenAI-compatible APIs. Tip: get prompts from get_inspiration() or enhance_prompt(), and use gallery image URLs as referenceImages for style guidance. Note: Midjourney Niji 7 is for anime/illustration ONLY — do not use it for photorealistic content. When enhancing prompts for Niji 7, always use enhance_prompt with style "anime". For Midjourney V7 / Niji 7, an optional style reference can be passed by appending `--sref <code>` at the end of the prompt — only when the user provides a Midjourney style code (numeric or text). Do NOT pass URLs or local paths via --sref; for any image-based reference, use the referenceImages parameter instead.',
     generateImageSchema,
     { readOnlyHint: false, destructiveHint: true },
-    async ({ prompt, model, size, aspectRatio, quality, referenceImages, provider: requestedProvider, workflow, negativePrompt }, extra) => {
+    async ({ prompt, model, size, aspectRatio, resolution, quality, referenceImages, provider: requestedProvider, workflow, negativePrompt }, extra) => {
       const availableProviders = getAvailableProviders(config)
 
       if (availableProviders.length === 0) {
@@ -175,7 +177,7 @@ export function registerGenerateImage(server: McpServer, apiClient: MeiGenApiCli
           case 'meigen': {
             await apiSemaphore.acquire()
             try {
-              return await generateWithMeiGen(apiClient, prompt, model, aspectRatio, resolvedRefs, extra)
+              return await generateWithMeiGen(apiClient, prompt, model, aspectRatio, resolution, quality, resolvedRefs, extra)
             } finally {
               apiSemaphore.release()
             }
@@ -243,6 +245,8 @@ async function generateWithMeiGen(
   prompt: string,
   model: string | undefined,
   aspectRatio: string | undefined,
+  resolution: string | undefined,
+  quality: string | undefined,
   referenceImages: string[] | undefined,
   extra: RequestHandlerExtra<ServerRequest, ServerNotification>,
 ) {
@@ -252,6 +256,8 @@ async function generateWithMeiGen(
     modelId: model || MEIGEN_DEFAULT_MODEL,
     // 默认 'auto'：主站会基于 prompt 和模型 supported_ratios 推断最合适的比例
     aspectRatio: aspectRatio || 'auto',
+    resolution,
+    quality,
     referenceImages,
   })
 
