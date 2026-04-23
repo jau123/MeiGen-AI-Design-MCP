@@ -246,6 +246,13 @@ Cloud API with multiple models: GPT Image 2.0, Nanobanana 2, Seedream 5.0, and m
 { "meigenApiToken": "meigen_sk_..." }
 ```
 
+**GPT Image 2.0 resolution & quality** — the default model accepts two optional `generate_image` parameters:
+
+- `resolution`: `"1K"` (default) / `"2K"` / `"4K"` — upgrade for posters, prints, wallpapers
+- `quality`: `"low"` / `"medium"` (default) — use `"low"` for quick drafts and thumbnails
+
+Pricing: 1K/low ≈ 2 credits, **1K/medium = 10 credits (default)**, 2K/medium ≈ 25, 4K/medium ≈ 40. Run `list_models` to see each model's supported tiers.
+
 ### Bring Your Own API (OpenAI-Compatible)
 
 Connect **any** image generation API that follows the OpenAI format — Together AI, Fireworks AI, DeepInfra, SiliconFlow, or your own endpoint. Just provide your key, base URL, and model name:
