@@ -27,7 +27,8 @@ import { addRecentGeneration } from '../lib/preferences.js'
 import { processAndUploadImage } from '../lib/upload.js'
 
 // Default model for MeiGen provider when user doesn't specify one
-const MEIGEN_DEFAULT_MODEL = 'gpt-image-2'
+// gpt-image-2 维护期间默认回退到 nanobanana-2
+const MEIGEN_DEFAULT_MODEL = 'nanobanana-2'
 
 // Concurrency control: ComfyUI serial (local GPU), API max 4 parallel
 const apiSemaphore = new Semaphore(4)
