@@ -121,11 +121,14 @@ export class MeiGenApiClient {
       throw new Error('MEIGEN_API_TOKEN is required for image generation via MeiGen')
     }
 
+    // 默认分辨率按模型区分: gpt-image-2 产品默认 1K(10 积分),其他模型仍沿用 2K
+    const defaultResolution = params.modelId === 'gpt-image-2' ? '1K' : '2K'
+
     const body: Record<string, unknown> = {
       prompt: params.prompt,
       modelId: params.modelId,
       aspectRatio: params.aspectRatio || 'auto',
-      resolution: params.resolution || '2K',
+      resolution: params.resolution || defaultResolution,
     }
     if (params.quality) {
       body.quality = params.quality

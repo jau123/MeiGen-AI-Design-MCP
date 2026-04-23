@@ -112,7 +112,7 @@ export const generateImageSchema = {
   resolution: z.string().optional()
     .describe('Resolution tier. MeiGen: "1K" / "2K" / "3K" / "4K" depending on model (see list_models). OpenAI: not used (use size instead).'),
   quality: z.string().optional()
-    .describe('Image quality. MeiGen gpt-image-2: "low" (Standard, cheaper) or "medium" (Pro, default). OpenAI-compatible providers also accept "high".'),
+    .describe('Image quality. MeiGen gpt-image-2: "low" or "medium" (default). OpenAI-compatible providers also accept "high".'),
   referenceImages: z.array(z.string()).optional()
     .describe('Image references for style/content guidance. Accepts both public URLs (http/https) and local file paths. Local files are automatically compressed and uploaded when needed. For ComfyUI: local files are passed directly to the workflow (requires LoadImage node). Sources: gallery URLs from search_gallery/get_inspiration, URLs from previous generate_image results, or local file paths.'),
   provider: z.enum(['openai', 'meigen', 'comfyui']).optional()
