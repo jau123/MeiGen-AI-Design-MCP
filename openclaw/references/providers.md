@@ -49,7 +49,7 @@ Multiple providers can be configured simultaneously. Auto-detection priority: Me
 | Midjourney V7 | 15 | No | **Photorealistic / general aesthetic** |
 | Midjourney Niji 7 | 15 | No | **Anime and illustration ONLY** |
 
-> **GPT Image 2.0** accepts `resolution` ("1K" / "2K" / "4K") and `quality` ("low" / "medium") parameters. Defaults to 1K resolution for cost efficiency. Set `resolution: "2K"` or `"4K"` for prints/posters; use `quality: "medium"` for highest detail.
+> **GPT Image 2.0** accepts `resolution` ("1K" / "2K" / "4K") and `quality` ("low" / "medium") parameters. **Default: 1K / medium = 10 credits** (good for social, chat, blog, web UI). Cost scales roughly `resolution × quality`: 1K/low ≈ 2 credits, 2K/medium ≈ 25 credits, 4K/medium ≈ 40 credits. Upgrade resolution for prints/posters only; for drafts/thumbnails use `quality: "low"`.
 
 > **Midjourney V7 vs Niji 7**: Both cost 15 credits, take ~60s, accept 1 reference image, and return 4 candidate images per generation. Advanced params (stylize/chaos/weird/raw/iw/sw/sv) run with fixed server-side defaults and cannot be tuned from MCP — the only exception is `sref`, which can be set via `--sref <code>` at the end of the prompt (Midjourney style codes only, no URLs). The two differ in **content focus** and **prompt enhancement style**:
 >

@@ -99,7 +99,7 @@ An open-source MCP Server (installed via plugin marketplace) that gives LLMs cre
 
 > This marketplace doesn't bundle MCP server config. After installing, add to your project's `.mcp.json`:
 > ```json
-> { "mcpServers": { "meigen": { "command": "npx", "args": ["-y", "meigen@1.2.9"] } } }
+> { "mcpServers": { "meigen": { "command": "npx", "args": ["-y", "meigen@1.2.10"] } } }
 > ```
 
 #### First-Time Setup
