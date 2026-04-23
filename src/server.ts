@@ -104,6 +104,13 @@ User wants a base design plus derivative applications.
 - Do NOT call list_models to "pick the cheapest model" — just generate.
   list_models is for when the USER wants to browse or switch models.
 
+### GPT Image 2.0 resolution / quality
+The default model (GPT Image 2.0) defaults to **1K resolution** (10 credits). Upgrade only when the use case justifies it:
+- Posters, prints, large-screen wallpapers — pass \`resolution: "2K"\` (25 credits) or \`"4K"\` (40 credits).
+- Social/chat/blog imagery — keep the 1K default.
+- For quick drafts / thumbnails, pass \`quality: "low"\` (2 credits at 1K).
+Do NOT upgrade resolution without a clear reason — each tier costs 2–4× more.
+
 ### Midjourney V7 vs Niji 7 — pick the right one
 Both are 15 credits, ~60s, 1 reference image max, and return 4 candidate images per generation. Advanced params (stylize/chaos/weird/raw/iw/sw/sv) run with fixed server-side defaults and cannot be tuned from MCP — the only exception is \`sref\` (see below). They differ in content focus and prompt enhancement style:
 

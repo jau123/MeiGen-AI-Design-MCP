@@ -30,6 +30,16 @@ export interface MeiGenModel {
   supported_ratios: string[]
   api_provider: string
   request_transform: string
+  media_type?: 'image' | 'video'
+  max_reference_images?: number
+  extra_config?: {
+    resolutions?: string[]
+    qualities?: string[]
+    defaultResolution?: string
+    defaultQuality?: string
+    pricing?: unknown
+    [key: string]: unknown
+  } | null
 }
 
 export interface MeiGenGenerationResponse {
@@ -121,8 +131,9 @@ export class MeiGenApiClient {
       throw new Error('MEIGEN_API_TOKEN is required for image generation via MeiGen')
     }
 
-    // 默认分辨率按模型区分: gpt-image-2 产品默认 1K(10 积分),其他模型仍沿用 2K
-    const defaultResolution = params.modelId === 'gpt-image-2' ? '1K' : '2K'
+    // 默认分辨率按模型区分: gpt-image-2 产品默认 1K(10 积分),其他模型沿用 2K
+    // 用 startsWith 覆盖未来衍生型号(如 gpt-image-2-mini),避免掉回 2K
+    const defaultResolution = params.modelId?.startsWith('gpt-image-2') ? '1K' : '2K'
 
     const body: Record<string, unknown> = {
       prompt: params.prompt,

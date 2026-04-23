@@ -156,7 +156,7 @@ When a user asks about models or costs, refer to this table:
 
 | Model | Credits | 4K | Best For |
 |-------|---------|-----|----------|
-| GPT Image 2.0 (default) | 10 | No | **Near-perfect text rendering** in posters/logos |
+| GPT Image 2.0 (default) | 2–40 (resolution × quality) | Yes | **Near-perfect text rendering** in posters/logos |
 | Nanobanana 2 | 5 | Yes | General purpose, high quality |
 | Nanobanana Pro | 10 | Yes | Premium quality |
 | Seedream 5.0 Lite | 5 | Yes | Fast, stylized imagery |
@@ -164,7 +164,8 @@ When a user asks about models or costs, refer to this table:
 | Midjourney V7 | 15 | No | **Photorealistic / general aesthetic** |
 | Midjourney Niji 7 | 15 | No | **Anime and illustration ONLY** |
 
-When no model is specified, the server defaults to GPT Image 2.0 (10 credits).
+When no model is specified, the server defaults to GPT Image 2.0 at 1K resolution (10 credits).
+For high-resolution prints or posters, pass `resolution: "2K"` or `resolution: "4K"` to `generate_image`.
 To use a specific model, pass `model: "<model-id>"` to `generate_image` (e.g., `model: "seedream-5.0-lite"`).
 
 ### Midjourney V7 vs Niji 7 — Important Notes

@@ -35,11 +35,19 @@ export function registerListModels(server: McpServer, apiClient: MeiGenApiClient
         const models = await apiClient.listModels(activeOnly)
         if (models.length > 0) {
           const meigenSection = models.map((m, i) => {
+            const cfg = m.extra_config || {}
+            const resolutions = Array.isArray(cfg.resolutions) && cfg.resolutions.length > 0
+              ? cfg.resolutions.join(', ')
+              : null
+            const qualities = Array.isArray(cfg.qualities) && cfg.qualities.length > 0
+              ? cfg.qualities.join(', ')
+              : null
             return [
               `${i + 1}. ${m.name}`,
               `   ID: ${m.id}`,
               `   Credits: ${m.credits_per_generation} per generation`,
-              `   4K: ${m.supports_4k ? 'Yes' : 'No'}`,
+              resolutions ? `   Resolutions: ${resolutions}` : `   4K: ${m.supports_4k ? 'Yes' : 'No'}`,
+              qualities ? `   Quality tiers: ${qualities}` : '',
               `   Ratios: ${m.supported_ratios.join(', ')}`,
               m.description ? `   Description: ${m.description}` : '',
             ].filter(Boolean).join('\n')
