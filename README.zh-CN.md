@@ -3,7 +3,7 @@
 </h1>
 
 <p align="center">
-  <strong>让 Claude Code / OpenClaw 变成媲美 Lovart 的私人设计助理</strong><br><sub>支持本地 ComfyUI 生图和接入 API，1,300+ 专业提示词库，多方案并行</sub>
+  <strong>让 Claude Code / OpenClaw 变成媲美 Lovart 的私人设计助理</strong><br><sub>支持 GPT Image 2、Nanobanana 与 ComfyUI，内置 1,400+ 专业提示词库，配合精心设计的 Hook 与多任务编排系统</sub>
 </p>
 
 <p align="center">

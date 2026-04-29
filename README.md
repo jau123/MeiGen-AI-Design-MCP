@@ -3,7 +3,7 @@
 </h1>
 
 <p align="center">
-  <strong>Turn Claude Code / OpenClaw into your personal design assistant rivaling Lovart</strong><br><sub>Local ComfyUI generation, API integration, 1,300+ pro prompt library, multi-direction parallel output</sub>
+  <strong>Turn Claude Code / OpenClaw into your personal design assistant rivaling Lovart</strong><br><sub>Supports GPT Image 2, Nanobanana & ComfyUI, with a 1,400+ prompt library, carefully crafted hooks and a multi-task orchestration system</sub>
 </p>
 
 <p align="center">
