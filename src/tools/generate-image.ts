@@ -114,7 +114,7 @@ export const generateImageSchema = {
   resolution: z.string().optional()
     .describe('Resolution tier. MeiGen: "1K" / "2K" / "3K" / "4K" — each model supports a subset (list_models reports resolutions when applicable). OpenAI: not used (use size instead).'),
   quality: z.string().optional()
-    .describe('Image quality. MeiGen gpt-image-2: "low" or "medium". OpenAI-compatible providers also accept "high".'),
+    .describe('Image quality. MeiGen gpt-image-2: "low" / "medium" / "high". OpenAI-compatible providers also accept "high".'),
   referenceImages: z.array(z.string()).optional()
     .describe('Image references for style/content guidance. Accepts both public URLs (http/https) and local file paths. Local files are automatically compressed and uploaded when needed. For ComfyUI: local files are passed directly to the workflow (requires LoadImage node). Sources: gallery URLs from search_gallery/get_inspiration, URLs from previous generate_image results, or local file paths.'),
   provider: z.enum(['openai', 'meigen', 'comfyui']).optional()
@@ -386,7 +386,7 @@ function classifyError(message: string): string {
     return 'The prompt may have triggered a content safety filter. Try rephrasing the prompt to avoid sensitive content.'
 
   if (lower.includes('credit') || lower.includes('insufficient') || message.includes('402'))
-    return 'Insufficient credits. Daily free credits refresh each day, or purchase more at meigen.ai.'
+    return 'Insufficient credits. Daily free credits refresh each day, or purchase more at https://www.meigen.ai/model-comparison.'
 
   if (lower.includes('timed out') || lower.includes('timeout'))
     return 'Generation timed out. This can happen during high demand. You can try again — it may succeed on retry.'

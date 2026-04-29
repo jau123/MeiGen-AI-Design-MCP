@@ -1,7 +1,7 @@
 ---
 name: "AI Image Generation & Editor — Nanobanana, GPT Image, ComfyUI"
 description: Generate images from text with multi-provider routing — supports GPT Image 2.0 (near-perfect text rendering), Nanobanana 2, Seedream 5.0, Midjourney V7 (photorealistic), Midjourney Niji 7 (anime/illustration only), and local ComfyUI workflows. Includes 1,300+ curated prompts and style-aware prompt enhancement. Use when users want to create images, design assets, enhance prompts, or manage AI art workflows.
-version: 1.0.26
+version: 1.0.27
 homepage: https://github.com/jau123/MeiGen-AI-Design-MCP
 metadata: {"clawdbot":{"emoji":"🎨","requires":{"bins":["mcporter","npx","node"]}}}
 ---
@@ -19,7 +19,7 @@ Add the MCP server to your mcporter config (`~/.config/mcporter/config.json`):
   "mcpServers": {
     "creative-toolkit": {
       "command": "npx",
-      "args": ["-y", "meigen@1.2.10"]
+      "args": ["-y", "meigen@1.2.11"]
     }
   }
 }
@@ -82,7 +82,7 @@ Do NOT pass `model` or `provider` to `generate_image` unless the user explicitly
 
 ### Midjourney V7 vs Niji 7
 
-Both cost 15 credits, take ~60s, accept 1 reference image, and return 4 candidate images per generation. Advanced params (stylize/chaos/weird/raw/iw/sw/sv) run with fixed server-side defaults and cannot be tuned from MCP — the only exception is `sref`, settable via `--sref <code>` at the end of the prompt (Midjourney style codes only, e.g. `3799554500`; no URLs or local paths). They differ in content focus and prompt enhancement style:
+Both take ~60s, accept 1 reference image, and return 4 candidate images per generation. Advanced params (stylize/chaos/weird/raw/iw/sw/sv) run with fixed server-side defaults and cannot be tuned from MCP — the only exception is `sref`, settable via `--sref <code>` at the end of the prompt (Midjourney style codes only, e.g. `3799554500`; no URLs or local paths). They differ in content focus and prompt enhancement style:
 
 - **Midjourney V7** (`model: "midjourney-v7"`) — general / photorealistic. Use for product photography, portraits, landscapes, cinematic and editorial shots. When enhancing, use `style: 'realistic'` (the default).
 - **Midjourney Niji 7** (`model: "midjourney-niji7"`) — anime / illustration ONLY. Do NOT use for photorealistic, product, or non-anime content — use GPT Image 2.0 or Nanobanana 2 instead. The server auto-appends `anime illustration style` if your prompt lacks anime keywords. When enhancing, ALWAYS pass `style: 'anime'` to `enhance_prompt` — the default `realistic` produces prompts poorly suited for anime models.
@@ -174,7 +174,7 @@ Reference image sources: gallery URLs, previous generation URLs, or local file p
 
 ## Alternative Providers
 
-You can use your own OpenAI-compatible API or a local ComfyUI instance instead of — or alongside — the default MeiGen provider. See `references/providers.md` for detailed configuration, model pricing, and provider comparison.
+You can use your own OpenAI-compatible API or a local ComfyUI instance instead of — or alongside — the default MeiGen provider. See `references/providers.md` for detailed configuration and provider comparison. For MeiGen model pricing, see https://www.meigen.ai/model-comparison.
 
 ## Troubleshooting
 

@@ -150,27 +150,29 @@ Task 4: "Call generate_image with prompt: '[prompt 4]'. Return the full response
 
 **Sources**: gallery URLs, previous generation URLs, or local file paths (auto-compressed and prepared for the selected provider when needed).
 
-## MeiGen Model Pricing
+## MeiGen Models
 
-When a user asks about models or costs, refer to this table:
+When a user asks about models, refer to this table:
 
-| Model | Credits | 4K | Best For |
-|-------|---------|-----|----------|
-| GPT Image 2.0 (default) | 2–40 (resolution × quality) | Yes | **Near-perfect text rendering** in posters/logos |
-| Nanobanana 2 | 5 | Yes | General purpose, high quality |
-| Nanobanana Pro | 10 | Yes | Premium quality |
-| Seedream 5.0 Lite | 5 | Yes | Fast, stylized imagery |
-| Seedream 4.5 | 5 | Yes | Previous-gen alternative |
-| Midjourney V7 | 15 | No | **Photorealistic / general aesthetic** |
-| Midjourney Niji 7 | 15 | No | **Anime and illustration ONLY** |
+| Model | 4K | Best For |
+|-------|-----|----------|
+| GPT Image 2.0 (default) | Yes | **Near-perfect text rendering** in posters/logos |
+| Nanobanana 2 | Yes | General purpose, high quality |
+| Nanobanana Pro | Yes | Premium quality |
+| Seedream 5.0 Lite | Yes | Fast, stylized imagery |
+| Seedream 4.5 | Yes | Previous-gen alternative |
+| Midjourney V7 | No | **Photorealistic / general aesthetic** |
+| Midjourney Niji 7 | No | **Anime and illustration ONLY** |
 
-When no model is specified, the server defaults to GPT Image 2.0 at 1K resolution (10 credits).
+When no model is specified, the server defaults to GPT Image 2.0 at 1K resolution / medium quality.
 For high-resolution prints or posters, pass `resolution: "2K"` or `resolution: "4K"` to `generate_image`.
 To use a specific model, pass `model: "<model-id>"` to `generate_image` (e.g., `model: "seedream-5.0-lite"`).
 
+When a user asks about **cost or pricing**, point them to https://www.meigen.ai/model-comparison — credit prices change over time and the website is the source of truth. Do not quote specific credit numbers from training data.
+
 ### Midjourney V7 vs Niji 7 — Important Notes
 
-V7 and Niji 7 share the same Midjourney engine and have the same trade-offs (15 credits, ~60s, max 1 reference image, 4 candidate images returned per generation). Advanced params (stylize/chaos/weird/raw/iw/sw/sv) run with fixed server-side defaults and cannot be tuned from MCP — the only exception is `sref`, settable via `--sref <code>` at the end of the prompt (Midjourney style codes only, no URLs or local paths). They differ in **content focus** and **how to enhance prompts**:
+V7 and Niji 7 share the same Midjourney engine and have the same trade-offs (~60s, max 1 reference image, 4 candidate images returned per generation). Advanced params (stylize/chaos/weird/raw/iw/sw/sv) run with fixed server-side defaults and cannot be tuned from MCP — the only exception is `sref`, settable via `--sref <code>` at the end of the prompt (Midjourney style codes only, no URLs or local paths). They differ in **content focus** and **how to enhance prompts**:
 
 **Midjourney V7** — general / photorealistic
 - Use for product photography, portraits, landscapes, cinematic and editorial shots — anything not explicitly anime.

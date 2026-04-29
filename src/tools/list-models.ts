@@ -23,7 +23,7 @@ export const listModelsSchema = {
 export function registerListModels(server: McpServer, apiClient: MeiGenApiClient, config: MeiGenConfig) {
   server.tool(
     'list_models',
-    'List available AI image generation models with pricing and capabilities.',
+    'List available AI image generation models and their capabilities. For up-to-date pricing, see https://www.meigen.ai/model-comparison.',
     listModelsSchema,
     { readOnlyHint: true },
     async ({ activeOnly }) => {
@@ -45,7 +45,6 @@ export function registerListModels(server: McpServer, apiClient: MeiGenApiClient
             return [
               `${i + 1}. ${m.name}`,
               `   ID: ${m.id}`,
-              `   Credits: ${m.credits_per_generation} per generation`,
               resolutions ? `   Resolutions: ${resolutions}` : `   4K: ${m.supports_4k ? 'Yes' : 'No'}`,
               qualities ? `   Quality tiers: ${qualities}` : '',
               `   Ratios: ${m.supported_ratios.join(', ')}`,
@@ -56,7 +55,8 @@ export function registerListModels(server: McpServer, apiClient: MeiGenApiClient
           sections.push(
             `## MeiGen Platform Models${providers.includes('meigen') ? '' : ' (requires MEIGEN_API_TOKEN)'}\n\n` +
             `When generating, do NOT specify model unless the user explicitly asks for one.\n` +
-            `The server uses the platform default automatically.\n\n` +
+            `The server uses the platform default automatically.\n` +
+            `Pricing varies by model and changes over time — see https://www.meigen.ai/model-comparison\n\n` +
             meigenSection
           )
         }

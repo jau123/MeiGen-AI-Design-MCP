@@ -105,14 +105,14 @@ User wants a base design plus derivative applications.
   list_models is for when the USER wants to browse or switch models.
 
 ### GPT Image 2.0 resolution / quality
-The default model (GPT Image 2.0) defaults to **1K resolution** (10 credits). Upgrade only when the use case justifies it:
-- Posters, prints, large-screen wallpapers — pass \`resolution: "2K"\` (25 credits) or \`"4K"\` (40 credits).
+The default model (GPT Image 2.0) defaults to **1K resolution / medium quality**. Upgrade only when the use case justifies it:
+- Posters, prints, large-screen wallpapers — pass \`resolution: "2K"\` or \`"4K"\`.
 - Social/chat/blog imagery — keep the 1K default.
-- For quick drafts / thumbnails, pass \`quality: "low"\` (2 credits at 1K).
-Do NOT upgrade resolution without a clear reason — each tier costs 2–4× more.
+- For quick drafts / thumbnails, pass \`quality: "low"\`.
+Do NOT upgrade resolution without a clear reason — higher tiers cost more (see https://www.meigen.ai/model-comparison).
 
 ### Midjourney V7 vs Niji 7 — pick the right one
-Both are 15 credits, ~60s, 1 reference image max, and return 4 candidate images per generation. Advanced params (stylize/chaos/weird/raw/iw/sw/sv) run with fixed server-side defaults and cannot be tuned from MCP — the only exception is \`sref\` (see below). They differ in content focus and prompt enhancement style:
+Both take ~60s, accept 1 reference image max, and return 4 candidate images per generation. Advanced params (stylize/chaos/weird/raw/iw/sw/sv) run with fixed server-side defaults and cannot be tuned from MCP — the only exception is \`sref\` (see below). They differ in content focus and prompt enhancement style:
 
 - **Midjourney V7** (\`model: "midjourney-v7"\`) — general / photorealistic. Use for product photography, portraits, landscapes, cinematic and editorial shots. Default stylize is 0 (closer to the prompt). When using \`enhance_prompt\`, pass \`style: 'realistic'\` (the default).
 - **Midjourney Niji 7** (\`model: "midjourney-niji7"\`) — anime / illustration ONLY. Do NOT use for photorealistic, product, or non-anime content — use GPT Image 2.0 or Nanobanana 2 instead. Default stylize is 100 and the server auto-appends \`anime illustration style\` if your prompt lacks anime keywords. When using \`enhance_prompt\`, ALWAYS pass \`style: 'anime'\` — the default \`realistic\` produces prompts poorly suited for anime models.
@@ -133,7 +133,7 @@ Do NOT specify provider or model.
 ### Multiple variants (2-4 images, API providers)
 Write distinct prompts for each — don't just tweak one word.
 Call generate_image in parallel (same response).
-ALWAYS warn: "This will use N x [credits] credits, proceed?"
+ALWAYS confirm with the user before kicking off N parallel generations.
 
 ### Multiple variants (>4 images, or any amount with ComfyUI)
 Generate in batches:
@@ -196,7 +196,7 @@ When generation fails, don't just relay the error. Diagnose and guide:
 ### Insufficient credits
 -> "You've used up your available credits. You can:
    1. Wait for daily credits to refresh
-   2. Purchase additional credits at meigen.ai"
+   2. Purchase additional credits at https://www.meigen.ai/model-comparison"
 
 ### Timeout
 -> "Generation is taking longer than expected — this can happen during
@@ -218,7 +218,7 @@ export function createServer() {
   const apiClient = new MeiGenApiClient(config)
 
   const server = new McpServer(
-    { name: 'meigen', version: '1.2.10' },
+    { name: 'meigen', version: '1.2.11' },
     { instructions: SERVER_INSTRUCTIONS },
   )
 

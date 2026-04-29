@@ -99,7 +99,7 @@ An open-source MCP Server (installed via plugin marketplace) that gives LLMs cre
 
 > This marketplace doesn't bundle MCP server config. After installing, add to your project's `.mcp.json`:
 > ```json
-> { "mcpServers": { "meigen": { "command": "npx", "args": ["-y", "meigen@1.2.10"] } } }
+> { "mcpServers": { "meigen": { "command": "npx", "args": ["-y", "meigen@1.2.11"] } } }
 > ```
 
 #### First-Time Setup
@@ -156,7 +156,7 @@ Add to your MCP config (e.g. `.mcp.json`, `claude_desktop_config.json`):
   "mcpServers": {
     "meigen": {
       "command": "npx",
-      "args": ["-y", "meigen@latest"],
+      "args": ["-y", "meigen@1.2.11"],
       "env": {
         "MEIGEN_API_TOKEN": "meigen_sk_..."
       }
@@ -251,7 +251,7 @@ Cloud API with multiple models: GPT Image 2.0, Nanobanana 2, Seedream 5.0, and m
 - `resolution`: `"1K"` (default) / `"2K"` / `"4K"` — upgrade for posters, prints, wallpapers
 - `quality`: `"low"` / `"medium"` (default) — use `"low"` for quick drafts and thumbnails
 
-Pricing: 1K/low ≈ 2 credits, **1K/medium = 10 credits (default)**, 2K/medium ≈ 25, 4K/medium ≈ 40. Run `list_models` to see each model's supported tiers.
+Run `list_models` to see each model's supported tiers. For up-to-date pricing across all models, see [meigen.ai/model-comparison](https://www.meigen.ai/model-comparison).
 
 ### Bring Your Own API (OpenAI-Compatible)
 
