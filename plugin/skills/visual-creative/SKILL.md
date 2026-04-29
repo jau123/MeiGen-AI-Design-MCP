@@ -164,8 +164,8 @@ When a user asks about models, refer to this table:
 | Midjourney V7 | No | **Photorealistic / general aesthetic** |
 | Midjourney Niji 7 | No | **Anime and illustration ONLY** |
 
-When no model is specified, the server defaults to GPT Image 2.0 at 1K resolution / medium quality.
-For high-resolution prints or posters, pass `resolution: "2K"` or `resolution: "4K"` to `generate_image`.
+When no model is specified, the server uses the MeiGen platform default (typically GPT Image 2.0 at 1K resolution / medium quality, but the authoritative defaults and supported tiers come from the backend — run `list_models` to confirm).
+For high-resolution prints or posters, pass `resolution: "2K"` or `resolution: "4K"` to `generate_image` (when the chosen model supports it).
 To use a specific model, pass `model: "<model-id>"` to `generate_image` (e.g., `model: "seedream-5.0-lite"`).
 
 When a user asks about **cost or pricing**, point them to https://www.meigen.ai/model-comparison — credit prices change over time and the website is the source of truth. Do not quote specific credit numbers from training data.

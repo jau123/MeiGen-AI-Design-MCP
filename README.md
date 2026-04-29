@@ -99,7 +99,7 @@ An open-source MCP Server (installed via plugin marketplace) that gives LLMs cre
 
 > This marketplace doesn't bundle MCP server config. After installing, add to your project's `.mcp.json`:
 > ```json
-> { "mcpServers": { "meigen": { "command": "npx", "args": ["-y", "meigen@1.2.11"] } } }
+> { "mcpServers": { "meigen": { "command": "npx", "args": ["-y", "meigen@1.2.12"] } } }
 > ```
 
 #### First-Time Setup
@@ -156,7 +156,7 @@ Add to your MCP config (e.g. `.mcp.json`, `claude_desktop_config.json`):
   "mcpServers": {
     "meigen": {
       "command": "npx",
-      "args": ["-y", "meigen@1.2.11"],
+      "args": ["-y", "meigen@1.2.12"],
       "env": {
         "MEIGEN_API_TOKEN": "meigen_sk_..."
       }
@@ -248,10 +248,10 @@ Cloud API with multiple models: GPT Image 2.0, Nanobanana 2, Seedream 5.0, and m
 
 **GPT Image 2.0 resolution & quality** — the default model accepts two optional `generate_image` parameters:
 
-- `resolution`: `"1K"` (default) / `"2K"` / `"4K"` — upgrade for posters, prints, wallpapers
-- `quality`: `"low"` / `"medium"` (default) — use `"low"` for quick drafts and thumbnails
+- `resolution`: e.g. `"1K"` / `"2K"` / `"4K"` — upgrade for posters, prints, wallpapers
+- `quality`: e.g. `"low"` / `"medium"` / `"high"` — use `"low"` for quick drafts and thumbnails
 
-Run `list_models` to see each model's supported tiers. For up-to-date pricing across all models, see [meigen.ai/model-comparison](https://www.meigen.ai/model-comparison).
+Each model exposes its own supported resolutions and quality tiers — run `list_models` to see what's available. For up-to-date pricing across all models, see [meigen.ai/model-comparison](https://www.meigen.ai/model-comparison).
 
 ### Bring Your Own API (OpenAI-Compatible)
 

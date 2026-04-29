@@ -105,9 +105,9 @@ User wants a base design plus derivative applications.
   list_models is for when the USER wants to browse or switch models.
 
 ### GPT Image 2.0 resolution / quality
-The default model (GPT Image 2.0) defaults to **1K resolution / medium quality**. Upgrade only when the use case justifies it:
+GPT Image 2.0 typically defaults to **1K resolution / medium quality** — but the authoritative defaults and supported tiers come from the MeiGen backend. Run \`list_models\` to see what each model actually supports. Upgrade only when the use case justifies it:
 - Posters, prints, large-screen wallpapers — pass \`resolution: "2K"\` or \`"4K"\`.
-- Social/chat/blog imagery — keep the 1K default.
+- Social/chat/blog imagery — keep the default.
 - For quick drafts / thumbnails, pass \`quality: "low"\`.
 Do NOT upgrade resolution without a clear reason — higher tiers cost more (see https://www.meigen.ai/model-comparison).
 
@@ -196,7 +196,7 @@ When generation fails, don't just relay the error. Diagnose and guide:
 ### Insufficient credits
 -> "You've used up your available credits. You can:
    1. Wait for daily credits to refresh
-   2. Purchase additional credits at https://www.meigen.ai/model-comparison"
+   2. View plans and top up at https://www.meigen.ai/model-comparison"
 
 ### Timeout
 -> "Generation is taking longer than expected — this can happen during
@@ -218,7 +218,7 @@ export function createServer() {
   const apiClient = new MeiGenApiClient(config)
 
   const server = new McpServer(
-    { name: 'meigen', version: '1.2.11' },
+    { name: 'meigen', version: '1.2.12' },
     { instructions: SERVER_INSTRUCTIONS },
   )
 

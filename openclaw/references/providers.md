@@ -51,7 +51,7 @@ Multiple providers can be configured simultaneously. Auto-detection priority: Me
 
 > **Pricing** for all models is dynamic. See https://www.meigen.ai/model-comparison for the up-to-date credit cost of each model and tier. Run `list_models` from the MCP server to see capabilities (resolutions, quality tiers, aspect ratios) for each model.
 
-> **GPT Image 2.0** accepts `resolution` ("1K" / "2K" / "4K") and `quality` ("low" / "medium") parameters. **Default: 1K / medium** (good for social, chat, blog, web UI). Upgrade resolution for prints/posters only; for drafts/thumbnails use `quality: "low"`.
+> **GPT Image 2.0** accepts `resolution` (e.g. `"1K"` / `"2K"` / `"4K"`) and `quality` (e.g. `"low"` / `"medium"` / `"high"`) parameters. Defaults and supported tiers are decided by the MeiGen backend per model — run `list_models` for the current capabilities. Typical default is `1K / medium` (good for social, chat, blog, web UI). Upgrade resolution for prints/posters only; for drafts/thumbnails use `quality: "low"`.
 
 > **Midjourney V7 vs Niji 7**: Both take ~60s, accept 1 reference image, and return 4 candidate images per generation. Advanced params (stylize/chaos/weird/raw/iw/sw/sv) run with fixed server-side defaults and cannot be tuned from MCP — the only exception is `sref`, which can be set via `--sref <code>` at the end of the prompt (Midjourney style codes only, no URLs). The two differ in **content focus** and **prompt enhancement style**:
 >

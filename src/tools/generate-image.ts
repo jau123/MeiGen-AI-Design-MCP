@@ -386,7 +386,7 @@ function classifyError(message: string): string {
     return 'The prompt may have triggered a content safety filter. Try rephrasing the prompt to avoid sensitive content.'
 
   if (lower.includes('credit') || lower.includes('insufficient') || message.includes('402'))
-    return 'Insufficient credits. Daily free credits refresh each day, or purchase more at https://www.meigen.ai/model-comparison.'
+    return 'Insufficient credits. Daily free credits refresh each day, or view plans and top up at https://www.meigen.ai/model-comparison.'
 
   if (lower.includes('timed out') || lower.includes('timeout'))
     return 'Generation timed out. This can happen during high demand. You can try again — it may succeed on retry.'
