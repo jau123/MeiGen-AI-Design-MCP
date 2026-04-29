@@ -23,23 +23,40 @@ export interface TrendingPrompt {
   images: string[]
   model: string
   categories: string[]
+  rating?: number
+  score?: number
   date: string
   source_url: string
 }
 
-export type PromptCategory = 'Illustration & 3D' | 'App' | 'Food & Drink' | 'Girl' | 'JSON' | 'Other' | 'Photography' | 'Product & Brand'
+export type PromptCategory =
+  | 'Photography'
+  | 'Illustration & 3D'
+  | 'Product & Brand'
+  | 'Food & Drink'
+  | 'Poster Design'
+  | 'UI & Graphic'
 
-export const ALL_CATEGORIES: PromptCategory[] = ['Illustration & 3D', 'App', 'Food & Drink', 'Girl', 'JSON', 'Other', 'Photography', 'Product & Brand']
+export const ALL_CATEGORIES: PromptCategory[] = [
+  'Photography',
+  'Illustration & 3D',
+  'Product & Brand',
+  'Food & Drink',
+  'Poster Design',
+  'UI & Graphic',
+]
 
-/** Map legacy DB values to new display names */
+/** Map legacy DB values → display names. Data files now ship with new names already; this map only protects against stale legacy data. */
 const CATEGORY_DISPLAY_MAP: Record<string, PromptCategory> = {
   '3D': 'Illustration & 3D',
   'Food': 'Food & Drink',
   'Photograph': 'Photography',
   'Product': 'Product & Brand',
+  'Poster': 'Poster Design',
+  'Design': 'UI & Graphic',
 }
 
-/** Convert legacy category name to display name */
+/** Convert legacy category name to display name; returns the input unchanged if it's not a known legacy alias. */
 export function mapCategory(raw: string): string {
   return CATEGORY_DISPLAY_MAP[raw] || raw
 }

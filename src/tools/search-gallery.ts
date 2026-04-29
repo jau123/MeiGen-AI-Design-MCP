@@ -16,8 +16,8 @@ import { apiSearchPosts, type ApiSearchResult } from '../lib/api-search.js'
 export const searchGallerySchema = {
   query: z.string().optional()
     .describe('Search keywords (e.g., "cyberpunk", "product photo", "portrait"). Supports semantic search — natural language descriptions work well. Leave empty to browse by category or get random picks.'),
-  category: z.enum(['Illustration & 3D', 'App', 'Food & Drink', 'Girl', 'JSON', 'Other', 'Photography', 'Product & Brand']).optional()
-    .describe('Filter by category. Available: Illustration & 3D, App, Food & Drink, Girl, JSON, Other, Photography, Product & Brand'),
+  category: z.enum(['Photography', 'Illustration & 3D', 'Product & Brand', 'Food & Drink', 'Poster Design', 'UI & Graphic']).optional()
+    .describe('Filter by category. Available: Photography, Illustration & 3D, Product & Brand, Food & Drink, Poster Design, UI & Graphic'),
   limit: z.number().min(1).max(20).optional().default(5)
     .describe('Number of results (1-20, default 5)'),
   offset: z.number().min(0).optional().default(0)
