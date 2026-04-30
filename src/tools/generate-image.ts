@@ -35,14 +35,21 @@ import { processAndUploadImage } from '../lib/upload.js'
 const apiSemaphore = new Semaphore(4)
 const comfyuiSemaphore = new Semaphore(1)
 
-/** Save base64 image to ~/Pictures/meigen/, returns the file path or undefined on failure */
+/**
+ * Save base64 image locally. Defaults to ~/Pictures/meigen/, override with
+ * MEIGEN_OUTPUT_DIR env var (useful for sandboxed hosts like OpenClaw).
+ * Supports `~` prefix expansion. Returns file path, or undefined on failure.
+ */
 function saveImageLocally(base64: string, mimeType: string): string | undefined {
   try {
     const ext = mimeType.includes('png') ? 'png' : mimeType.includes('webp') ? 'webp' : 'jpg'
     const date = new Date().toISOString().slice(0, 10)
     const id = randomBytes(4).toString('hex')
     const filename = `${date}_${id}.${ext}`
-    const dir = join(homedir(), 'Pictures', 'meigen')
+    const custom = process.env.MEIGEN_OUTPUT_DIR
+    const dir = custom
+      ? (custom.startsWith('~') ? homedir() + custom.slice(1) : custom)
+      : join(homedir(), 'Pictures', 'meigen')
     mkdirSync(dir, { recursive: true })
     const filePath = join(dir, filename)
     writeFileSync(filePath, Buffer.from(base64, 'base64'))

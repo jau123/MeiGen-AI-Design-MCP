@@ -99,7 +99,7 @@ An open-source MCP Server (installed via plugin marketplace) that gives LLMs cre
 
 > This marketplace doesn't bundle MCP server config. After installing, add to your project's `.mcp.json`:
 > ```json
-> { "mcpServers": { "meigen": { "command": "npx", "args": ["-y", "meigen@1.2.12"] } } }
+> { "mcpServers": { "meigen": { "command": "npx", "args": ["-y", "meigen@1.2.13"] } } }
 > ```
 
 #### First-Time Setup
@@ -156,7 +156,7 @@ Add to your MCP config (e.g. `.mcp.json`, `claude_desktop_config.json`):
   "mcpServers": {
     "meigen": {
       "command": "npx",
-      "args": ["-y", "meigen@1.2.12"],
+      "args": ["-y", "meigen@1.2.13"],
       "env": {
         "MEIGEN_API_TOKEN": "meigen_sk_..."
       }
@@ -294,6 +294,7 @@ Environment variables take priority over the config file.
 | `OPENAI_BASE_URL` | API base URL — change this to use Together AI, Fireworks AI, etc. |
 | `OPENAI_MODEL` | Model ID supported by your endpoint |
 | `COMFYUI_URL` | ComfyUI server URL (default: `http://localhost:8188`) |
+| `MEIGEN_OUTPUT_DIR` | Override the local save directory for generated images (default: `~/Pictures/meigen`). Useful for sandboxed hosts (e.g. OpenClaw) where the default path is unreachable. |
 
 ---
 
