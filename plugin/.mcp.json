@@ -1,6 +1,6 @@
 {
   "meigen": {
     "command": "npx",
-    "args": ["-y", "meigen@1.2.12"]
+    "args": ["-y", "meigen@1.2.13"]
   }
 }
