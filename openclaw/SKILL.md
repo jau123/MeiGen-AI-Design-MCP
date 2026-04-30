@@ -1,7 +1,7 @@
 ---
 name: "AI Image Generator & Editor — GPT Image 2, Nanobanana, ComfyUI"
 description: Generate images from text with multi-provider routing — supports GPT Image 2.0 (near-perfect text rendering), Nanobanana 2, Seedream 5.0, Midjourney V7 (photorealistic), Midjourney Niji 7 (anime/illustration only), and local ComfyUI workflows. Includes 1,300+ curated prompts and style-aware prompt enhancement. Use when users want to create images, design assets, enhance prompts, or manage AI art workflows.
-version: 1.0.30
+version: 1.0.31
 homepage: https://github.com/jau123/MeiGen-AI-Design-MCP
 metadata: {"clawdbot":{"emoji":"🎨","requires":{"bins":["mcporter","npx","node"]}}}
 ---
@@ -41,6 +41,8 @@ To unlock image generation, configure **one** of these providers:
 | **Any OpenAI-compatible API** | `openaiApiKey` + `openaiBaseUrl` + `openaiModel` | Your own key from Together AI, Fireworks AI, etc. |
 
 Set credentials in `~/.clawdbot/.env`, `~/.config/meigen/config.json`, or add an `"env"` block to the mcporter config above. See `references/providers.md` for details.
+
+> **Sandboxed environments**: if the host can't write to the default `~/Pictures/meigen` save path, set the `MEIGEN_OUTPUT_DIR` env var to a writable directory (supports `~` expansion).
 
 ## Available Tools
 
