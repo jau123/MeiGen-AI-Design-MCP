@@ -1,6 +1,6 @@
 ---
 name: "AI Image Generator & Editor — GPT Image 2, Nanobanana, ComfyUI"
-description: Generate images from text with multi-provider routing — supports GPT Image 2.0 (near-perfect text rendering), Nanobanana 2, Seedream 5.0, Midjourney V7 (photorealistic), Midjourney Niji 7 (anime/illustration only), and local ComfyUI workflows. Includes 1,300+ curated prompts and style-aware prompt enhancement. Use when users want to create images, design assets, enhance prompts, or manage AI art workflows.
+description: Generate images and videos from text with multi-provider routing — supports GPT Image 2.0 (near-perfect text rendering), Nanobanana 2, Seedream 5.0, Midjourney V8.1 (unified photorealistic + anime), Flux 2 Klein (cheap drafts), Seedance 2.0 / Happyhorse 1.0 / Veo 3.1 video, and local ComfyUI workflows. Includes 1,300+ curated prompts and style-aware prompt enhancement. Use when users want to create images/videos, design assets, animate photos, enhance prompts, or manage AI art workflows. NOT for: generic chat, code generation, document writing, video editing of existing footage, audio/TTS, or any task unrelated to AI image/video creation.
 version: 1.0.31
 homepage: https://github.com/jau123/MeiGen-AI-Design-MCP
 metadata: {"clawdbot":{"emoji":"🎨","requires":{"bins":["mcporter","npx","node"]}}}
@@ -19,7 +19,7 @@ Add the MCP server to your mcporter config (`~/.config/mcporter/config.json`):
   "mcpServers": {
     "creative-toolkit": {
       "command": "npx",
-      "args": ["-y", "meigen@1.2.13"]
+      "args": ["-y", "meigen@1.3.0"]
     }
   }
 }
@@ -82,12 +82,15 @@ Do NOT write creative commentary about what the image "looks like".
 
 Do NOT pass `model` or `provider` to `generate_image` unless the user explicitly asks. The server auto-selects the best available provider and model.
 
-### Midjourney V7 vs Niji 7
+### Midjourney V8.1
 
-Both take ~60s, accept 1 reference image, and return 4 candidate images per generation. Advanced params (stylize/chaos/weird/raw/iw/sw/sv) run with fixed server-side defaults and cannot be tuned from MCP — the only exception is `sref`, settable via `--sref <code>` at the end of the prompt (Midjourney style codes only, e.g. `3799554500`; no URLs or local paths). They differ in content focus and prompt enhancement style:
+`model: "midjourney-v8.1"`. Unified general-purpose Midjourney model — handles photorealistic AND stylized/anime content in one model (no separate Niji model exposed). ~45s, accepts max 1 reference image, returns 4 candidate images per generation.
 
-- **Midjourney V7** (`model: "midjourney-v7"`) — general / photorealistic. Use for product photography, portraits, landscapes, cinematic and editorial shots. When enhancing, use `style: 'realistic'` (the default).
-- **Midjourney Niji 7** (`model: "midjourney-niji7"`) — anime / illustration ONLY. Do NOT use for photorealistic, product, or non-anime content — use GPT Image 2.0 or Nanobanana 2 instead. The server auto-appends `anime illustration style` if your prompt lacks anime keywords. When enhancing, ALWAYS pass `style: 'anime'` to `enhance_prompt` — the default `realistic` produces prompts poorly suited for anime models.
+- Use for product photography, portraits, landscapes, cinematic shots, illustration, anime — V8.1 covers them all.
+- Resolution: pass `resolution: "1K"` (default) or `"2K"` (costs more, best for posters/wallpapers).
+- Advanced params (stylize/chaos/weird/raw/iw/sw/sv/quality) run with fixed server-side defaults and cannot be tuned from MCP. The only exception is `sref`, settable via `--sref <code>` at the end of the prompt (Midjourney style codes only — numeric like `3799554500` or text like `niji-cute-v1`; no URLs or local paths).
+- Other Midjourney flags (`--ar`, `--chaos`, `--niji`, `--seed`, etc.) and legacy syntax (`::N` weights, `[a|b]` permutations) are silently stripped. Pass aspect ratio via the `aspectRatio` parameter, not `--ar`.
+- Prompt enhancement: pass `style: 'realistic'` for general intent, `style: 'anime'` for anime/illustration intent — V8.1 follows the prompt and benefits from explicit anime trigger words for stylized output.
 
 ### Always confirm before generating multiple images
 

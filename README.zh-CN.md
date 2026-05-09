@@ -99,7 +99,7 @@
 
 > 该市场不包含 MCP 服务配置。安装后需手动添加到项目 `.mcp.json`：
 > ```json
-> { "mcpServers": { "meigen": { "command": "npx", "args": ["-y", "meigen@1.2.13"] } } }
+> { "mcpServers": { "meigen": { "command": "npx", "args": ["-y", "meigen@1.3.0"] } } }
 > ```
 
 #### 首次配置
@@ -156,7 +156,7 @@ npx clawhub@latest install creative-toolkit
   "mcpServers": {
     "meigen": {
       "command": "npx",
-      "args": ["-y", "meigen@1.2.13"],
+      "args": ["-y", "meigen@1.3.0"],
       "env": {
         "MEIGEN_API_TOKEN": "meigen_sk_..."
       }
@@ -182,6 +182,7 @@ npx clawhub@latest install creative-toolkit
 | `comfyui_workflow` | 是 | 管理 ComfyUI 工作流模板：列表、查看、导入、修改、删除 |
 | `manage_preferences` | 是 | 记住你偏好的风格、比例、模型和收藏的提示词 |
 | `generate_image` | 需要 Key | 生成图片 — 自动路由到最佳可用后端。本地参考图自动压缩上传。 |
+| `generate_video` | 需要 Key | 生成视频(MeiGen 后端) — Seedance 2.0 (fast/pro 双档)、Happyhorse 1.0、Veo 3.1。支持文生视频和首帧图生视频,本地文件自动上传。MP4 保存到 `~/Movies/meigen/`。 |
 
 ### 快捷命令
 

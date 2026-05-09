@@ -31,7 +31,7 @@
 
 ## What Is This?
 
-An open-source MCP Server (installed via plugin marketplace) that gives LLMs creative and aesthetic capabilities through 7 tools and carefully designed skills, enabling them to handle complex design tasks. It teaches LLMs how to use various image generation models effectively, delivering professional results through reference images and multi-direction parallel workflows.
+An open-source MCP Server (installed via plugin marketplace) that gives LLMs creative and aesthetic capabilities through 8 tools and carefully designed skills, enabling them to handle complex design tasks. It teaches LLMs how to use various image and video generation models effectively, delivering professional results through reference images, first-frame video conditioning, and multi-direction parallel workflows.
 
 - Works with local ComfyUI — no external API dependency; also easily integrates with any custom API
 - Built-in 1,500+ curated prompt templates from [nanobanana-trending-prompts](https://github.com/jau123/nanobanana-trending-prompts) and fine-tuned prompt engineering techniques that turn requirements into concrete image generation tasks
@@ -99,7 +99,7 @@ An open-source MCP Server (installed via plugin marketplace) that gives LLMs cre
 
 > This marketplace doesn't bundle MCP server config. After installing, add to your project's `.mcp.json`:
 > ```json
-> { "mcpServers": { "meigen": { "command": "npx", "args": ["-y", "meigen@1.2.13"] } } }
+> { "mcpServers": { "meigen": { "command": "npx", "args": ["-y", "meigen@1.3.0"] } } }
 > ```
 
 #### First-Time Setup
@@ -156,7 +156,7 @@ Add to your MCP config (e.g. `.mcp.json`, `claude_desktop_config.json`):
   "mcpServers": {
     "meigen": {
       "command": "npx",
-      "args": ["-y", "meigen@1.2.13"],
+      "args": ["-y", "meigen@1.3.0"],
       "env": {
         "MEIGEN_API_TOKEN": "meigen_sk_..."
       }
@@ -182,6 +182,7 @@ Add to your MCP config (e.g. `.mcp.json`, `claude_desktop_config.json`):
 | `comfyui_workflow` | Yes | Manage ComfyUI workflow templates: list, view, import, modify, delete |
 | `manage_preferences` | Yes | Remember your preferred style, aspect ratio, model, and favorite prompts |
 | `generate_image` | Key | Generate an image — routes to the best available provider automatically. Local reference images are auto-compressed and uploaded. |
+| `generate_video` | Key | Generate a video via MeiGen platform — Seedance 2.0 (fast/pro), Happyhorse 1.0, or Veo 3.1. Supports text-to-video and first-frame image-to-video; local files are auto-uploaded. Saves MP4 to `~/Movies/meigen/`. |
 
 ### Slash Commands
 
