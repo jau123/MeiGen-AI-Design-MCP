@@ -22,6 +22,7 @@ import {
   loadWorkflow,
   listWorkflows,
 } from '../lib/providers/comfyui.js'
+import { sharedApiSemaphore, classifyError } from '../lib/generation-shared.js'
 import { Semaphore } from '../lib/semaphore.js'
 import { addRecentGeneration } from '../lib/preferences.js'
 import { processAndUploadImage } from '../lib/upload.js'
@@ -31,8 +32,8 @@ import { processAndUploadImage } from '../lib/upload.js'
 // 响应里回传实际使用的 modelId,MCP 据此展示给用户。
 // 好处: 后端切默认(比如 gpt-image-2 维护/恢复)不需要发 npm 版本。
 
-// Concurrency control: ComfyUI serial (local GPU), API max 4 parallel
-const apiSemaphore = new Semaphore(4)
+// API semaphore: shared with generate_video (same backend endpoint, same 12/min rate limit).
+// ComfyUI: serial (local GPU constraint).
 const comfyuiSemaphore = new Semaphore(1)
 
 /**
@@ -111,7 +112,7 @@ async function resolveReferenceImages(
 }
 
 export const generateImageSchema = {
-  prompt: z.string().describe('The image generation prompt'),
+  prompt: z.string().trim().min(1, 'Prompt cannot be empty').describe('The image generation prompt'),
   model: z.string().optional()
     .describe('Model name. For OpenAI-compatible providers: any model ID your endpoint supports. For MeiGen: use model IDs from list_models.'),
   size: z.string().optional()
@@ -176,19 +177,19 @@ export function registerGenerateImage(server: McpServer, apiClient: MeiGenApiCli
 
         switch (providerType) {
           case 'openai': {
-            await apiSemaphore.acquire()
+            await sharedApiSemaphore.acquire()
             try {
               return await generateWithOpenAI(config, prompt, model, size, quality, resolvedRefs)
             } finally {
-              apiSemaphore.release()
+              sharedApiSemaphore.release()
             }
           }
           case 'meigen': {
-            await apiSemaphore.acquire()
+            await sharedApiSemaphore.acquire()
             try {
               return await generateWithMeiGen(apiClient, prompt, model, aspectRatio, resolution, quality, resolvedRefs, extra)
             } finally {
-              apiSemaphore.release()
+              sharedApiSemaphore.release()
             }
           }
           case 'comfyui': {
@@ -290,7 +291,12 @@ async function generateWithMeiGen(
     throw new Error(status.error || 'Generation failed')
   }
 
-  // Use imageUrls array if available (e.g., Niji 7 returns 4 candidates), fall back to imageUrl
+  // Detect video model misuse early — give a clear redirect instead of cryptic "no image URL"
+  if (status.mediaType === 'video') {
+    throw new Error('This model produces video. Use the generate_video tool with the same model id.')
+  }
+
+  // Use imageUrls array if available (e.g., V8.1 returns 4 candidates), fall back to imageUrl
   const allImageUrls = status.imageUrls?.length ? status.imageUrls : (status.imageUrl ? [status.imageUrl] : [])
 
   if (allImageUrls.length === 0) {
@@ -382,36 +388,3 @@ async function generateWithComfyUI(
   }
 }
 
-// ============================================================
-// Error Classification
-// ============================================================
-
-function classifyError(message: string): string {
-  const lower = message.toLowerCase()
-
-  if (lower.includes('safety') || lower.includes('policy') || lower.includes('flagged') || lower.includes('content'))
-    return 'The prompt may have triggered a content safety filter. Try rephrasing the prompt to avoid sensitive content.'
-
-  if (lower.includes('credit') || lower.includes('insufficient') || message.includes('402'))
-    return 'Insufficient credits. Daily free credits refresh each day, or view plans and top up at https://www.meigen.ai/model-comparison.'
-
-  if (lower.includes('timed out') || lower.includes('timeout'))
-    return 'Generation timed out. This can happen during high demand. You can try again — it may succeed on retry.'
-
-  if (lower.includes('model') && (lower.includes('invalid') || lower.includes('inactive')))
-    return 'This model may be unavailable. Use list_models to check currently available models.'
-
-  if (lower.includes('ratio') && lower.includes('not supported'))
-    return 'This aspect ratio is not supported by the selected model. Use list_models to check supported ratios, or omit aspectRatio to let the server auto-infer.'
-
-  if (lower.includes('token') && (lower.includes('invalid') || lower.includes('expired')))
-    return 'API token issue. Run /meigen:setup to reconfigure your token.'
-
-  if (lower.includes('econnrefused') || lower.includes('fetch failed') || lower.includes('network'))
-    return 'Network connection issue. Check your internet connection and try again.'
-
-  if (lower.includes('comfyui') || lower.includes('node_errors'))
-    return 'ComfyUI workflow error. Use comfyui_workflow view to inspect the workflow, or try a different one.'
-
-  return 'You can try again, or use a different prompt/model.'
-}

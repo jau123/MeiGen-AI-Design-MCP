@@ -1,0 +1,50 @@
+name: Validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  version-sync:
+    name: Version sync across distribution files
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check npm/plugin version coherence
+        run: bash scripts/ci/check-versions.sh
+
+      - name: Check pinned npm version coherence
+        run: bash scripts/ci/check-pinned-npm.sh
+
+  frontmatter-lint:
+    name: Frontmatter rules for agents/commands/skills
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Lint frontmatter
+        run: node scripts/ci/check-frontmatter.mjs
+
+  typecheck:
+    name: TypeScript typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install deps
+        run: npm ci || npm install
+
+      - name: Typecheck
+        run: npm run typecheck

@@ -4,6 +4,7 @@ description: >-
   Configure MeiGen plugin provider and API keys. Use this when the user runs
   /meigen:setup, asks to "configure meigen", "set up image generation",
   "add API key", or needs help configuring the plugin.
+version: 0.1.0
 disable-model-invocation: true
 ---
 

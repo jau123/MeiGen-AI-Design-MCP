@@ -4,9 +4,13 @@ description: >-
   This skill should be used when the user asks to "generate an image", "create artwork",
   "design a logo", "make a poster", "draw something", "find inspiration", "search for
   reference images", "enhance my prompt", "improve prompt", "brand design", "product mockup",
-  "batch generate images", "multiple variations", or discusses AI image generation, visual
-  creativity, prompt engineering, reference images, style transfer, or any image creation task.
+  "batch generate images", "multiple variations", "generate a video", "make a video",
+  "animate this photo", "image-to-video", or discusses AI image/video generation, visual
+  creativity, prompt engineering, reference images, style transfer.
   Also activate when user mentions MeiGen, image models, aspect ratios, or art styles.
+  NOT for: generic chat/text tasks, code generation, document writing, video editing
+  of existing footage, audio/TTS, real-photo retouching of user files outside the
+  generation flow, or any task unrelated to AI image/video creation.
 version: 0.1.0
 ---
 
@@ -161,8 +165,8 @@ When a user asks about models, refer to this table:
 | Nanobanana Pro | Yes | Premium quality |
 | Seedream 5.0 Lite | Yes | Fast, stylized imagery |
 | Seedream 4.5 | Yes | Previous-gen alternative |
-| Midjourney V7 | No | **Photorealistic / general aesthetic** |
-| Midjourney Niji 7 | No | **Anime and illustration ONLY** |
+| Midjourney V8.1 | No | **Unified general-purpose** — photorealistic + stylized/anime in one model |
+| Flux 2 Klein | No | **Cheapest fast draft** — text-to-image only, no reference images |
 
 When no model is specified, the server uses the MeiGen platform default (typically GPT Image 2.0 at 1K resolution / medium quality, but the authoritative defaults and supported tiers come from the backend — run `list_models` to confirm).
 For high-resolution prints or posters, pass `resolution: "2K"` or `resolution: "4K"` to `generate_image` (when the chosen model supports it).
@@ -170,21 +174,15 @@ To use a specific model, pass `model: "<model-id>"` to `generate_image` (e.g., `
 
 When a user asks about **cost or pricing**, point them to https://www.meigen.ai/model-comparison — credit prices change over time and the website is the source of truth. Do not quote specific credit numbers from training data.
 
-### Midjourney V7 vs Niji 7 — Important Notes
+### Midjourney V8.1 — Notes
 
-V7 and Niji 7 share the same Midjourney engine and have the same trade-offs (~60s, max 1 reference image, 4 candidate images returned per generation). Advanced params (stylize/chaos/weird/raw/iw/sw/sv) run with fixed server-side defaults and cannot be tuned from MCP — the only exception is `sref`, settable via `--sref <code>` at the end of the prompt (Midjourney style codes only, no URLs or local paths). They differ in **content focus** and **how to enhance prompts**:
+`model: "midjourney-v8.1"`. Unified general-purpose Midjourney model that handles **both** photorealistic AND stylized/anime content — there is no separate Niji model exposed via MCP. ~45s, accepts max 1 reference image, returns 4 candidate images per generation.
 
-**Midjourney V7** — general / photorealistic
-- Use for product photography, portraits, landscapes, cinematic and editorial shots — anything not explicitly anime.
-- Default stylize is 0 — output stays close to the prompt.
-- When using `enhance_prompt`, pass `style: 'realistic'` (the default).
-
-**Midjourney Niji 7** — anime / illustration ONLY
-- Do NOT use for photorealistic, product, or non-anime content — use GPT Image 2.0 or Nanobanana 2 instead.
-- Default stylize is 100 — output is more stylized; the server also auto-appends `anime illustration style` if your prompt doesn't already mention anime.
-- When using `enhance_prompt`, ALWAYS pass `style: 'anime'` — the default `realistic` produces prompts that are poorly suited for Niji 7.
-
-**Common to both** — they're the slowest and most expensive image models. Returns 4 candidate images per request (all saved, viewable in the image detail dialog).
+- Use for product photography, portraits, landscapes, cinematic shots, illustration, and anime/stylized work.
+- **Resolution**: pass `resolution: "1K"` (default) or `"2K"`. `2K` costs more and is best for posters/wallpapers.
+- **Advanced params** (stylize/chaos/weird/raw/iw/sw/sv/quality) run with fixed server-side defaults and **cannot be tuned from MCP**. The only exception is `sref`, settable via `--sref <code>` at the end of the prompt — Midjourney style codes only (numeric like `3799554500` or text like `niji-cute-v1`). No URLs or local paths to `--sref`.
+- **Other Midjourney flags** (`--ar`, `--chaos`, `--niji`, `--seed`, `--q`, etc.) and legacy syntax (`::N` weights, `[a|b]` permutations) are silently stripped by the server. Express intent in natural language; pass aspect ratio via the `aspectRatio` parameter, not `--ar`.
+- **Prompt enhancement**: pass `style: 'realistic'` for general/photorealistic intent, `style: 'anime'` for anime/illustration intent. V8.1 follows the prompt — explicit anime trigger words (e.g. "anime screenshot", "key visual") improve stylized output.
 
 ## Reference Image Best Practices
 

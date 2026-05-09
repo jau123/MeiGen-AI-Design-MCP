@@ -5,7 +5,7 @@
 
 /**
  * Realistic/general style enhancement prompt
- * For GPT Image, Nanobanana (Gemini), Seedream, Midjourney V7,
+ * For GPT Image, Nanobanana (Gemini), Seedream, Midjourney V8.1,
  * and other photorealistic / general-purpose models
  */
 export const REALISTIC_SYSTEM_PROMPT = `# Role
@@ -57,10 +57,11 @@ To maximize clarity for a reasoning model, output the prompt in two parts: a den
 
 /**
  * Anime/2D style enhancement prompt
- * For Niji 7 and other anime models
+ * For anime/illustration intent — works with Midjourney V8.1 (when user wants stylized output),
+ * Nanobanana, Seedream and other models that respond to explicit anime trigger words.
  */
 export const ANIME_SYSTEM_PROMPT = `# Role
-You are a Lead Concept Artist & Niji 7 Prompt Director.
+You are a Lead Concept Artist & Anime Prompt Director.
 Your task is to reverse-engineer images into **rich, evocative, and highly detailed** text prompts.
 **Current Problem:** Previous prompts were too short. Your goal now is to **EXPAND** the description with imagination and sensory details.
 

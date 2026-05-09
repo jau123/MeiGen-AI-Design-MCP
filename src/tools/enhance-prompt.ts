@@ -10,7 +10,7 @@ import { getSystemPrompt, type PromptStyle } from '../lib/prompts.js'
 export const enhancePromptSchema = {
   prompt: z.string().describe('The simple prompt to enhance (e.g., "a cat in a garden")'),
   style: z.enum(['realistic', 'anime', 'illustration']).optional().default('realistic')
-    .describe('Target visual style: realistic (photorealistic), anime (2D/Japanese), illustration (concept art). Model routing: use "realistic" for photorealistic models including Midjourney V7, Nanobanana, Seedream, GPT Image. Use "anime" when the user intends to generate with Midjourney Niji 7 — the default "realistic" produces prompts poorly suited for anime models.'),
+    .describe('Target visual style: realistic (photorealistic), anime (2D/Japanese), illustration (concept art). Use "realistic" for general/photorealistic generation (GPT Image, Nanobanana, Seedream, Midjourney V8.1 in default mode, etc.). Use "anime" when the user wants anime/illustration output — V8.1 and most general-purpose models follow the prompt and benefit from explicit anime trigger words; the default "realistic" produces prompts poorly suited for stylized output.'),
 }
 
 export function registerEnhancePrompt(server: McpServer) {
