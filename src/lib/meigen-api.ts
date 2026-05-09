@@ -38,6 +38,14 @@ export interface MeiGenModel {
     defaultResolution?: string
     defaultQuality?: string
     pricing?: unknown
+    hidden?: boolean
+    tiers?: string[]
+    defaultTier?: string
+    durations?: number[]
+    defaultDuration?: number
+    pricingPerSec?: unknown
+    pricingPerSecWithVideo?: unknown
+    supportsReferenceVideo?: boolean
     [key: string]: unknown
   } | null
 }
@@ -54,6 +62,8 @@ export interface MeiGenGenerationStatus {
   status: 'pending' | 'processing' | 'completed' | 'failed'
   imageUrl: string | null
   imageUrls: string[] | null
+  videoUrl?: string | null
+  mediaType?: 'image' | 'video'
   error: string | null
 }
 
@@ -153,6 +163,47 @@ export class MeiGenApiClient {
     if (params.referenceImages && params.referenceImages.length > 0) {
       body.referenceImages = params.referenceImages
     }
+
+    const res = await fetch(`${this.baseUrl}/api/generate/v2`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${this.apiToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    })
+
+    const json = await res.json() as MeiGenGenerationResponse
+    if (!res.ok || !json.success) {
+      throw new Error(json.error || `Generation failed: ${res.status}`)
+    }
+
+    return json
+  }
+
+  /** Generate a video (requires API token) */
+  async generateVideo(params: {
+    prompt: string
+    modelId: string  // 视频模型必须显式传(无后端默认)
+    aspectRatio?: string
+    resolution?: string
+    duration?: number
+    tier?: string
+    referenceImages?: string[]
+  }): Promise<MeiGenGenerationResponse> {
+    if (!this.apiToken) {
+      throw new Error('MEIGEN_API_TOKEN is required for video generation via MeiGen')
+    }
+
+    const body: Record<string, unknown> = {
+      modelId: params.modelId,
+      prompt: params.prompt,
+      aspectRatio: params.aspectRatio || 'auto',
+    }
+    if (params.resolution) body.resolution = params.resolution
+    if (typeof params.duration === 'number') body.duration = params.duration
+    if (params.tier) body.tier = params.tier
+    if (params.referenceImages?.length) body.referenceImages = params.referenceImages
 
     const res = await fetch(`${this.baseUrl}/api/generate/v2`, {
       method: 'POST',

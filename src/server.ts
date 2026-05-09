@@ -11,6 +11,7 @@ import { registerSearchGallery } from './tools/search-gallery.js'
 import { registerListModels } from './tools/list-models.js'
 import { registerGetInspiration } from './tools/get-inspiration.js'
 import { registerGenerateImage } from './tools/generate-image.js'
+import { registerGenerateVideo } from './tools/generate-video.js'
 import { registerComfyuiWorkflow } from './tools/comfyui-workflow.js'
 import { registerManagePreferences } from './tools/manage-preferences.js'
 
@@ -111,13 +112,10 @@ GPT Image 2.0 typically defaults to **1K resolution / medium quality** — but t
 - For quick drafts / thumbnails, pass \`quality: "low"\`.
 Do NOT upgrade resolution without a clear reason — higher tiers cost more (see https://www.meigen.ai/model-comparison).
 
-### Midjourney V7 vs Niji 7 — pick the right one
-Both take ~60s, accept 1 reference image max, and return 4 candidate images per generation. Advanced params (stylize/chaos/weird/raw/iw/sw/sv) run with fixed server-side defaults and cannot be tuned from MCP — the only exception is \`sref\` (see below). They differ in content focus and prompt enhancement style:
+### Midjourney V8.1 — usage notes
+\`model: "midjourney-v8.1"\`. ~45s, accepts 1 reference image max, returns 4 candidate images per generation. Use for product photography, portraits, landscapes, cinematic shots, illustration, anime — V8.1 is a unified general-purpose model that handles both photorealistic and stylized content. \`resolution: "1K"\` (default) or \`"2K"\`; \`2K\` costs more and is best for posters/wallpapers. Advanced params (stylize/chaos/weird/raw/iw/sw/sv/quality) run with fixed server-side defaults and cannot be tuned from MCP — the only exception is \`sref\` (see below). When using \`enhance_prompt\`, pass \`style: 'realistic'\` for general use, \`style: 'anime'\` for anime/illustration intent.
 
-- **Midjourney V7** (\`model: "midjourney-v7"\`) — general / photorealistic. Use for product photography, portraits, landscapes, cinematic and editorial shots. Default stylize is 0 (closer to the prompt). When using \`enhance_prompt\`, pass \`style: 'realistic'\` (the default).
-- **Midjourney Niji 7** (\`model: "midjourney-niji7"\`) — anime / illustration ONLY. Do NOT use for photorealistic, product, or non-anime content — use GPT Image 2.0 or Nanobanana 2 instead. Default stylize is 100 and the server auto-appends \`anime illustration style\` if your prompt lacks anime keywords. When using \`enhance_prompt\`, ALWAYS pass \`style: 'anime'\` — the default \`realistic\` produces prompts poorly suited for anime models.
-
-### Midjourney V7 / Niji 7 — how to write the prompt
+### Midjourney V8.1 — how to write the prompt
 
 - **Aspect ratio**: pass via the \`aspectRatio\` parameter, or omit it to let the server auto-infer. Do NOT write \`--ar\` in the prompt.
 - **Style reference (sref)**: only add \`--sref <code>\` at the end of the prompt when the user gives you a Midjourney style code — numeric (e.g. \`3799554500\`) or text (e.g. \`niji-cute-v1\`). Example: \`a girl in a garden --sref 3799554500\`.
@@ -125,6 +123,21 @@ Both take ~60s, accept 1 reference image max, and return 4 candidate images per 
   - For any image-based reference (content OR style), pass the image via \`referenceImages\` instead.
   - Never invent or guess style codes — omit sref entirely when the user hasn't provided one.
 - **All other \`--flags\`** (including \`--chaos\`, \`--weird\`, \`--stylize\`, \`--raw\`, \`--iw\`, \`--v\`, \`--style\`, \`--no\`, \`--tile\`, \`--niji\`, \`--seed\`, \`--q\`, etc.) and legacy MJ syntax (\`::N\` prompt weights, \`[option|option]\` permutations) are silently stripped by the server. \`--sref <code>\` is the only exception. Express every other intent in natural language.
+
+### Video generation — generate_video
+
+Use the \`generate_video\` tool (separate from \`generate_image\`) when the user asks for a video, motion clip, or animated content. Available models (use \`list_models\` for current details):
+
+- **\`seedance-2-0\`** — main video model, supports both text-to-video and image-to-video. Two tiers via \`tier\` param: \`fast\` (default, cost-effective) / \`pro\` (higher fidelity, native 1080p). Duration 4–15s. Resolutions 480p / 720p / 1080p.
+- **\`happyhorse-1.0\`** — cost-effective alternative for both t2v and i2v. Duration 3–15s. Resolutions 720p / 1080p.
+- **\`veo-3.1\`** — Google Veo with native audio generation. **Fixed 8s duration**, 720p only. Pass an aspect ratio of \`16:9\` or \`9:16\`.
+
+Key rules:
+- The \`model\` parameter is REQUIRED for \`generate_video\` (unlike \`generate_image\`, there is no platform default for video).
+- For image-to-video, pass the source as \`firstFrame\` (URL or local path — local files are auto-uploaded). Highly recommended whenever the user provides a starting image.
+- Pricing is per-second for seedance/happyhorse and flat-rate for veo. Generation takes 1–5 minutes. The tool polls automatically and saves the resulting MP4 to \`~/Movies/meigen/\` by default.
+- Video reference (continuing an existing clip) is NOT supported via MCP. Direct users to https://www.meigen.ai for that workflow.
+- Don\'t generate parallel videos — videos are slow and expensive. Always confirm with the user before kicking off a video generation.
 
 ### Single image
 Call generate_image with just the prompt (and aspectRatio if needed).
@@ -218,7 +231,7 @@ export function createServer() {
   const apiClient = new MeiGenApiClient(config)
 
   const server = new McpServer(
-    { name: 'meigen', version: '1.2.13' },
+    { name: 'meigen', version: '1.3.0' },
     { instructions: SERVER_INSTRUCTIONS },
   )
 
@@ -234,6 +247,9 @@ export function createServer() {
 
   // Image generation (requires API Key, MeiGen Token, or ComfyUI workflow)
   registerGenerateImage(server, apiClient, config)
+
+  // Video generation (requires MeiGen Token)
+  registerGenerateVideo(server, apiClient, config)
 
   return server
 }

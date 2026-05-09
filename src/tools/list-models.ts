@@ -32,33 +32,74 @@ export function registerListModels(server: McpServer, apiClient: MeiGenApiClient
 
       // MeiGen platform models
       try {
-        const models = await apiClient.listModels(activeOnly)
-        if (models.length > 0) {
-          const meigenSection = models.map((m, i) => {
-            const cfg = m.extra_config || {}
-            const resolutions = Array.isArray(cfg.resolutions) && cfg.resolutions.length > 0
-              ? cfg.resolutions.join(', ')
-              : null
-            const qualities = Array.isArray(cfg.qualities) && cfg.qualities.length > 0
-              ? cfg.qualities.join(', ')
-              : null
-            return [
-              `${i + 1}. ${m.name}`,
-              `   ID: ${m.id}`,
-              resolutions ? `   Resolutions: ${resolutions}` : `   4K: ${m.supports_4k ? 'Yes' : 'No'}`,
-              qualities ? `   Quality tiers: ${qualities}` : '',
-              `   Ratios: ${m.supported_ratios.join(', ')}`,
-              m.description ? `   Description: ${m.description}` : '',
-            ].filter(Boolean).join('\n')
-          }).join('\n\n')
+        const allModels = await apiClient.listModels(activeOnly)
+        // 过滤 hidden 模型(老版 V7 / Niji 7 / Seedance Pro 旧 row 等只为兼容老 MCP modelId 调用,不应在 list 里推荐)
+        const visible = allModels.filter(m => m.extra_config?.hidden !== true)
 
+        const imageModels = visible.filter(m => (m.media_type ?? 'image') === 'image')
+        const videoModels = visible.filter(m => m.media_type === 'video')
+
+        const renderImage = (m: typeof imageModels[number], i: number) => {
+          const cfg = m.extra_config || {}
+          const resolutions = Array.isArray(cfg.resolutions) && cfg.resolutions.length > 0
+            ? cfg.resolutions.join(', ')
+            : null
+          const qualities = Array.isArray(cfg.qualities) && cfg.qualities.length > 0
+            ? cfg.qualities.join(', ')
+            : null
+          return [
+            `${i + 1}. ${m.name}`,
+            `   ID: ${m.id}`,
+            resolutions ? `   Resolutions: ${resolutions}` : `   4K: ${m.supports_4k ? 'Yes' : 'No'}`,
+            qualities ? `   Quality tiers: ${qualities}` : '',
+            `   Ratios: ${m.supported_ratios.join(', ')}`,
+            m.description ? `   Description: ${m.description}` : '',
+          ].filter(Boolean).join('\n')
+        }
+
+        const renderVideo = (m: typeof videoModels[number], i: number) => {
+          const cfg = m.extra_config || {}
+          const tiers = Array.isArray(cfg.tiers) && cfg.tiers.length > 0
+            ? cfg.tiers.join(', ')
+            : null
+          const resolutions = Array.isArray(cfg.resolutions) && cfg.resolutions.length > 0
+            ? cfg.resolutions.join(', ')
+            : null
+          const durations = Array.isArray(cfg.durations) && cfg.durations.length > 0
+            ? `${cfg.durations[0]}–${cfg.durations[cfg.durations.length - 1]}s`
+            : (typeof cfg.defaultDuration === 'number' ? `fixed ${cfg.defaultDuration}s` : null)
+          return [
+            `${i + 1}. ${m.name}`,
+            `   ID: ${m.id}`,
+            tiers ? `   Tiers: ${tiers}` : '',
+            resolutions ? `   Resolutions: ${resolutions}` : '',
+            durations ? `   Duration: ${durations}` : '',
+            `   Ratios: ${m.supported_ratios.join(', ')}`,
+            cfg.supportsReferenceVideo ? `   Supports reference video continuation: yes (web only — MCP not supported)` : '',
+            m.description ? `   Description: ${m.description}` : '',
+          ].filter(Boolean).join('\n')
+        }
+
+        if (imageModels.length > 0) {
           sections.push(
-            `## MeiGen Platform Models${providers.includes('meigen') ? '' : ' (requires MEIGEN_API_TOKEN)'}\n\n` +
+            `## MeiGen Platform — Image Models${providers.includes('meigen') ? '' : ' (requires MEIGEN_API_TOKEN)'}\n\n` +
             `When generating, do NOT specify model unless the user explicitly asks for one.\n` +
             `The server uses the platform default automatically.\n` +
             `Pricing varies by model and changes over time — see https://www.meigen.ai/model-comparison\n\n` +
-            meigenSection
+            imageModels.map(renderImage).join('\n\n')
           )
+        }
+
+        if (videoModels.length > 0) {
+          sections.push(
+            `## MeiGen Platform — Video Models${providers.includes('meigen') ? '' : ' (requires MEIGEN_API_TOKEN)'}\n\n` +
+            `Use the \`generate_video\` tool to create videos. Pricing is per-second (see https://www.meigen.ai/model-comparison).\n\n` +
+            videoModels.map(renderVideo).join('\n\n')
+          )
+        }
+
+        if (imageModels.length === 0 && videoModels.length === 0) {
+          sections.push('## MeiGen Platform Models\n\nNo models available.')
         }
       } catch {
         sections.push('## MeiGen Platform Models\n\nUnable to fetch models from MeiGen API.')

@@ -135,7 +135,7 @@ export const generateImageSchema = {
 export function registerGenerateImage(server: McpServer, apiClient: MeiGenApiClient, config: MeiGenConfig) {
   server.tool(
     'generate_image',
-    'Generate an image using AI. Supports MeiGen platform, local ComfyUI, or OpenAI-compatible APIs. Tip: get prompts from get_inspiration() or enhance_prompt(), and use gallery image URLs as referenceImages for style guidance. Note: Midjourney Niji 7 is for anime/illustration ONLY — do not use it for photorealistic content. When enhancing prompts for Niji 7, always use enhance_prompt with style "anime". For Midjourney V7 / Niji 7, an optional style reference can be passed by appending `--sref <code>` at the end of the prompt — only when the user provides a Midjourney style code (numeric or text). Do NOT pass URLs or local paths via --sref; for any image-based reference, use the referenceImages parameter instead.',
+    'Generate an image using AI. Supports MeiGen platform, local ComfyUI, or OpenAI-compatible APIs. Tip: get prompts from get_inspiration() or enhance_prompt(), and use gallery image URLs as referenceImages for style guidance. For Midjourney V8.1, an optional style reference can be passed by appending `--sref <code>` at the end of the prompt — only when the user provides a Midjourney style code (numeric or text). Do NOT pass URLs or local paths via --sref; for any image-based reference, use the referenceImages parameter instead.',
     generateImageSchema,
     { readOnlyHint: false, destructiveHint: true },
     async ({ prompt, model, size, aspectRatio, resolution, quality, referenceImages, provider: requestedProvider, workflow, negativePrompt }, extra) => {
@@ -145,7 +145,7 @@ export function registerGenerateImage(server: McpServer, apiClient: MeiGenApiCli
         return {
           content: [{
             type: 'text' as const,
-            text: 'No image generation providers configured.\n\nQuickest way to start:\n1. Get a MeiGen API token at https://www.meigen.ai (sign in → avatar → Settings → API Keys)\n2. Run /meigen:setup and paste your token\n\nOr configure one of:\n- MEIGEN_API_TOKEN: MeiGen platform (GPT Image 2.0, Nanobanana 2, Seedream 5.0, Midjourney V7)\n- OPENAI_API_KEY: Any OpenAI-compatible API — bring your own key, model, and endpoint\n- Import a ComfyUI workflow for local GPU generation',
+            text: 'No image generation providers configured.\n\nQuickest way to start:\n1. Get a MeiGen API token at https://www.meigen.ai (sign in → avatar → Settings → API Keys)\n2. Run /meigen:setup and paste your token\n\nOr configure one of:\n- MEIGEN_API_TOKEN: MeiGen platform (GPT Image 2.0, Nanobanana 2, Seedream 5.0, Midjourney V8.1)\n- OPENAI_API_KEY: Any OpenAI-compatible API — bring your own key, model, and endpoint\n- Import a ComfyUI workflow for local GPU generation',
           }],
           isError: true,
         }
