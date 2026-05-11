@@ -25,6 +25,7 @@ import { Semaphore } from '../lib/semaphore.js'
 import { saveImageLocally } from '../lib/save-image.js'
 import { addRecentGeneration } from '../lib/preferences.js'
 import { processAndUploadImage } from '../lib/upload.js'
+import { unsafeReferenceUrlReason } from '../lib/url-safety.js'
 
 // MCP 不再硬编码 MeiGen 默认模型。
 // 用户不传 model 时,MeiGen 后端会按 DB is_default=true 的行决定,
@@ -73,7 +74,16 @@ async function resolveReferenceImages(
   if (!refs || refs.length === 0) return refs
 
   return Promise.all(refs.map(async (ref) => {
-    if (!isLocalPath(ref)) return ref
+    if (!isLocalPath(ref)) {
+      // Defense-in-depth: reject obviously-unsafe URLs (file://, data:, private IPs,
+      // cloud metadata) before relaying to the backend. Backend SHOULD also filter
+      // but this saves a network round-trip and gives users a clearer error.
+      const unsafe = unsafeReferenceUrlReason(ref)
+      if (unsafe) {
+        throw new Error(`Reference image URL rejected: ${unsafe}. URL: ${ref}`)
+      }
+      return ref
+    }
 
     const filePath = resolveLocalPath(ref)
     if (!existsSync(filePath)) {

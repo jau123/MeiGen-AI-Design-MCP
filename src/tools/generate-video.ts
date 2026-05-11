@@ -17,6 +17,7 @@ import type { MeiGenApiClient } from '../lib/meigen-api.js'
 import { sharedApiSemaphore, classifyError } from '../lib/generation-shared.js'
 import { addRecentGeneration } from '../lib/preferences.js'
 import { processAndUploadImage } from '../lib/upload.js'
+import { unsafeReferenceUrlReason } from '../lib/url-safety.js'
 
 // 已知图片扩展名 — 拿来给 firstFrame 做最简单的 sniff
 const IMAGE_EXT_RE = /\.(png|jpe?g|webp|heic|heif)(\?|$)/i
@@ -51,7 +52,13 @@ async function resolveFrameImage(
   label: string,
 ): Promise<string> {
   if (!isLocalPath(ref)) {
-    // URL 形式: 后端最终判定(支持无扩展名 CDN URL)
+    // Defense-in-depth: reject file://, data:, private IPs, cloud metadata
+    // before relaying to the backend (which fetches the URL server-side).
+    const unsafe = unsafeReferenceUrlReason(ref)
+    if (unsafe) {
+      throw new Error(`${label} URL rejected: ${unsafe}. URL: ${ref}`)
+    }
+    // Otherwise pass through — backend handles CDN URLs (with or without extension).
     return ref
   }
 
@@ -68,7 +75,11 @@ async function resolveFrameImage(
   return result.publicUrl
 }
 
-/** Save remote video to ~/Movies/meigen/ (override with MEIGEN_VIDEO_OUTPUT_DIR). Returns file path or undefined. */
+/**
+ * Save remote video locally.
+ * Priority: MEIGEN_VIDEO_OUTPUT_DIR → XDG_VIDEOS_DIR (Linux) → ~/Movies/meigen/
+ * (macOS/Windows). Returns file path or undefined on failure.
+ */
 async function saveVideoLocally(videoUrl: string): Promise<string | undefined> {
   try {
     const res = await fetch(videoUrl)
@@ -77,10 +88,14 @@ async function saveVideoLocally(videoUrl: string): Promise<string | undefined> {
     const date = new Date().toISOString().slice(0, 10)
     const id = randomBytes(4).toString('hex')
     const filename = `${date}_${id}.mp4`
+    const expandTilde = (p: string) => p.startsWith('~') ? homedir() + p.slice(1) : p
     const custom = process.env.MEIGEN_VIDEO_OUTPUT_DIR
+    const xdgVideos = process.env.XDG_VIDEOS_DIR
     const dir = custom
-      ? (custom.startsWith('~') ? homedir() + custom.slice(1) : custom)
-      : join(homedir(), 'Movies', 'meigen')
+      ? expandTilde(custom)
+      : xdgVideos
+        ? join(expandTilde(xdgVideos), 'meigen')
+        : join(homedir(), 'Movies', 'meigen')
     mkdirSync(dir, { recursive: true })
     const filePath = join(dir, filename)
     writeFileSync(filePath, buffer)

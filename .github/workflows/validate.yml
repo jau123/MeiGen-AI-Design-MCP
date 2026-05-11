@@ -32,8 +32,8 @@ jobs:
       - name: Lint frontmatter
         run: node scripts/ci/check-frontmatter.mjs
 
-  typecheck:
-    name: TypeScript typecheck
+  typecheck-and-build:
+    name: TypeScript typecheck + clean build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -48,3 +48,14 @@ jobs:
 
       - name: Typecheck
         run: npm run typecheck
+
+      # Clean build catches stale dist files that tsc --noEmit can't detect
+      # (e.g., a deleted source file whose dist artifact lingers in the repo).
+      # We rebuild from scratch and ensure tsc actually produces a fresh tree.
+      - name: Clean build
+        run: |
+          rm -rf dist
+          npm run build
+          test -f dist/index.js
+          test -f dist/cli/init.js
+          test -f dist/cli/gen.js

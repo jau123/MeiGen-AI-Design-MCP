@@ -18,6 +18,7 @@ import { loadConfig } from '../config.js'
 import { MeiGenApiClient } from '../lib/meigen-api.js'
 import { saveImageLocally } from '../lib/save-image.js'
 import { processAndUploadImage } from '../lib/upload.js'
+import { unsafeReferenceUrlReason } from '../lib/url-safety.js'
 import { existsSync } from 'fs'
 import { homedir } from 'os'
 
@@ -176,6 +177,12 @@ export async function gen(argv: string[]): Promise<void> {
       const uploaded = await processAndUploadImage(filePath, config)
       referenceImages = [uploaded.publicUrl]
     } else {
+      const unsafe = unsafeReferenceUrlReason(args.reference)
+      if (unsafe) {
+        console.error(`Error: reference URL rejected: ${unsafe}`)
+        console.error(`URL: ${args.reference}`)
+        process.exit(1)
+      }
       referenceImages = [args.reference]
     }
   }
