@@ -341,6 +341,9 @@ MeiGen MCP 支持三种图片生成后端，可以配置一个或多个 — 系�
 | `OPENAI_MODEL` | 端点支持的模型 ID |
 | `COMFYUI_URL` | ComfyUI 服务地址（默认：`http://localhost:8188`） |
 | `MEIGEN_OUTPUT_DIR` | 生成图像的本地保存目录（默认：`~/Pictures/meigen`）。沙箱环境（如 OpenClaw）无法访问默认路径时使用。 |
+| `MEIGEN_VIDEO_OUTPUT_DIR` | 生成视频的本地保存目录（默认：`~/Movies/meigen`）。 |
+| `XDG_PICTURES_DIR` | 仅 Linux — `MEIGEN_OUTPUT_DIR` 未设时,图像保存到 `$XDG_PICTURES_DIR/meigen`(由桌面环境设置)。未设时回退 `~/Pictures/meigen`。 |
+| `XDG_VIDEOS_DIR` | 仅 Linux — 同 `XDG_PICTURES_DIR` 但对视频生效,回退 `~/Movies/meigen`。 |
 
 ---
 

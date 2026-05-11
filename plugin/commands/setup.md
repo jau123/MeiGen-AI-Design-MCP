@@ -10,6 +10,21 @@ description: >-
 
 You are guiding the user through configuring the MeiGen plugin for image generation. Follow this flow step by step.
 
+## Step 0: Detect Platform
+
+Before running any shell commands, detect whether you're on Windows. Many of the commands below assume a Unix shell (macOS / Linux / Git Bash). Quick check:
+
+```bash
+node -e "console.log(process.platform)"
+```
+
+- `darwin` / `linux` → Unix shell, use the commands as written
+- `win32` → Windows. **Adjustments**:
+  - Replace `mkdir -p ~/.config/meigen` with `New-Item -ItemType Directory -Force ~/.config/meigen` (PowerShell) or use the Write tool to create the path implicitly
+  - **Skip `chmod 600`** — NTFS has no chmod, and Windows file permissions are inherited from the parent directory
+  - For curl health checks (Step 3B-1, 3C), Windows 10+ has curl but lacks `head -c`; truncate with `Select-Object -First 5` or omit the truncation
+  - The config file lives at `%USERPROFILE%\.config\meigen\config.json` — Node's `os.homedir()` resolves `~` correctly when reading at runtime, so the config path in code works fine
+
 ## Step 1: Welcome
 
 First, check if a config file already exists:
@@ -289,12 +304,29 @@ Create the config directory and write the file:
 ```bash
 mkdir -p ~/.config/meigen
 ```
+(On Windows without Git Bash, run `New-Item -ItemType Directory -Force ~/.config/meigen` in PowerShell instead.)
 
-Then use the Write tool to write the JSON config to `~/.config/meigen/config.json`.
+**CRITICAL — merge, don't overwrite.** If `~/.config/meigen/config.json` already exists (you cat'd it in Step 1):
+1. Take the **existing** JSON as your base
+2. Add/replace **only** the fields from the new provider's config (e.g. only `meigenApiToken` when adding MeiGen)
+3. Keep all other fields untouched
+4. Write back the full merged object
 
-**Important**: If the user already has a config file with other providers configured, **merge** the new config into the existing one rather than overwriting. For example, a user might have both MeiGen and ComfyUI configured.
+Concrete example — existing config has ComfyUI, user is adding MeiGen:
+```json
+// Before (existing):
+{ "comfyuiUrl": "http://localhost:8188", "comfyuiDefaultWorkflow": "txt2img" }
 
-After writing, set permissions:
+// After (correct merge):
+{ "comfyuiUrl": "http://localhost:8188", "comfyuiDefaultWorkflow": "txt2img", "meigenApiToken": "meigen_sk_..." }
+
+// WRONG (overwrite — loses comfyuiUrl):
+{ "meigenApiToken": "meigen_sk_..." }
+```
+
+Use the Write tool to write the merged JSON to `~/.config/meigen/config.json`.
+
+After writing, set permissions (Unix only — skip on Windows, NTFS uses different permissions):
 
 ```bash
 chmod 600 ~/.config/meigen/config.json

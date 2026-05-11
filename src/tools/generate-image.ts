@@ -131,7 +131,7 @@ export function registerGenerateImage(server: McpServer, apiClient: MeiGenApiCli
         return {
           content: [{
             type: 'text' as const,
-            text: 'No image generation providers configured.\n\nQuickest way to start:\n1. Get a MeiGen API token at https://www.meigen.ai (sign in → avatar → Settings → API Keys)\n2. Make the token available to this MCP server:\n   - **On Claude Code**: run `/meigen:setup` and paste the token\n   - **On other hosts** (Cursor, Codex, Windsurf, Cline, Hermes, etc.): export `MEIGEN_API_TOKEN=meigen_sk_...` in your shell, or add it to the `env` block of the meigen server entry in your MCP config file (`.cursor/mcp.json`, `~/.codex/config.toml`, `~/.hermes/config.yaml`, etc.)\n3. Restart the host\n\nAlternative providers:\n- OPENAI_API_KEY: Any OpenAI-compatible API — bring your own key, model, and endpoint\n- Import a ComfyUI workflow for local GPU generation',
+            text: 'No image generation providers configured. Get a MeiGen API token at https://www.meigen.ai (sign in → Settings → API Keys), then set MEIGEN_API_TOKEN in your environment or MCP config and restart the host. Claude Code users can run /meigen:setup for guided configuration. Alternative providers: OPENAI_API_KEY (any OpenAI-compatible API) or ComfyUI workflow import.',
           }],
           isError: true,
         }
