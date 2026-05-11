@@ -3,7 +3,7 @@
 </h1>
 
 <p align="center">
-  <strong>让 Claude Code / OpenClaw 变成媲美 Lovart 的私人设计助理</strong><br><sub>支持 GPT Image 2、Nanobanana 与 ComfyUI，内置 1,446 条专业提示词库，配合精心设计的 Hook 与多任务编排系统</sub>
+  <strong>开源 MCP 服务器 — 把 AI 图像和视频生成原生接入到你的 AI 编程工具</strong><br><sub>支持 9 个主流模型(GPT Image 2 · Nanobanana 2 · Seedream 5.0 · Midjourney V8.1 · Flux 2 Klein · Seedance 2.0 · Happyhorse 1.0 · Veo 3.1 · 本地 ComfyUI),内置 1,446 条精选提示词,支持并行子 Agent 编排和独立 CLI 模式。可用于 Claude Code、Cursor、Codex、Windsurf、Roo Code、OpenClaw、Hermes Agent 及任意 MCP 兼容客户端。</sub>
 </p>
 
 <p align="center">
@@ -31,11 +31,11 @@
 
 ## 这是什么？
 
-一个开源 MCP Server（通过插件市场安装），通过 8 个 tools 和精心设计的 skills，让 LLM 具备创意和审美能力，可以完成更复杂的设计任务。它能让 LLM 了解各种生图模型的使用技巧，通过参考图和多方案并行，交付更专业的成果。
+一个开源 MCP 服务器,把任何 AI 编程工具变成专业设计助理。**8 个工具** + 1,446 条精选提示词库,让它能设计 logo、做产品图、把静态图动画化成视频,以及并行编排多个方向的批量生成。支持 **Claude Code**、**Cursor**、**Codex**、**Windsurf**、**Roo Code**、**OpenClaw**、**Hermes Agent** 以及任意 MCP 兼容客户端 — 后端可选 **MeiGen 平台**、任意 **OpenAI 兼容 API** 或你的 **本地 ComfyUI**。
 
-- 可以调用本地 ComfyUI 服务，不依赖外部 API；也可以方便地接入任意自定义 API
-- 内置 1,446 条优质提示词模板（来自 [nanobanana-trending-prompts](https://github.com/jau123/nanobanana-trending-prompts)）和精心调试的提示词撰写技巧，把需求转化为具象的生图任务
-- 支持并行批量任务和子 Agent 调用，避免主窗口上下文膨胀
+- 三种后端模式:**MeiGen 云端**(9 个图像与视频模型)、**OpenAI 兼容**(自带 key 和端点)、**本地 ComfyUI**(离线,你的 GPU)
+- 内置 1,446 条精选提示词(来自 [nanobanana-trending-prompts](https://github.com/jau123/nanobanana-trending-prompts))+ 风格感知的提示词增强
+- 通过子 Agent 实现并行批量生成,主对话上下文保持干净 — 同时提供独立 CLI 模式,适合 shell 脚本和 CI 流水线
 
 ---
 
@@ -238,6 +238,18 @@ mcp_servers:
 | `/meigen:models` | 浏览和切换当前会话的 AI 模型 |
 | `/meigen:setup` | 交互式后端配置向导 |
 
+### 独立 CLI 模式
+
+适合 shell 脚本、CI 流水线以及不跑 MCP 宿主的终端用户:
+
+```bash
+export MEIGEN_API_TOKEN=meigen_sk_...
+npx meigen gen --prompt "阳光厨房里的三花猫"
+npx meigen gen -p "logo design" -m midjourney-v8.1 -r 1:1 --json
+```
+
+完整参数见 [CLI 模式(不需要 MCP 宿主)](#cli-模式不需要-mcp-宿主) 章节。
+
 ### 智能 Agent
 
 MeiGen 使用专用子 Agent 实现高效并行执行：
@@ -354,10 +366,24 @@ MeiGen MCP 尊重你的隐私。以下是数据处理方式：
 - **ComfyUI（本地）** — 所有处理在本机完成，不发送任何数据到外部。
 - **MeiGen 云端** — 提示词和参考图会发送到 `api.meigen.ai` 进行生成。生成的图片临时存储在 Cloudflare R2。详见 [meigen.ai/privacy](https://www.meigen.ai/privacy)。
 - **OpenAI 兼容 API** — 提示词和参考图会发送到你配置的 API 端点。请参考你的服务商隐私政策。
-- **参考图上传** — 图片在本地压缩（最大 2MB）后上传到 Cloudflare R2（通过 `gen.meigen.ai`），无需认证。
+- **参考图上传** — 图片在本地压缩（最大 2MB）后上传到 Cloudflare R2（通过 `gen.meigen.ai`），无需认证。上传图片 **24 小时后自动过期**。ComfyUI 用户可直接传本地路径,完全跳过上传。
 - **灵感搜索和提示词增强** — 在本地使用内置数据运行，不调用外部 API。
 
 不包含任何遥测、分析或追踪功能。
+
+### 自定义存储后端
+
+如果你希望使用自己的 S3/R2 存储桶上传参考图,设置 `UPLOAD_GATEWAY_URL` 环境变量或在 `~/.config/meigen/config.json` 中设置 `uploadGatewayUrl`,指向你自己的 presign 接口。接口需实现:
+
+```
+POST /upload/presign
+Content-Type: application/json
+
+请求:  { "filename": "photo.jpg", "contentType": "image/jpeg", "size": 123456 }
+响应:  { "success": true, "presignedUrl": "https://...", "publicUrl": "https://..." }
+```
+
+`presignedUrl` 用于 `PUT` 上传,`publicUrl` 是返回给用户的公开可访问 URL。
 
 ---
 

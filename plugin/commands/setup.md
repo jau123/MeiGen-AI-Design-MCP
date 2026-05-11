@@ -20,10 +20,11 @@ node -e "console.log(process.platform)"
 
 - `darwin` / `linux` → Unix shell, use the commands as written
 - `win32` → Windows. **Adjustments**:
-  - Replace `mkdir -p ~/.config/meigen` with `New-Item -ItemType Directory -Force ~/.config/meigen` (PowerShell) or use the Write tool to create the path implicitly
-  - **Skip `chmod 600`** — NTFS has no chmod, and Windows file permissions are inherited from the parent directory
-  - For curl health checks (Step 3B-1, 3C), Windows 10+ has curl but lacks `head -c`; truncate with `Select-Object -First 5` or omit the truncation
-  - The config file lives at `%USERPROFILE%\.config\meigen\config.json` — Node's `os.homedir()` resolves `~` correctly when reading at runtime, so the config path in code works fine
+  - **For `2>/dev/null` in Step 1** (e.g. `cat ... 2>/dev/null`, `ls ... 2>/dev/null`): replace with `2>NUL` in cmd or `2>$null` in PowerShell. Or simpler: use a Node check instead, e.g. `node -e "try{console.log(require('fs').readFileSync(require('os').homedir()+'/.config/meigen/config.json','utf8'))}catch{}"`
+  - **For `mkdir -p ~/.config/meigen`**: in PowerShell use `New-Item -ItemType Directory -Force ~/.config/meigen`. Or skip mkdir entirely — when you later call the Write tool with `file_path: ~/.config/meigen/config.json`, Claude Code's harness creates the parent directory automatically (Write creates the **file**, the parent dir is a side-effect).
+  - **Skip `chmod 600`** — NTFS has no chmod, and Windows file permissions are inherited from the parent directory.
+  - **For curl health checks** (Step 3B-1, 3C): Windows 10+ has curl but lacks `head -c`; truncate with `Select-Object -First 5` (PowerShell) or omit the truncation.
+  - The config file lives at `%USERPROFILE%\.config\meigen\config.json` — Node's `os.homedir()` resolves `~` correctly when reading at runtime, so the config path in code works fine.
 
 ## Step 1: Welcome
 
@@ -312,17 +313,24 @@ mkdir -p ~/.config/meigen
 3. Keep all other fields untouched
 4. Write back the full merged object
 
-Concrete example — existing config has ComfyUI, user is adding MeiGen:
+Concrete example — existing config has ComfyUI, user is adding MeiGen.
+
+**Before (the existing file you cat'd in Step 1):**
 ```json
-// Before (existing):
 { "comfyuiUrl": "http://localhost:8188", "comfyuiDefaultWorkflow": "txt2img" }
+```
 
-// After (correct merge):
+**After (correct merge — what you should write):**
+```json
 { "comfyuiUrl": "http://localhost:8188", "comfyuiDefaultWorkflow": "txt2img", "meigenApiToken": "meigen_sk_..." }
+```
 
-// WRONG (overwrite — loses comfyuiUrl):
+**WRONG (overwrite — loses `comfyuiUrl`, do NOT do this):**
+```json
 { "meigenApiToken": "meigen_sk_..." }
 ```
+
+(JSON has no comments — labels live in markdown headings, not inside the fenced blocks.)
 
 Use the Write tool to write the merged JSON to `~/.config/meigen/config.json`.
 

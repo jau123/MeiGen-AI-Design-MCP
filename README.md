@@ -3,7 +3,7 @@
 </h1>
 
 <p align="center">
-  <strong>Turn Claude Code / OpenClaw into your personal design assistant rivaling Lovart</strong><br><sub>Supports GPT Image 2, Nanobanana & ComfyUI, with a 1,446-entry prompt library, carefully crafted hooks and a multi-task orchestration system</sub>
+  <strong>Open-source MCP server for AI image &amp; video generation — native to every major AI coding tool</strong><br><sub>9 leading models (GPT Image 2 · Nanobanana 2 · Seedream 5.0 · Midjourney V8.1 · Flux 2 Klein · Seedance 2.0 · Happyhorse 1.0 · Veo 3.1 · local ComfyUI) · 1,446 curated prompts · parallel sub-agent orchestration · standalone CLI mode. Works in Claude Code, Cursor, Codex, Windsurf, Roo Code, OpenClaw, Hermes Agent, and any MCP-compatible host.</sub>
 </p>
 
 <p align="center">
@@ -31,11 +31,11 @@
 
 ## What Is This?
 
-An open-source MCP Server (installed via plugin marketplace) that gives LLMs creative and aesthetic capabilities through 8 tools and carefully designed skills, enabling them to handle complex design tasks. It teaches LLMs how to use various image and video generation models effectively, delivering professional results through reference images, first-frame video conditioning, and multi-direction parallel workflows.
+An MCP server that turns any AI coding tool into a professional design assistant. **8 tools** + a curated 1,446-prompt library let it design logos, render product shots, animate stills into video, and orchestrate parallel batch variations. Works in **Claude Code**, **Cursor**, **Codex**, **Windsurf**, **Roo Code**, **OpenClaw**, **Hermes Agent**, and any MCP-compatible host — with the **MeiGen platform**, any **OpenAI-compatible API**, or your **local ComfyUI** as the backend.
 
-- Works with local ComfyUI — no external API dependency; also easily integrates with any custom API
-- Built-in 1,446 curated prompt templates from [nanobanana-trending-prompts](https://github.com/jau123/nanobanana-trending-prompts) and fine-tuned prompt engineering techniques that turn requirements into concrete image generation tasks
-- Parallel batch generation and sub-agent execution to keep the main context window clean
+- Three backend modes: **MeiGen cloud** (9 image and video models), **OpenAI-compatible** (bring your own key and endpoint), or **local ComfyUI** (offline, your GPU)
+- Built-in 1,446 curated prompt templates from [nanobanana-trending-prompts](https://github.com/jau123/nanobanana-trending-prompts) plus style-aware prompt enhancement
+- Parallel batch generation via sub-agents to keep the main context clean — plus a standalone CLI for shell scripts and CI
 
 ---
 
@@ -237,6 +237,18 @@ mcp_servers:
 | `/meigen:find <keywords>` | Search 1,446 curated prompts for inspiration |
 | `/meigen:models` | Browse and switch AI models for this session |
 | `/meigen:setup` | Interactive provider configuration wizard |
+
+### Standalone CLI Mode
+
+For shell scripts, CI pipelines, and terminal users who don't run an MCP host:
+
+```bash
+export MEIGEN_API_TOKEN=meigen_sk_...
+npx meigen gen --prompt "a calico cat in a sunlit kitchen"
+npx meigen gen -p "logo design" -m midjourney-v8.1 -r 1:1 --json
+```
+
+See [Use as CLI (no MCP host required)](#use-as-cli-no-mcp-host-required) for the full flag list.
 
 ### Smart Agents
 
