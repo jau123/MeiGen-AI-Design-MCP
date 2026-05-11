@@ -131,7 +131,7 @@ export function registerGenerateImage(server: McpServer, apiClient: MeiGenApiCli
         return {
           content: [{
             type: 'text' as const,
-            text: 'No image generation providers configured.\n\nQuickest way to start:\n1. Get a MeiGen API token at https://www.meigen.ai (sign in → avatar → Settings → API Keys)\n2. Run /meigen:setup and paste your token\n\nOr configure one of:\n- MEIGEN_API_TOKEN: MeiGen platform (GPT Image 2.0, Nanobanana 2, Seedream 5.0, Midjourney V8.1)\n- OPENAI_API_KEY: Any OpenAI-compatible API — bring your own key, model, and endpoint\n- Import a ComfyUI workflow for local GPU generation',
+            text: 'No image generation providers configured.\n\nQuickest way to start:\n1. Get a MeiGen API token at https://www.meigen.ai (sign in → avatar → Settings → API Keys)\n2. Make the token available to this MCP server:\n   - **On Claude Code**: run `/meigen:setup` and paste the token\n   - **On other hosts** (Cursor, Codex, Windsurf, Cline, Hermes, etc.): export `MEIGEN_API_TOKEN=meigen_sk_...` in your shell, or add it to the `env` block of the meigen server entry in your MCP config file (`.cursor/mcp.json`, `~/.codex/config.toml`, `~/.hermes/config.yaml`, etc.)\n3. Restart the host\n\nAlternative providers:\n- OPENAI_API_KEY: Any OpenAI-compatible API — bring your own key, model, and endpoint\n- Import a ComfyUI workflow for local GPU generation',
           }],
           isError: true,
         }
@@ -333,7 +333,7 @@ async function generateWithComfyUI(
   // Determine workflow
   const workflows = listWorkflows()
   if (workflows.length === 0) {
-    throw new Error('No ComfyUI workflows configured. Use comfyui_workflow import to add one, or run /meigen:setup.')
+    throw new Error('No ComfyUI workflows configured. Use comfyui_workflow import to add one (or on Claude Code, run /meigen:setup for guided configuration).')
   }
 
   const workflowName = workflow || config.comfyuiDefaultWorkflow || workflows[0]

@@ -134,7 +134,7 @@ export function registerGenerateVideo(server: McpServer, apiClient: MeiGenApiCli
         return {
           content: [{
             type: 'text' as const,
-            text: 'Video generation requires a MeiGen API token.\n\n1. Get one at https://www.meigen.ai (sign in → avatar → Settings → API Keys)\n2. Run /meigen:setup and paste your token',
+            text: 'Video generation requires a MeiGen API token.\n\n1. Get one at https://www.meigen.ai (sign in → avatar → Settings → API Keys)\n2. Make the token available:\n   - **On Claude Code**: run `/meigen:setup` and paste the token\n   - **On other hosts**: export `MEIGEN_API_TOKEN=meigen_sk_...` in your shell, or add it to your MCP config\'s env block for the meigen server',
           }],
           isError: true,
         }

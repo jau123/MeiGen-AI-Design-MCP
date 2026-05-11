@@ -34,7 +34,7 @@ export function classifyError(message: string): string {
     return 'This aspect ratio is not supported by the selected model. Use list_models to check supported ratios, or omit aspectRatio to let the server auto-infer.'
 
   if (lower.includes('token') && (lower.includes('invalid') || lower.includes('expired')))
-    return 'API token issue. Run /meigen:setup to reconfigure your token.'
+    return 'API token issue. On Claude Code, run /meigen:setup to reconfigure. On other hosts, check your MEIGEN_API_TOKEN env var or the env block for the meigen server in your MCP config.'
 
   if (lower.includes('econnrefused') || lower.includes('fetch failed') || lower.includes('network'))
     return 'Network connection issue. Check your internet connection and try again.'

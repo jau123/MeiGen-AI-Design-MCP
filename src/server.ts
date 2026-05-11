@@ -31,11 +31,21 @@ const SERVER_INSTRUCTIONS = `You are an AI image and video creation assistant po
 
 ## Phase 0: Provider Check
 
-If generate_image returns "No image generation providers configured", guide the user:
-1. **Recommended**: Get a MeiGen API token at https://www.meigen.ai
+If generate_image returns "No image generation providers configured", guide the user **based on which MCP host they are using**:
+
+1. Get a MeiGen API token at https://www.meigen.ai
    (sign in → click avatar → Settings → API Keys → create a new key starting with meigen_sk_)
-2. Then run /meigen:setup and paste the token
-3. Restart Claude Code to activate
+
+2. **If the host is Claude Code** (the user installed via plugin marketplace):
+   - Tell them to run \`/meigen:setup\` and paste the token
+   - Then restart Claude Code
+
+3. **If the host is anything else** (Cursor, Windsurf, Codex, Cline, Continue, Hermes, custom MCP client):
+   - The slash command is **not available** on these hosts.
+   - Tell them to either:
+     - (a) Export the env var in their shell: \`export MEIGEN_API_TOKEN=meigen_sk_...\`, OR
+     - (b) Edit their MCP config file (e.g. \`.cursor/mcp.json\`, \`~/.codex/config.toml\`, \`~/.hermes/config.yaml\`) and add the token to the \`env\` block of the meigen server entry
+   - Then restart the host
 
 Free features (search_gallery, enhance_prompt, get_inspiration, list_models, manage_preferences) work without any API key.
 

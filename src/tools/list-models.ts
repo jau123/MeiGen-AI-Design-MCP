@@ -182,7 +182,7 @@ export function registerListModels(server: McpServer, apiClient: MeiGenApiClient
       // Configuration status
       const configStatus = providers.length > 0
         ? `\nConfigured providers: ${providers.join(', ')}`
-        : '\nNo image generation providers configured. Run /meigen:setup or set MEIGEN_API_TOKEN / OPENAI_API_KEY / import a ComfyUI workflow to enable generate_image.'
+        : '\nNo image generation providers configured. On Claude Code, run /meigen:setup. On other hosts, set MEIGEN_API_TOKEN / OPENAI_API_KEY in your MCP config env block, or import a ComfyUI workflow.'
 
       return {
         content: [{
