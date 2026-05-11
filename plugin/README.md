@@ -1,6 +1,6 @@
 # MeiGen AI Design — Claude Code Plugin
 
-AI image generation plugin with creative workflow orchestration, parallel multi-direction output, prompt engineering, and a 1,300+ curated inspiration library.
+AI image generation plugin with creative workflow orchestration, parallel multi-direction output, prompt engineering, and a 1,446-entry curated inspiration library.
 
 ## Prerequisites
 

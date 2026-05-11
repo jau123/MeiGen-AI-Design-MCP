@@ -3,7 +3,7 @@
 </h1>
 
 <p align="center">
-  <strong>Turn Claude Code / OpenClaw into your personal design assistant rivaling Lovart</strong><br><sub>Supports GPT Image 2, Nanobanana & ComfyUI, with a 1,400+ prompt library, carefully crafted hooks and a multi-task orchestration system</sub>
+  <strong>Turn Claude Code / OpenClaw into your personal design assistant rivaling Lovart</strong><br><sub>Supports GPT Image 2, Nanobanana & ComfyUI, with a 1,446-entry prompt library, carefully crafted hooks and a multi-task orchestration system</sub>
 </p>
 
 <p align="center">
@@ -34,7 +34,7 @@
 An open-source MCP Server (installed via plugin marketplace) that gives LLMs creative and aesthetic capabilities through 8 tools and carefully designed skills, enabling them to handle complex design tasks. It teaches LLMs how to use various image and video generation models effectively, delivering professional results through reference images, first-frame video conditioning, and multi-direction parallel workflows.
 
 - Works with local ComfyUI — no external API dependency; also easily integrates with any custom API
-- Built-in 1,500+ curated prompt templates from [nanobanana-trending-prompts](https://github.com/jau123/nanobanana-trending-prompts) and fine-tuned prompt engineering techniques that turn requirements into concrete image generation tasks
+- Built-in 1,446 curated prompt templates from [nanobanana-trending-prompts](https://github.com/jau123/nanobanana-trending-prompts) and fine-tuned prompt engineering techniques that turn requirements into concrete image generation tasks
 - Parallel batch generation and sub-agent execution to keep the main context window clean
 
 ---
@@ -147,6 +147,34 @@ Or install only the skill (no commands/agents):
 npx clawhub@latest install creative-toolkit
 ```
 
+### Use as CLI (no MCP host required)
+
+For shell scripts, CI pipelines, or anyone who wants AI image generation without an MCP host, MeiGen ships a one-shot `gen` command in the same npm package.
+
+```bash
+# Set your token once (get it at https://www.meigen.ai → Settings → API Keys)
+export MEIGEN_API_TOKEN=meigen_sk_...
+
+# Generate
+npx meigen gen --prompt "a calico cat in a sunlit kitchen"
+
+# With a specific model + aspect ratio
+npx meigen gen -p "tech logo" -m midjourney-v8.1 -r 1:1
+
+# With a reference image (local file auto-uploaded)
+npx meigen gen -p "product hero shot" --ref ~/Desktop/bottle.jpg
+
+# Submit only — print generationId without polling (good for CI)
+npx meigen gen -p "..." --no-wait
+
+# Machine-readable output (good for jq pipes)
+npx meigen gen -p "..." --json | jq -r '.imageUrls[0]'
+```
+
+The image is saved to `~/Pictures/meigen/` (override with `MEIGEN_OUTPUT_DIR`).
+
+`meigen gen --help` lists all flags.
+
 ### Other MCP-Compatible Hosts
 
 Add to your MCP config (e.g. `.mcp.json`, `claude_desktop_config.json`):
@@ -167,6 +195,23 @@ Add to your MCP config (e.g. `.mcp.json`, `claude_desktop_config.json`):
 
 > Free features (inspiration search, prompt enhancement, model listing) work without any API key.
 
+### Hermes Agent (NousResearch)
+
+[Hermes Agent](https://github.com/NousResearch/hermes-agent) is a first-class MCP client — add MeiGen to `~/.hermes/config.yaml`:
+
+```yaml
+mcp_servers:
+  meigen:
+    command: "npx"
+    args: ["-y", "meigen@1.3.0"]
+    env:
+      MEIGEN_API_TOKEN: "meigen_sk_..."
+    timeout: 600          # generate_video can take 5–10 min — default 120s is not enough
+    connect_timeout: 120  # first npx download can take a minute
+```
+
+> The `timeout: 600` and `connect_timeout: 120` overrides are important — Hermes defaults (120s / 60s) are tuned for short-running tools and will time out on video generation or first-run npx downloads.
+
 ---
 
 <h2 id="features">Features</h2>
@@ -175,7 +220,7 @@ Add to your MCP config (e.g. `.mcp.json`, `claude_desktop_config.json`):
 
 | Tool | Free | Description |
 |------|------|-------------|
-| `search_gallery` | Yes | Search 1,500+ curated trending prompts with visual previews (powered by [nanobanana-trending-prompts](https://github.com/jau123/nanobanana-trending-prompts)) |
+| `search_gallery` | Yes | Search 1,446 curated trending prompts with visual previews (powered by [nanobanana-trending-prompts](https://github.com/jau123/nanobanana-trending-prompts)) |
 | `get_inspiration` | Yes | Get full prompt, all images, and metadata for any gallery entry |
 | `enhance_prompt` | Yes | Transform a brief idea into a professional image prompt |
 | `list_models` | Yes | List available models across all configured providers |
@@ -189,7 +234,7 @@ Add to your MCP config (e.g. `.mcp.json`, `claude_desktop_config.json`):
 | Command | Description |
 |---------|-------------|
 | `/meigen:gen <prompt>` | Quick generate — skip conversation, go straight to image |
-| `/meigen:find <keywords>` | Search 1,300+ curated prompts for inspiration |
+| `/meigen:find <keywords>` | Search 1,446 curated prompts for inspiration |
 | `/meigen:models` | Browse and switch AI models for this session |
 | `/meigen:setup` | Interactive provider configuration wizard |
 

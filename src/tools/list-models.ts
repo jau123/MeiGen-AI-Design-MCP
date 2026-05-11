@@ -47,12 +47,20 @@ export function registerListModels(server: McpServer, apiClient: MeiGenApiClient
           const qualities = Array.isArray(cfg.qualities) && cfg.qualities.length > 0
             ? cfg.qualities.join(', ')
             : null
+          const tags = Array.isArray(cfg.tags) && cfg.tags.length > 0
+            ? cfg.tags.join(', ')
+            : null
+          const cost = m.credits_per_generation > 0
+            ? `${m.credits_per_generation} credit${m.credits_per_generation === 1 ? '' : 's'} / image`
+            : null
           return [
             `${i + 1}. ${m.name}`,
             `   ID: ${m.id}`,
+            tags ? `   Status: ${tags}` : '',
             resolutions ? `   Resolutions: ${resolutions}` : `   4K: ${m.supports_4k ? 'Yes' : 'No'}`,
             qualities ? `   Quality tiers: ${qualities}` : '',
             `   Ratios: ${m.supported_ratios.join(', ')}`,
+            cost ? `   Cost: ${cost} (typical — see model-comparison for full schedule)` : '',
             m.description ? `   Description: ${m.description}` : '',
           ].filter(Boolean).join('\n')
         }
@@ -68,13 +76,24 @@ export function registerListModels(server: McpServer, apiClient: MeiGenApiClient
           const durations = Array.isArray(cfg.durations) && cfg.durations.length > 0
             ? `${cfg.durations[0]}–${cfg.durations[cfg.durations.length - 1]}s`
             : (typeof cfg.defaultDuration === 'number' ? `fixed ${cfg.defaultDuration}s` : null)
+          const tags = Array.isArray(cfg.tags) && cfg.tags.length > 0
+            ? cfg.tags.join(', ')
+            : null
+          // Video pricing is per-second (and tier/resolution dependent); credits_per_generation,
+          // when present, represents the floor / base cost for the shortest clip. Show the field
+          // only when the backend exposes a usable number; otherwise direct users to the live page.
+          const cost = m.credits_per_generation > 0
+            ? `from ${m.credits_per_generation} credits (per-second pricing — see model-comparison)`
+            : null
           return [
             `${i + 1}. ${m.name}`,
             `   ID: ${m.id}`,
+            tags ? `   Status: ${tags}` : '',
             tiers ? `   Tiers: ${tiers}` : '',
             resolutions ? `   Resolutions: ${resolutions}` : '',
             durations ? `   Duration: ${durations}` : '',
             `   Ratios: ${m.supported_ratios.join(', ')}`,
+            cost ? `   Cost: ${cost}` : '',
             cfg.supportsReferenceVideo ? `   Supports reference video continuation: yes (web only — MCP not supported)` : '',
             m.description ? `   Description: ${m.description}` : '',
           ].filter(Boolean).join('\n')

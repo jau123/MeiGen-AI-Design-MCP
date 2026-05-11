@@ -1,6 +1,6 @@
 ---
 name: "AI Image Generator & Editor — GPT Image 2, Nanobanana, ComfyUI"
-description: Generate images and videos from text with multi-provider routing — supports GPT Image 2.0 (near-perfect text rendering), Nanobanana 2, Seedream 5.0, Midjourney V8.1 (unified photorealistic + anime), Flux 2 Klein (cheap drafts), Seedance 2.0 / Happyhorse 1.0 / Veo 3.1 video, and local ComfyUI workflows. Includes 1,300+ curated prompts and style-aware prompt enhancement. Use when users want to create images/videos, design assets, animate photos, enhance prompts, or manage AI art workflows. NOT for: generic chat, code generation, document writing, video editing of existing footage, audio/TTS, or any task unrelated to AI image/video creation.
+description: Generate images and videos from text with multi-provider routing — supports GPT Image 2.0 (near-perfect text rendering), Nanobanana 2, Seedream 5.0, Midjourney V8.1 (unified photorealistic + anime), Flux 2 Klein (cheap drafts), Seedance 2.0 / Happyhorse 1.0 / Veo 3.1 video, and local ComfyUI workflows. Includes 1,446 curated prompts and style-aware prompt enhancement. Use when users want to create images/videos, design assets, animate photos, enhance prompts, or manage AI art workflows. NOT for: generic chat, code generation, document writing, video editing of existing footage, audio/TTS, or any task unrelated to AI image/video creation.
 version: 1.0.31
 homepage: https://github.com/jau123/MeiGen-AI-Design-MCP
 metadata: {"clawdbot":{"emoji":"🎨","requires":{"bins":["mcporter","npx","node"]}}}
@@ -50,7 +50,7 @@ Set credentials in `~/.clawdbot/.env`, `~/.config/meigen/config.json`, or add an
 
 | Tool | What it does |
 |------|-------------|
-| `search_gallery` | Semantic search across 1,300+ AI image prompts. Supports category filtering and curated browsing. Returns prompt text, thumbnails, and metadata. |
+| `search_gallery` | Semantic search across 1,446 AI image prompts. Supports category filtering and curated browsing. Returns prompt text, thumbnails, and metadata. |
 | `get_inspiration` | Get the full prompt and high-res images for any gallery entry. Use after `search_gallery` to get copyable prompts. |
 | `enhance_prompt` | Expand a brief idea into a detailed, style-aware prompt with lighting, composition, and material directions. Supports realistic, anime, and illustration styles. |
 | `list_models` | List all available models across configured providers with capabilities and supported features. |

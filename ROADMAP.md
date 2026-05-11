@@ -13,7 +13,7 @@
 - [ ] Add Provider comparison table (MeiGen vs ComfyUI vs OpenAI pros/cons)
 - [ ] Add more usage scenario examples (logo design, product photography, batch generation)
 - [ ] Add ASCII/Mermaid workflow diagrams (generation flow, reference image flow)
-- [ ] Add tool capability overview table with statistics (7 tools, 1300+ gallery entries, 3 providers)
+- [ ] Add tool capability overview table with statistics (8 tools, 1,446 gallery entries, 3 providers)
 
 **Reference**: ui-ux-pro-max has 23KB README with feature tables, ASCII diagrams, real output examples, and anti-pattern lists.
 
@@ -23,7 +23,7 @@
 
 ### 2. Search Relevance Optimization
 
-**Current state**: `search_gallery` uses simple string matching on 1300+ prompts in `trending-prompts.json`.
+**Current state**: `search_gallery` uses simple string matching on 1,446 prompts in `trending-prompts.json`.
 
 **Improvements**:
 - [ ] Implement BM25 or TF-IDF ranking for search results

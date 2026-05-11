@@ -15,12 +15,18 @@ When a decision becomes obsolete (the constraint disappears, the data flips), mo
 
 **How to apply**: When adding a new backend-owned parameter, never add a `||` fallback in MCP. Pass through user input only. If the backend needs a default, it provides one.
 
-### No credit / pricing numbers in shipped code
-**Decision**: All credit prices, "10 credits per generation", "2 credits", etc., have been removed from MCP code, instructions, and docs (1.2.11). Pricing references point to https://www.meigen.ai/model-comparison.
+### No credit / pricing numbers in shipped code (live data is fine, training data is not)
+**Decision**: All **hardcoded** credit prices ("10 credits per generation", "2 credits", etc.) have been removed from MCP code, instructions, and docs (1.2.11). Pricing references in narrative/instructions point to https://www.meigen.ai/model-comparison.
 
-**Why**: npm packages have a long tail of stale versions. A hardcoded "10 credits" in 1.2.9 keeps misleading users for months after the price changes. **Worse than no number** because users trust shipped tooling more than a website disclaimer.
+**Updated 1.3.0**: `list_models` **may** render the `credits_per_generation` field returned by the backend at request time, because that number comes from live data — when the price changes, the next `list_models` call reflects it. The rule is about *frozen* numbers in shipped strings, not about *displaying* numbers the backend sends.
 
-**How to apply**: When tempted to write a specific credit number, write the URL instead. The `MeiGenModel.credits_per_generation` field is preserved in types but **not surfaced** by `list_models` output.
+**Why**: npm packages have a long tail of stale versions. A hardcoded "10 credits" in 1.2.9 keeps misleading users for months after the price changes. **Worse than no number** because users trust shipped tooling more than a website disclaimer. But a number sourced from `apiClient.listModels()` is current by construction.
+
+**How to apply**:
+- ✅ Render `m.credits_per_generation` in `list_models` output (sourced from backend at call time).
+- ✅ Quote `creditsUsed` from a generation response (sourced from backend per request).
+- ❌ Write a specific credit number in `SERVER_INSTRUCTIONS`, tool descriptions, `enhance_prompt` text, or README. Those are frozen at npm release time.
+- ❌ Add a `defaultCredits` fallback in MCP code that runs when the backend doesn't return a number — let backend handle absence.
 
 ### Schema uses `z.string().optional()` not `z.enum([...])` for backend-dependent fields
 **Decision**: For `resolution`, `quality`, `tier`, `duration` and similar, the Zod schema is `z.string().optional()` / `z.number().int().positive()`, not `z.enum(['fast', 'pro'])` or `z.number().min(3).max(15)`.
@@ -74,7 +80,7 @@ When a decision becomes obsolete (the constraint disappears, the data flips), mo
 ### Categories are 6 (post-2026-04-29 reorg)
 **Decision**: Gallery categories: Photography (533), Illustration & 3D (370), Product & Brand (239), Food & Drink (156), Poster Design (146), UI & Graphic (52). Old single-word names (`3D`, `Food`, `Photograph`, `Product`, `Poster`, `Design`) map via `CATEGORY_DISPLAY_MAP` for old data. Retired: `App`, `Girl`, `JSON`, `Other`.
 
-**Why**: Database team rebalanced the 1400+ prompt corpus to be more discoverable. Old buckets like `Other` and `JSON` had become catch-alls; `Girl` was poorly defined and mostly redundant with `Illustration & 3D`.
+**Why**: Database team rebalanced the 1,446-entry prompt corpus to be more discoverable. Old buckets like `Other` and `JSON` had become catch-alls; `Girl` was poorly defined and mostly redundant with `Illustration & 3D`.
 
 **How to apply**: When adding new categories, update three files in lockstep: `src/lib/prompt-library.ts` (type + `CATEGORY_DISPLAY_MAP`), `src/tools/search-gallery.ts` (Zod enum), `plugin/agents/gallery-researcher.md` (category list). CI doesn't catch this drift yet.
 

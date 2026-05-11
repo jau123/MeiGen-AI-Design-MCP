@@ -174,7 +174,7 @@ Example: "design a logo, then make mockups"
 Use the \`generate_video\` tool (separate from \`generate_image\`) when the user asks for a video, motion clip, or animated content. Available models (use \`list_models\` for current details):
 
 - **\`seedance-2-0\`** — main video model, supports both text-to-video and image-to-video. Tier param: \`fast\` (default, cost-effective) / \`pro\` (higher fidelity, native 1080p). Duration ~4–15s. Resolutions 480p / 720p / 1080p. Reference images: max 2 (first frame + optional last frame); passing more is truncated to 2. To extend an existing clip, use the web UI (reference video continuation is not exposed via MCP).
-- **\`happyhorse-1.0\`** — cost-effective alternative for both t2v and i2v. Duration ~3–15s. Resolutions 720p / 1080p.
+- **\`happyhorse-1.0\`** — cost-effective alternative for both t2v and i2v, with auto-generated audio. Duration ~3–15s. Resolutions 720p / 1080p.
 - **\`veo-3.1\`** — Google Veo with native audio generation. **Fixed 8s duration**, 720p only. Aspect ratio must be \`16:9\` or \`9:16\`.
 
 Key rules:

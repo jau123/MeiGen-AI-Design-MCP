@@ -6,10 +6,8 @@
  */
 
 import { z } from 'zod'
-import { existsSync, writeFileSync, mkdirSync } from 'fs'
-import { join } from 'path'
+import { existsSync } from 'fs'
 import { homedir } from 'os'
-import { randomBytes } from 'crypto'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { RequestHandlerExtra } from '@modelcontextprotocol/sdk/shared/protocol.js'
 import type { ServerRequest, ServerNotification } from '@modelcontextprotocol/sdk/types.js'
@@ -24,6 +22,7 @@ import {
 } from '../lib/providers/comfyui.js'
 import { sharedApiSemaphore, classifyError } from '../lib/generation-shared.js'
 import { Semaphore } from '../lib/semaphore.js'
+import { saveImageLocally } from '../lib/save-image.js'
 import { addRecentGeneration } from '../lib/preferences.js'
 import { processAndUploadImage } from '../lib/upload.js'
 
@@ -35,30 +34,6 @@ import { processAndUploadImage } from '../lib/upload.js'
 // API semaphore: shared with generate_video (same backend endpoint, same 12/min rate limit).
 // ComfyUI: serial (local GPU constraint).
 const comfyuiSemaphore = new Semaphore(1)
-
-/**
- * Save base64 image locally. Defaults to ~/Pictures/meigen/, override with
- * MEIGEN_OUTPUT_DIR env var (useful for sandboxed hosts like OpenClaw).
- * Supports `~` prefix expansion. Returns file path, or undefined on failure.
- */
-function saveImageLocally(base64: string, mimeType: string): string | undefined {
-  try {
-    const ext = mimeType.includes('png') ? 'png' : mimeType.includes('webp') ? 'webp' : 'jpg'
-    const date = new Date().toISOString().slice(0, 10)
-    const id = randomBytes(4).toString('hex')
-    const filename = `${date}_${id}.${ext}`
-    const custom = process.env.MEIGEN_OUTPUT_DIR
-    const dir = custom
-      ? (custom.startsWith('~') ? homedir() + custom.slice(1) : custom)
-      : join(homedir(), 'Pictures', 'meigen')
-    mkdirSync(dir, { recursive: true })
-    const filePath = join(dir, filename)
-    writeFileSync(filePath, Buffer.from(base64, 'base64'))
-    return filePath
-  } catch {
-    return undefined
-  }
-}
 
 /** Safe notification — silently ignores if client doesn't support logging */
 async function notify(extra: RequestHandlerExtra<ServerRequest, ServerNotification>, message: string) {

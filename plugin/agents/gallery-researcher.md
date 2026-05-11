@@ -3,7 +3,7 @@ description: >-
   Gallery search and inspiration agent. Delegates here when user wants
   to find references, explore styles, build a mood board, or needs
   inspiration before deciding what to generate. Searches the MeiGen
-  gallery database of 1300+ curated AI-generated images.
+  gallery database of 1,446 curated AI-generated images.
 model: haiku
 tools: mcp__meigen__search_gallery, mcp__meigen__get_inspiration
 ---

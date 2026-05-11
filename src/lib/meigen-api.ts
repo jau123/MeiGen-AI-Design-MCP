@@ -46,6 +46,9 @@ export interface MeiGenModel {
     pricingPerSec?: unknown
     pricingPerSecWithVideo?: unknown
     supportsReferenceVideo?: boolean
+    // Operational signals from backend admin (e.g., "New", "Busy", "Maintenance").
+    // Surface in list_models so users can avoid picking a degraded model.
+    tags?: string[]
     [key: string]: unknown
   } | null
 }
@@ -59,7 +62,9 @@ export interface MeiGenGenerationResponse {
 }
 
 export interface MeiGenGenerationStatus {
-  status: 'pending' | 'processing' | 'completed' | 'failed'
+  // Backend `status/[id]/route.ts:53` maps DB 'pending' → 'processing' before responding,
+  // so callers never observe 'pending' over the wire.
+  status: 'processing' | 'completed' | 'failed'
   imageUrl: string | null
   imageUrls: string[] | null
   videoUrl?: string | null

@@ -3,7 +3,7 @@
 </h1>
 
 <p align="center">
-  <strong>让 Claude Code / OpenClaw 变成媲美 Lovart 的私人设计助理</strong><br><sub>支持 GPT Image 2、Nanobanana 与 ComfyUI，内置 1,400+ 专业提示词库，配合精心设计的 Hook 与多任务编排系统</sub>
+  <strong>让 Claude Code / OpenClaw 变成媲美 Lovart 的私人设计助理</strong><br><sub>支持 GPT Image 2、Nanobanana 与 ComfyUI，内置 1,446 条专业提示词库，配合精心设计的 Hook 与多任务编排系统</sub>
 </p>
 
 <p align="center">
@@ -34,7 +34,7 @@
 一个开源 MCP Server（通过插件市场安装），通过 8 个 tools 和精心设计的 skills，让 LLM 具备创意和审美能力，可以完成更复杂的设计任务。它能让 LLM 了解各种生图模型的使用技巧，通过参考图和多方案并行，交付更专业的成果。
 
 - 可以调用本地 ComfyUI 服务，不依赖外部 API；也可以方便地接入任意自定义 API
-- 内置 1,500+ 优质提示词模板（来自 [nanobanana-trending-prompts](https://github.com/jau123/nanobanana-trending-prompts)）和精心调试的提示词撰写技巧，把需求转化为具象的生图任务
+- 内置 1,446 条优质提示词模板（来自 [nanobanana-trending-prompts](https://github.com/jau123/nanobanana-trending-prompts)）和精心调试的提示词撰写技巧，把需求转化为具象的生图任务
 - 支持并行批量任务和子 Agent 调用，避免主窗口上下文膨胀
 
 ---
@@ -147,6 +147,34 @@ openclaw bundles install clawhub:meigen-ai-design
 npx clawhub@latest install creative-toolkit
 ```
 
+### CLI 模式(不需要 MCP 宿主)
+
+如果你想在 shell 脚本、CI 流水线或终端中直接用 AI 生图,MeiGen 同一个 npm 包里自带一个 `gen` 命令。
+
+```bash
+# 设置 token(在 https://www.meigen.ai → 设置 → API Keys 获取)
+export MEIGEN_API_TOKEN=meigen_sk_...
+
+# 生图
+npx meigen gen --prompt "阳光厨房里的三花猫"
+
+# 指定模型 + 比例
+npx meigen gen -p "科技 logo" -m midjourney-v8.1 -r 1:1
+
+# 带参考图(本地路径自动上传)
+npx meigen gen -p "产品 hero shot" --ref ~/Desktop/bottle.jpg
+
+# 只提交不等待 — 输出 generationId(适合 CI)
+npx meigen gen -p "..." --no-wait
+
+# JSON 输出(适合 jq 管道)
+npx meigen gen -p "..." --json | jq -r '.imageUrls[0]'
+```
+
+图像保存到 `~/Pictures/meigen/`(可用 `MEIGEN_OUTPUT_DIR` 覆盖)。
+
+`meigen gen --help` 查看所有参数。
+
 ### 其他 MCP 兼容客户端
 
 添加到 MCP 配置文件（如 `.mcp.json`、`claude_desktop_config.json`）：
@@ -167,6 +195,23 @@ npx clawhub@latest install creative-toolkit
 
 > 即使没有 API Key，免费功能（灵感搜索、提示词增强、模型列表）也可以直接使用。
 
+### Hermes Agent (NousResearch)
+
+[Hermes Agent](https://github.com/NousResearch/hermes-agent) 原生支持 MCP — 在 `~/.hermes/config.yaml` 加上:
+
+```yaml
+mcp_servers:
+  meigen:
+    command: "npx"
+    args: ["-y", "meigen@1.3.0"]
+    env:
+      MEIGEN_API_TOKEN: "meigen_sk_..."
+    timeout: 600          # generate_video 可能 5–10 分钟,Hermes 默认 120s 会超时
+    connect_timeout: 120  # 首次 npx 下载可能需要一分钟
+```
+
+> `timeout: 600` 和 `connect_timeout: 120` 这两个覆盖很重要 — Hermes 默认(120s / 60s)是给短命令调好的,视频生成或首次 npx 下载会超。
+
 ---
 
 <h2 id="功能一览">功能一览</h2>
@@ -175,7 +220,7 @@ npx clawhub@latest install creative-toolkit
 
 | 工具 | 免费 | 说明 |
 |------|------|------|
-| `search_gallery` | 是 | 搜索 1,500+ 精选热门提示词，附带视觉预览（数据来自 [nanobanana-trending-prompts](https://github.com/jau123/nanobanana-trending-prompts)） |
+| `search_gallery` | 是 | 搜索 1,446 条精选热门提示词，附带视觉预览（数据来自 [nanobanana-trending-prompts](https://github.com/jau123/nanobanana-trending-prompts)） |
 | `get_inspiration` | 是 | 获取某条提示词的完整内容、所有图片和元数据 |
 | `enhance_prompt` | 是 | 将简短想法转化为专业图片提示词 |
 | `list_models` | 是 | 列出所有已配置后端的可用模型 |
@@ -189,7 +234,7 @@ npx clawhub@latest install creative-toolkit
 | 命令 | 说明 |
 |------|------|
 | `/meigen:gen <提示词>` | 快速生图 — 跳过对话，直接生成 |
-| `/meigen:find <关键词>` | 搜索 1,300+ 精选提示词获取灵感 |
+| `/meigen:find <关键词>` | 搜索 1,446 条精选提示词获取灵感 |
 | `/meigen:models` | 浏览和切换当前会话的 AI 模型 |
 | `/meigen:setup` | 交互式后端配置向导 |
 

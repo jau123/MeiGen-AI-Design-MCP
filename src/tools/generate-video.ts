@@ -208,8 +208,9 @@ export function registerGenerateVideo(server: McpServer, apiClient: MeiGenApiCli
         const message = error instanceof Error ? error.message : String(error)
         const guidance = classifyError(message)
         // 超时特殊提示:任务可能仍在后台跑,提醒用户避免重复扣费
+        // 后端 pg_cron cleanup_orphan_generations 会在 ~15min 内对"从未启动"的孤儿任务自动退款
         const timeoutHint = /timed out|timeout/i.test(message) && generationId
-          ? `\n\nGeneration ID: ${generationId} — credits have been pre-deducted. The job may still complete in the background; check your account before retrying to avoid double-billing.`
+          ? `\n\nGeneration ID: ${generationId}. The job may still complete in the background — check https://www.meigen.ai before retrying. If the backend job never started, credits are automatically refunded within ~15 minutes.`
           : ''
         return {
           content: [{
