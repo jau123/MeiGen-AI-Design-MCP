@@ -26,6 +26,18 @@
     "meigen",
     "prompt-engineering"
   ],
+  "author": {
+    "name": "MeiGen",
+    "url": "https://www.meigen.ai"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jau123/MeiGen-AI-Design-MCP.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jau123/MeiGen-AI-Design-MCP/issues"
+  },
+  "homepage": "https://github.com/jau123/MeiGen-AI-Design-MCP#readme",
   "license": "MIT",
   "engines": {
     "node": ">=18.0.0"
