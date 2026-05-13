@@ -99,7 +99,7 @@ An MCP server that turns any AI coding tool into a professional design assistant
 
 > This marketplace doesn't bundle MCP server config. After installing, add to your project's `.mcp.json`:
 > ```json
-> { "mcpServers": { "meigen": { "command": "npx", "args": ["-y", "meigen@1.3.0"] } } }
+> { "mcpServers": { "meigen": { "command": "npx", "args": ["-y", "meigen@1.3.1"] } } }
 > ```
 
 #### First-Time Setup
@@ -184,7 +184,7 @@ Add to your MCP config (e.g. `.mcp.json`, `claude_desktop_config.json`):
   "mcpServers": {
     "meigen": {
       "command": "npx",
-      "args": ["-y", "meigen@1.3.0"],
+      "args": ["-y", "meigen@1.3.1"],
       "env": {
         "MEIGEN_API_TOKEN": "meigen_sk_..."
       }
@@ -203,7 +203,7 @@ Add to your MCP config (e.g. `.mcp.json`, `claude_desktop_config.json`):
 mcp_servers:
   meigen:
     command: "npx"
-    args: ["-y", "meigen@1.3.0"]
+    args: ["-y", "meigen@1.3.1"]
     env:
       MEIGEN_API_TOKEN: "meigen_sk_..."
     timeout: 600          # generate_video can take 5–10 min — default 120s is not enough
