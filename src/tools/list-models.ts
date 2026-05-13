@@ -79,11 +79,14 @@ export function registerListModels(server: McpServer, apiClient: MeiGenApiClient
           const tags = Array.isArray(cfg.tags) && cfg.tags.length > 0
             ? cfg.tags.join(', ')
             : null
-          // Video pricing is per-second (and tier/resolution dependent); credits_per_generation,
-          // when present, represents the floor / base cost for the shortest clip. Show the field
-          // only when the backend exposes a usable number; otherwise direct users to the live page.
+          // Video pricing varies by model:
+          //   - seedance / happyhorse: per-second (rate × duration, tier/resolution dependent)
+          //   - veo: per-generation by tier × duration (resolution doesn't affect price)
+          // credits_per_generation, when present, represents the floor / base cost for the shortest
+          // typical clip. Show the field only when the backend exposes a usable number; otherwise
+          // direct users to the live page for the full schedule.
           const cost = m.credits_per_generation > 0
-            ? `from ${m.credits_per_generation} credits (per-second pricing — see model-comparison)`
+            ? `from ${m.credits_per_generation} credits (variable pricing — see model-comparison for the full schedule)`
             : null
           return [
             `${i + 1}. ${m.name}`,

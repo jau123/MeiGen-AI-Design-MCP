@@ -107,11 +107,11 @@ async function saveVideoLocally(videoUrl: string): Promise<string | undefined> {
 
 export const generateVideoSchema = {
   prompt: z.string().trim().min(1, 'Prompt cannot be empty').describe('The video generation prompt. Describe motion, scene, and style — not just the still image.'),
-  model: z.string().min(1).describe('Video model ID. Use list_models to see available video models. Common (as of writing): "seedance-2-0" (multi-tier general purpose), "happyhorse-1.0" (cost-effective i2v/t2v), "veo-3.1" (Google Veo, fixed 8s with audio).'),
+  model: z.string().min(1).describe('Video model ID. Use list_models to see available video models. Common (as of writing): "seedance-2-0" (multi-tier general purpose), "happyhorse-1.0" (cost-effective i2v/t2v), "veo-3.1" (Google Veo with two tiers, 4/6/8s, native audio).'),
   tier: z.string().optional()
-    .describe('Quality tier — only for models that support tiers. seedance-2-0 currently accepts "fast" (default, cheaper) or "pro" (higher fidelity, native 1080p). Tiers may be added by the platform — call list_models to see what each model exposes.'),
+    .describe('Quality tier — only for models that support tiers. seedance-2-0 and veo-3.1 currently accept "fast" (default, cheaper) or "pro" (higher fidelity). Tiers may be added by the platform — call list_models to see what each model exposes.'),
   duration: z.number().int().positive().optional()
-    .describe('Video duration in seconds. seedance-2-0 / happyhorse-1.0 currently accept ~3–15s. Veo 3.1 is fixed (duration is ignored if passed). Defaults to the model\'s default duration. Call list_models for the current allowed range per model.'),
+    .describe('Video duration in seconds. seedance-2-0 / happyhorse-1.0 currently accept ~3–15s (any integer in range). veo-3.1 accepts exactly 4, 6, or 8 (default 4) — other values will be rejected. Defaults to the model\'s default duration. Call list_models for the current allowed values per model.'),
   resolution: z.string().optional()
     .describe('Output resolution. Common: "480p" / "720p" / "1080p" (model-dependent). Use list_models to see what each model supports. Higher resolutions cost more credits per second.'),
   aspectRatio: z.string().optional()
@@ -120,15 +120,24 @@ export const generateVideoSchema = {
     .describe('Optional first-frame image to control where the video starts. Accepts public URL or local file path (auto-uploaded). Highly recommended for image-to-video; with no first frame the model does pure text-to-video.'),
   lastFrame: z.string().optional()
     .describe('Optional last-frame image to also control where the video ends. Used by seedance-2-0 and veo-3.1; happyhorse-1.0 ignores this field. Accepts public URL or local file path. Requires firstFrame to also be provided — passing lastFrame alone is rejected.'),
+  referenceVideo: z.string().optional()
+    .describe(
+      'Optional reference video URL for Seedance 2.0 "video continuation". Must be a publicly accessible HTTPS URL (typically a previous generation result `videoUrl`); local paths are not supported. Only seedance-2-0 accepts this — passing it with other models will fail. ' +
+      'IMPORTANT — prompt requirement: to make the new clip semantically continue the reference, the `prompt` MUST explicitly say "extend" / "continue" (e.g. prefix with "Extend this video with the following plot:"). Without that, the model treats the video as visual reference only and the new clip may drift from a true continuation. ' +
+      'Output behavior: the output is ONLY your `duration` seconds (4-15s) of new content — the reference video is NOT concatenated into the output. To get a single "original + new" clip the user must stitch them locally. ' +
+      'Billing: credits are charged at the With-reference-video rate, with `billable_seconds = max(reference_duration + duration, min_billable[duration])`. Total cost is often higher than direct generation of the same output length. Always pass `referenceVideoDuration` alongside this field — omitting it causes underbilling and broken continuation behavior.'
+    ),
+  referenceVideoDuration: z.number().int().positive().optional()
+    .describe('Duration of the reference video in seconds (typically 2–15 — backend validates the current allowed range). REQUIRED whenever `referenceVideo` is set; if omitted the backend treats it as 0, leading to undercharged credits and misconfigured generation. Pass the actual duration of the clip at `referenceVideo`.'),
 }
 
 export function registerGenerateVideo(server: McpServer, apiClient: MeiGenApiClient, config: MeiGenConfig) {
   server.tool(
     'generate_video',
-    'Generate a video using AI via MeiGen platform. Supports text-to-video and first-frame image-to-video. Available models include Seedance 2.0 (fast/pro tiers, 4-15s), Happyhorse 1.0 (cost-effective, 3-15s), and Veo 3.1 (fixed 8s with audio). Pricing is per-second except Veo (flat 20 credits per 8s clip) — see https://www.meigen.ai/model-comparison. Generation takes 1–5 minutes typically; reference video continuation (extending an existing clip) is NOT exposed via MCP — direct users to the web UI for that.',
+    'Generate a video using AI via MeiGen platform. Supports text-to-video, image-to-video (first/last frame), and reference-video continuation (Seedance 2.0 only — pass `referenceVideo` URL + `referenceVideoDuration` together, and prompt must explicitly say "extend / continue"). Available models include Seedance 2.0 (fast/pro tiers, 4-15s), Happyhorse 1.0 (cost-effective, 3-15s), and Veo 3.1 (fast/pro tiers, 4/6/8s, native audio). Pricing varies — seedance/happyhorse are per-second, veo is per-generation by tier × duration. See https://www.meigen.ai/model-comparison for the current schedule. With a reference video (seedance only), billable seconds = max(reference_duration + duration, min_billable[duration]); total often higher than direct generation. Generation typically takes 1–5 minutes (veo at 4k can take up to ~8 min).',
     generateVideoSchema,
     { readOnlyHint: false, destructiveHint: true },
-    async ({ prompt, model, tier, duration, resolution, aspectRatio, firstFrame, lastFrame }, extra) => {
+    async ({ prompt, model, tier, duration, resolution, aspectRatio, firstFrame, lastFrame, referenceVideo, referenceVideoDuration }, extra) => {
       const providers = getAvailableProviders(config)
       if (!providers.includes('meigen')) {
         return {
@@ -156,6 +165,23 @@ export function registerGenerateVideo(server: McpServer, apiClient: MeiGenApiCli
         }
         const referenceImages = refList.length > 0 ? refList : undefined
 
+        // 参考视频(续写)校验:必须是 https URL,且必须配对传 referenceVideoDuration
+        // 漏传 duration 会被后端按 0 处理 → 计费偏低 + 续写效果异常(主项目 docs 已明示)
+        if (referenceVideo) {
+          if (isLocalPath(referenceVideo)) {
+            throw new Error('referenceVideo must be a public HTTPS URL (local paths are not supported — upload the clip first or use a previous generation\'s videoUrl).')
+          }
+          const unsafe = unsafeReferenceUrlReason(referenceVideo)
+          if (unsafe) {
+            throw new Error(`referenceVideo URL rejected: ${unsafe}. URL: ${referenceVideo}`)
+          }
+          if (typeof referenceVideoDuration !== 'number') {
+            throw new Error('referenceVideoDuration is required when referenceVideo is set (pass the clip duration in seconds, 2-15).')
+          }
+        } else if (typeof referenceVideoDuration === 'number') {
+          throw new Error('referenceVideoDuration was passed without referenceVideo — drop it, or pass a referenceVideo URL.')
+        }
+
         await sharedApiSemaphore.acquire()
         try {
           // 1. Submit
@@ -167,6 +193,8 @@ export function registerGenerateVideo(server: McpServer, apiClient: MeiGenApiCli
             duration,
             tier,
             referenceImages,
+            referenceVideo,
+            referenceVideoDuration,
           })
 
           if (!genResponse.generationId) {
@@ -207,7 +235,7 @@ export function registerGenerateVideo(server: McpServer, apiClient: MeiGenApiCli
 
           const lines = [`Video generated successfully.`]
           lines.push(`- Provider: MeiGen (model: ${actualModel}${tier ? `, tier: ${tier}` : ''})`)
-          if (typeof duration === 'number') lines.push(`- Duration: ${duration}s (requested — Veo 3.1 may override to its fixed 8s)`)
+          if (typeof duration === 'number') lines.push(`- Duration: ${duration}s`)
           if (resolution) lines.push(`- Resolution: ${resolution}`)
           lines.push(`- Video URL: ${videoUrl}`)
           if (savedPath) lines.push(`- Saved to: ${savedPath}`)

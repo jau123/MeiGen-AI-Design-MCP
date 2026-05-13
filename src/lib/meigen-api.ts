@@ -195,6 +195,8 @@ export class MeiGenApiClient {
     duration?: number
     tier?: string
     referenceImages?: string[]
+    referenceVideo?: string           // 仅 Seedance 2.0:参考视频 URL(续写场景)
+    referenceVideoDuration?: number   // 参考视频时长(秒);传 referenceVideo 必须同时传
   }): Promise<MeiGenGenerationResponse> {
     if (!this.apiToken) {
       throw new Error('MEIGEN_API_TOKEN is required for video generation via MeiGen')
@@ -209,6 +211,8 @@ export class MeiGenApiClient {
     if (typeof params.duration === 'number') body.duration = params.duration
     if (params.tier) body.tier = params.tier
     if (params.referenceImages?.length) body.referenceImages = params.referenceImages
+    if (params.referenceVideo) body.referenceVideo = params.referenceVideo
+    if (typeof params.referenceVideoDuration === 'number') body.referenceVideoDuration = params.referenceVideoDuration
 
     const res = await fetch(`${this.baseUrl}/api/generate/v2`, {
       method: 'POST',
