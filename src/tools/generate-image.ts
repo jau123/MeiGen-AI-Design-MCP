@@ -52,7 +52,7 @@ async function notify(extra: RequestHandlerExtra<ServerRequest, ServerNotificati
 function isLocalPath(ref: string): boolean {
   if (ref.startsWith('http://') || ref.startsWith('https://')) return false
   if (ref.startsWith('file://')) return true
-  return ref.startsWith('/') || ref.startsWith('~') || /^[A-Z]:\\/i.test(ref)
+  return ref.startsWith('/') || ref.startsWith('~') || /^[A-Z]:[/\\]/i.test(ref)
 }
 
 /** Resolve file:// URIs and ~ prefix to absolute paths */

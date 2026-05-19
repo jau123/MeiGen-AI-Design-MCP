@@ -138,7 +138,7 @@ function resolveLocalRef(ref: string): string {
 function isLocalRef(ref: string): boolean {
   if (ref.startsWith('http://') || ref.startsWith('https://')) return false
   if (ref.startsWith('file://')) return true
-  return ref.startsWith('/') || ref.startsWith('~') || /^[A-Z]:\\/i.test(ref)
+  return ref.startsWith('/') || ref.startsWith('~') || /^[A-Z]:[/\\]/i.test(ref)
 }
 
 export async function gen(argv: string[]): Promise<void> {

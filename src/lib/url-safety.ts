@@ -12,6 +12,9 @@
  * if it should be allowed through.
  */
 
+// WHATWG URL parser hostname for IPv6 always wraps in `[]`, and IPv4-mapped IPv6
+// (e.g. ::ffff:169.254.169.254) is normalized to hex (::ffff:a9fe:a9fe). All IPv6
+// patterns must anchor on `\[`.
 const PRIVATE_HOST_PATTERNS: Array<{ pattern: RegExp; reason: string }> = [
   { pattern: /^localhost$/i, reason: 'localhost is not reachable from the backend' },
   { pattern: /^127\./, reason: 'loopback addresses (127.x) are not reachable from the backend' },
@@ -20,10 +23,12 @@ const PRIVATE_HOST_PATTERNS: Array<{ pattern: RegExp; reason: string }> = [
   { pattern: /^172\.(1[6-9]|2[0-9]|3[01])\./, reason: 'private network address (172.16-31.x) blocked for safety' },
   { pattern: /^169\.254\./, reason: 'link-local / cloud-metadata address (169.254.x) blocked for safety' },
   { pattern: /^0\.0\.0\.0$/, reason: 'wildcard address 0.0.0.0 blocked for safety' },
-  // IPv6 loopback and link-local — match literally; bracketed forms also covered.
   { pattern: /^::1$/, reason: 'IPv6 loopback (::1) is not reachable from the backend' },
   { pattern: /^\[::1\]$/, reason: 'IPv6 loopback (::1) is not reachable from the backend' },
-  { pattern: /^fe80:/i, reason: 'IPv6 link-local (fe80::) blocked for safety' },
+  { pattern: /^\[::\]$/, reason: 'IPv6 unspecified ([::]) is not reachable from the backend' },
+  { pattern: /^\[::ffff:/i, reason: 'IPv4-mapped IPv6 ([::ffff:*]) blocked — can be used to bypass IPv4 filters' },
+  { pattern: /^\[fe[89ab][0-9a-f]:/i, reason: 'IPv6 link-local (fe80::/10) blocked for safety' },
+  { pattern: /^\[f[cd][0-9a-f]{2}:/i, reason: 'IPv6 unique local address (fc00::/7) blocked for safety' },
 ]
 
 /**
