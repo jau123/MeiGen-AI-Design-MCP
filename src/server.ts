@@ -257,7 +257,7 @@ export function createServer() {
   const apiClient = new MeiGenApiClient(config)
 
   const server = new McpServer(
-    { name: 'meigen', version: '1.3.1' },
+    { name: 'meigen', version: '1.3.2' },
     { instructions: SERVER_INSTRUCTIONS },
   )
 

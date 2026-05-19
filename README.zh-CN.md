@@ -99,7 +99,7 @@
 
 > 该市场不包含 MCP 服务配置。安装后需手动添加到项目 `.mcp.json`：
 > ```json
-> { "mcpServers": { "meigen": { "command": "npx", "args": ["-y", "meigen@1.3.1"] } } }
+> { "mcpServers": { "meigen": { "command": "npx", "args": ["-y", "meigen@1.3.2"] } } }
 > ```
 
 #### 首次配置
@@ -184,7 +184,7 @@ npx meigen gen -p "..." --json | jq -r '.imageUrls[0]'
   "mcpServers": {
     "meigen": {
       "command": "npx",
-      "args": ["-y", "meigen@1.3.1"],
+      "args": ["-y", "meigen@1.3.2"],
       "env": {
         "MEIGEN_API_TOKEN": "meigen_sk_..."
       }
@@ -203,7 +203,7 @@ npx meigen gen -p "..." --json | jq -r '.imageUrls[0]'
 mcp_servers:
   meigen:
     command: "npx"
-    args: ["-y", "meigen@1.3.1"]
+    args: ["-y", "meigen@1.3.2"]
     env:
       MEIGEN_API_TOKEN: "meigen_sk_..."
     timeout: 600          # generate_video 可能 5–10 分钟,Hermes 默认 120s 会超时
