@@ -71,7 +71,7 @@ export function loadConfig(): MeiGenConfig {
 
     meigenBaseUrl: process.env.MEIGEN_BASE_URL || 'https://www.meigen.ai',
 
-    uploadGatewayUrl: process.env.UPLOAD_GATEWAY_URL || file.uploadGatewayUrl || 'https://gen.meigen.art/api',
+    uploadGatewayUrl: process.env.UPLOAD_GATEWAY_URL || file.uploadGatewayUrl || 'https://gen.meigen.ai',
 
     comfyuiUrl: process.env.COMFYUI_URL || file.comfyuiUrl,
     comfyuiDefaultWorkflow: file.comfyuiDefaultWorkflow,

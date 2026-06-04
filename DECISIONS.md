@@ -57,7 +57,7 @@ When a decision becomes obsolete (the constraint disappears, the data flips), mo
 **How to apply**: New media types in the future should add their own dedicated tool + `mediaType` guard, not extend the fallback chain.
 
 ### Reference image uploads expire after 24h (R2 contract)
-**Decision**: All local reference images uploaded to `gen.meigen.art/api` are pruned by R2 after 24 hours. This is mentioned in tool responses and the README.
+**Decision**: All local reference images uploaded to `gen.meigen.ai` are pruned by R2 after 24 hours. This is mentioned in tool responses and the README.
 
 **Why**: R2 is a cache, not durable storage. Users sometimes save tool responses and try to reuse the URL days later — failure mode was confusing 404s.
 

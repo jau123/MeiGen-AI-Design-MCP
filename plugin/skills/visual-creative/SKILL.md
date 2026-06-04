@@ -62,11 +62,11 @@ Format:
 
 ```
 **Direction 1: Modern Minimal**
-- Image URL: https://images.meigen.art/...
+- Image URL: https://images.meigen.ai/...
 - Saved to: ~/Pictures/meigen/2026-02-08_xxxx.jpg
 
 **Direction 2: Eastern Calligraphy**
-- Image URL: https://images.meigen.art/...
+- Image URL: https://images.meigen.ai/...
 - Saved to: ~/Pictures/meigen/2026-02-08_yyyy.jpg
 ```
 
