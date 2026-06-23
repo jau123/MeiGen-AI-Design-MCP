@@ -149,6 +149,9 @@ Do NOT pass \`referenceImages\` — the model rejects them.
   - Never invent or guess style codes — omit sref entirely when the user hasn't provided one.
 - **All other \`--flags\`** (including \`--chaos\`, \`--weird\`, \`--stylize\`, \`--raw\`, \`--iw\`, \`--v\`, \`--style\`, \`--no\`, \`--tile\`, \`--niji\`, \`--seed\`, \`--q\`, etc.) and legacy MJ syntax (\`::N\` prompt weights, \`[option|option]\` permutations) are silently stripped by the server. \`--sref <code>\` is the only exception. Express every other intent in natural language.
 
+### Grok Imagine Quality — usage notes
+\`model: "grok-image"\`. xAI's high-quality image model. Fast (~7s). Resolutions \`1K\` / \`2K\` (no 4K). Supports image-to-image — pass \`referenceImages\` (up to 3) to edit or compose from source images. Aspect ratio via \`aspectRatio\` (1:1, 16:9, 9:16, 4:3, 3:4, 2:3, 3:2; defaults to auto-infer). Recommend when the user wants crisp high-quality stills, asks for Grok specifically, or wants reference-based image editing.
+
 ### Single image
 Call generate_image with just the prompt (and aspectRatio if needed).
 Do NOT specify provider or model.
@@ -183,13 +186,15 @@ Example: "design a logo, then make mockups"
 
 Use the \`generate_video\` tool (separate from \`generate_image\`) when the user asks for a video, motion clip, or animated content. Available models (use \`list_models\` for current details):
 
-- **\`seedance-2-0\`** — main video model, supports text-to-video, image-to-video (first/last frame), and reference-video continuation. Tier param: \`fast\` (default, cost-effective) / \`pro\` (higher fidelity, native 1080p). Duration ~4–15s. Resolutions 480p / 720p / 1080p. Reference images: max 2 (first frame + optional last frame); passing more is truncated to 2. **Reference-video continuation**: pass \`referenceVideo\` (HTTPS URL, e.g. a previous generation's \`videoUrl\`) + \`referenceVideoDuration\` (the clip's actual seconds, 2-15); the prompt MUST explicitly say "extend" / "continue" (use prefix \`Extend this video with the following plot:\`). Output is only your \`duration\` seconds of new content — the reference video is NOT concatenated into the output. Billing: \`billable_seconds = max(reference_duration + duration, min_billable[duration])\`, charged at the With-reference-video rate; total is often higher than direct generation of the same output length — confirm cost with the user before submitting.
+- **\`seedance-2-0\`** — main video model, supports text-to-video, image-to-video (first/last frame), and reference-video continuation. Tier param: \`mini\` (default, cheapest; 480p/720p) / \`fast\` (480p/720p) / \`pro\` (higher fidelity; native 1080p + 4k). Duration ~4–15s. Resolutions 480p / 720p / 1080p (pro adds 4k). Reference images: max 2 (first frame + optional last frame); passing more is truncated to 2. **Reference-video continuation**: pass \`referenceVideo\` (HTTPS URL, e.g. a previous generation's \`videoUrl\`) + \`referenceVideoDuration\` (the clip's actual seconds, 2-15); the prompt MUST explicitly say "extend" / "continue" (use prefix \`Extend this video with the following plot:\`). Output is only your \`duration\` seconds of new content — the reference video is NOT concatenated into the output. Billing: \`billable_seconds = max(reference_duration + duration, min_billable[duration])\`, charged at the With-reference-video rate; total is often higher than direct generation of the same output length — confirm cost with the user before submitting.
 - **\`happyhorse-1.0\`** — cost-effective alternative for both t2v and i2v, with auto-generated audio. Duration ~3–15s. Resolutions 720p / 1080p.
 - **\`veo-3.1\`** — Google Veo with native audio generation. Tier param: \`fast\` (default) / \`pro\` (higher fidelity). Duration: \`4\` / \`6\` / \`8\` seconds (default 4). Resolutions \`720p\` / \`1080p\` / \`4k\` — all three share the same price, just pick whichever resolution you want (4k renders noticeably longer). Aspect ratios \`auto\` (default — server infers from prompt or reference image), \`16:9\`, \`9:16\` only. Reference images: max 2 (first frame + optional last frame). Audio is always on and cannot be disabled.
+- **\`grok-video\`** — xAI Grok Imagine 1.5, currently the strongest image-to-video quality. **IMAGE-TO-VIDEO ONLY**: \`firstFrame\` is REQUIRED — a call without it (pure text-to-video) is rejected by the backend. Native audio included (always on, no param). Duration 4–15s (integer, default 4). Resolutions \`480p\` / \`720p\`. Output aspect ratio follows the first frame (no ratio param needed). Does NOT support text-to-video, last frame, or reference-video continuation — for those use seedance-2-0 / happyhorse-1.0 / veo-3.1.
 
 Key rules:
 - The \`model\` parameter is REQUIRED for \`generate_video\` (no platform default for video).
-- For image-to-video, pass the source as \`firstFrame\` (URL or local path — auto-uploaded). Optionally pass \`lastFrame\` to also control the ending frame (Seedance / Veo only; Happyhorse ignores it).
+- \`grok-video\` is IMAGE-TO-VIDEO ONLY — \`firstFrame\` is mandatory; without it the backend rejects the request. If the user wants pure text-to-video, pick seedance-2-0 / happyhorse-1.0 / veo-3.1 instead.
+- For image-to-video, pass the source as \`firstFrame\` (URL or local path — auto-uploaded). Optionally pass \`lastFrame\` to also control the ending frame (Seedance / Veo only; Happyhorse / Grok ignore it).
 - Pricing varies: seedance/happyhorse are per-second, veo is per-generation by tier × duration (see \`list_models\` and https://www.meigen.ai/model-comparison). Generation typically takes 1–5 minutes (veo at 4k can take up to ~8 min). The tool polls automatically and saves the resulting MP4 to \`~/Movies/meigen/\` by default.
 - Video reference (continuing an existing clip) is supported only on \`seedance-2-0\` via \`referenceVideo\` + \`referenceVideoDuration\`. Always pair them, and prefix the prompt with "Extend this video with the following plot:" so the model produces a continuation rather than a generic reference-based clip. Surface the higher billing (max(ref+duration, floor)) to the user before submitting.
 - Videos are slow and expensive — NEVER kick off parallel videos. ALWAYS confirm with the user before submitting any video generation.
@@ -257,7 +262,7 @@ export function createServer() {
   const apiClient = new MeiGenApiClient(config)
 
   const server = new McpServer(
-    { name: 'meigen', version: '1.3.2' },
+    { name: 'meigen', version: '1.3.3' },
     { instructions: SERVER_INSTRUCTIONS },
   )
 

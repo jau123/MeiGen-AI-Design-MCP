@@ -34,6 +34,9 @@ export interface MeiGenModel {
   max_reference_images?: number
   extra_config?: {
     resolutions?: string[]
+    // Per-tier resolution overrides (e.g. Seedance Pro adds 4k while mini/fast cap at 720p).
+    // The model-level `resolutions` field lags behind this — always merge both.
+    tierResolutions?: Record<string, string[]>
     qualities?: string[]
     defaultResolution?: string
     defaultQuality?: string

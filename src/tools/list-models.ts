@@ -70,8 +70,18 @@ export function registerListModels(server: McpServer, apiClient: MeiGenApiClient
           const tiers = Array.isArray(cfg.tiers) && cfg.tiers.length > 0
             ? cfg.tiers.join(', ')
             : null
-          const resolutions = Array.isArray(cfg.resolutions) && cfg.resolutions.length > 0
-            ? cfg.resolutions.join(', ')
+          // Merge model-level resolutions with per-tier resolutions so tier-only
+          // capabilities (e.g. Seedance Pro's 4k) are never hidden — the model-level
+          // `resolutions` field lags behind `tierResolutions`.
+          const tierRes = cfg.tierResolutions && typeof cfg.tierResolutions === 'object'
+            ? cfg.tierResolutions
+            : null
+          const resSet = new Set<string>()
+          if (Array.isArray(cfg.resolutions)) cfg.resolutions.forEach(r => resSet.add(r))
+          if (tierRes) Object.values(tierRes).forEach(list => Array.isArray(list) && list.forEach(r => resSet.add(r)))
+          const resolutions = resSet.size > 0 ? Array.from(resSet).join(', ') : null
+          const tierResLine = tierRes
+            ? `   Resolutions by tier: ${Object.entries(tierRes).map(([t, list]) => `${t} ${Array.isArray(list) ? list.join('/') : ''}`.trim()).join(', ')}`
             : null
           const durations = Array.isArray(cfg.durations) && cfg.durations.length > 0
             ? `${cfg.durations[0]}–${cfg.durations[cfg.durations.length - 1]}s`
@@ -94,10 +104,11 @@ export function registerListModels(server: McpServer, apiClient: MeiGenApiClient
             tags ? `   Status: ${tags}` : '',
             tiers ? `   Tiers: ${tiers}` : '',
             resolutions ? `   Resolutions: ${resolutions}` : '',
+            tierResLine || '',
             durations ? `   Duration: ${durations}` : '',
             `   Ratios: ${m.supported_ratios.join(', ')}`,
             cost ? `   Cost: ${cost}` : '',
-            cfg.supportsReferenceVideo ? `   Supports reference video continuation: yes (web only — MCP not supported)` : '',
+            cfg.supportsReferenceVideo ? `   Supports reference video continuation: yes (pass referenceVideo + referenceVideoDuration to generate_video)` : '',
             m.description ? `   Description: ${m.description}` : '',
           ].filter(Boolean).join('\n')
         }

@@ -99,7 +99,7 @@ async function resolveReferenceImages(
 export const generateImageSchema = {
   prompt: z.string().trim().min(1, 'Prompt cannot be empty').describe('The image generation prompt'),
   model: z.string().optional()
-    .describe('Model name. For OpenAI-compatible providers: any model ID your endpoint supports. For MeiGen: use model IDs from list_models.'),
+    .describe('Model name. For OpenAI-compatible providers: any model ID your endpoint supports. For MeiGen: use model IDs from list_models (e.g. "gpt-image-2", "grok-image" = xAI Grok Imagine Quality, 1K/2K, supports image-to-image, "nanobanana-2", "seedream-4.5", "flux2-klein").'),
   size: z.string().optional()
     .describe('Image size for OpenAI-compatible providers: "1024x1024", "1536x1024", "auto". MeiGen/ComfyUI: use aspectRatio instead.'),
   aspectRatio: z.string().optional()

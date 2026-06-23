@@ -3,7 +3,7 @@
 </h1>
 
 <p align="center">
-  <strong>Open-source MCP server for AI image &amp; video generation — native to every major AI coding tool</strong><br><sub>9 leading models (GPT Image 2 · Nanobanana 2 · Seedream 5.0 · Midjourney V8.1 · Flux 2 Klein · Seedance 2.0 · Happyhorse 1.0 · Veo 3.1 · local ComfyUI) · 1,446 curated prompts · parallel sub-agent orchestration · standalone CLI mode. Works in Claude Code, Cursor, Codex, Windsurf, Roo Code, OpenClaw, Hermes Agent, and any MCP-compatible host.</sub>
+  <strong>Open-source MCP server for AI image &amp; video generation — native to every major AI coding tool</strong><br><sub>11 leading models (GPT Image 2 · Nanobanana 2 · Seedream 5.0 · Midjourney V8.1 · Flux 2 Klein · Grok Imagine · Seedance 2.0 · Happyhorse 1.0 · Veo 3.1 · Grok Video · local ComfyUI) · 1,446 curated prompts · parallel sub-agent orchestration · standalone CLI mode. Works in Claude Code, Cursor, Codex, Windsurf, Roo Code, OpenClaw, Hermes Agent, and any MCP-compatible host.</sub>
 </p>
 
 <p align="center">
@@ -99,7 +99,7 @@ An MCP server that turns any AI coding tool into a professional design assistant
 
 > This marketplace doesn't bundle MCP server config. After installing, add to your project's `.mcp.json`:
 > ```json
-> { "mcpServers": { "meigen": { "command": "npx", "args": ["-y", "meigen@1.3.2"] } } }
+> { "mcpServers": { "meigen": { "command": "npx", "args": ["-y", "meigen@1.3.3"] } } }
 > ```
 
 #### First-Time Setup
@@ -184,7 +184,7 @@ Add to your MCP config (e.g. `.mcp.json`, `claude_desktop_config.json`):
   "mcpServers": {
     "meigen": {
       "command": "npx",
-      "args": ["-y", "meigen@1.3.2"],
+      "args": ["-y", "meigen@1.3.3"],
       "env": {
         "MEIGEN_API_TOKEN": "meigen_sk_..."
       }
@@ -203,7 +203,7 @@ Add to your MCP config (e.g. `.mcp.json`, `claude_desktop_config.json`):
 mcp_servers:
   meigen:
     command: "npx"
-    args: ["-y", "meigen@1.3.2"]
+    args: ["-y", "meigen@1.3.3"]
     env:
       MEIGEN_API_TOKEN: "meigen_sk_..."
     timeout: 600          # generate_video can take 5–10 min — default 120s is not enough
@@ -227,7 +227,7 @@ mcp_servers:
 | `comfyui_workflow` | Yes | Manage ComfyUI workflow templates: list, view, import, modify, delete |
 | `manage_preferences` | Yes | Remember your preferred style, aspect ratio, model, and favorite prompts |
 | `generate_image` | Key | Generate an image — routes to the best available provider automatically. Local reference images are auto-compressed and uploaded. |
-| `generate_video` | Key | Generate a video via MeiGen platform — Seedance 2.0 (fast/pro), Happyhorse 1.0, or Veo 3.1. Supports text-to-video and first-frame image-to-video; local files are auto-uploaded. Saves MP4 to `~/Movies/meigen/`. |
+| `generate_video` | Key | Generate a video via MeiGen platform — Seedance 2.0 (mini/fast/pro), Happyhorse 1.0, Veo 3.1, or Grok Video 1.5 (image-to-video only). Supports text-to-video and first-frame image-to-video; local files are auto-uploaded. Saves MP4 to `~/Movies/meigen/`. |
 
 ### Slash Commands
 
@@ -308,6 +308,8 @@ Cloud API with multiple models: GPT Image 2.0, Nanobanana 2, Seedream 5.0, and m
 
 - `resolution`: e.g. `"1K"` / `"2K"` / `"4K"` — upgrade for posters, prints, wallpapers
 - `quality`: e.g. `"low"` / `"medium"` / `"high"` — use `"low"` for quick drafts and thumbnails
+
+**Seedance 2.0 video** now renders **native 4K — but only on the `pro` tier** (`mini`/`fast` cap at 480p/720p); pass `tier: "pro"` for 1080p/4K output.
 
 Each model exposes its own supported resolutions and quality tiers — run `list_models` to see what's available. For up-to-date pricing across all models, see [meigen.ai/model-comparison](https://www.meigen.ai/model-comparison).
 

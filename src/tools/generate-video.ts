@@ -107,17 +107,17 @@ async function saveVideoLocally(videoUrl: string): Promise<string | undefined> {
 
 export const generateVideoSchema = {
   prompt: z.string().trim().min(1, 'Prompt cannot be empty').describe('The video generation prompt. Describe motion, scene, and style — not just the still image.'),
-  model: z.string().min(1).describe('Video model ID. Use list_models to see available video models. Common (as of writing): "seedance-2-0" (multi-tier general purpose), "happyhorse-1.0" (cost-effective i2v/t2v), "veo-3.1" (Google Veo with two tiers, 4/6/8s, native audio).'),
+  model: z.string().min(1).describe('Video model ID. Use list_models to see available video models. Common (as of writing): "seedance-2-0" (multi-tier general purpose), "happyhorse-1.0" (cost-effective i2v/t2v), "veo-3.1" (Google Veo with two tiers, 4/6/8s, native audio), "grok-video" (xAI Grok Imagine 1.5 — IMAGE-TO-VIDEO ONLY: firstFrame REQUIRED, pure text-to-video is rejected; native audio; 4-15s; 480p/720p).'),
   tier: z.string().optional()
-    .describe('Quality tier — only for models that support tiers. seedance-2-0 and veo-3.1 currently accept "fast" (default, cheaper) or "pro" (higher fidelity). Tiers may be added by the platform — call list_models to see what each model exposes.'),
+    .describe('Quality tier — only for models that support tiers. seedance-2-0 accepts "mini" (default, cheapest; 480p/720p, no reference video), "fast" (480p/720p), or "pro" (highest fidelity; native 1080p and 4K); veo-3.1 accepts "fast" (default) or "pro". Tiers may be added by the platform — call list_models to see what each model exposes.'),
   duration: z.number().int().positive().optional()
     .describe('Video duration in seconds. seedance-2-0 / happyhorse-1.0 currently accept ~3–15s (any integer in range). veo-3.1 accepts exactly 4, 6, or 8 (default 4) — other values will be rejected. Defaults to the model\'s default duration. Call list_models for the current allowed values per model.'),
   resolution: z.string().optional()
-    .describe('Output resolution. Common: "480p" / "720p" / "1080p" (model-dependent). Use list_models to see what each model supports. Higher resolutions cost more credits per second.'),
+    .describe('Output resolution. Common: "480p" / "720p" / "1080p" / "4k" (model-dependent; e.g. Seedance Pro adds 1080p and 4k, while Fast/Mini are 480p/720p only). Use list_models to see what each model supports. Higher resolutions cost more credits per second.'),
   aspectRatio: z.string().optional()
     .describe('Aspect ratio: "16:9", "9:16", "1:1", "4:3", "3:4", "21:9", "auto", "adaptive" (model-dependent). Defaults to "auto" when omitted.'),
   firstFrame: z.string().optional()
-    .describe('Optional first-frame image to control where the video starts. Accepts public URL or local file path (auto-uploaded). Highly recommended for image-to-video; with no first frame the model does pure text-to-video.'),
+    .describe('First-frame image to control where the video starts. Accepts public URL or local file path (auto-uploaded). REQUIRED for grok-video (image-to-video only — backend rejects it without a firstFrame). For seedance/happyhorse/veo it is optional: with no first frame they do pure text-to-video.'),
   lastFrame: z.string().optional()
     .describe('Optional last-frame image to also control where the video ends. Used by seedance-2-0 and veo-3.1; happyhorse-1.0 ignores this field. Accepts public URL or local file path. Requires firstFrame to also be provided — passing lastFrame alone is rejected.'),
   referenceVideo: z.string().optional()
@@ -134,7 +134,7 @@ export const generateVideoSchema = {
 export function registerGenerateVideo(server: McpServer, apiClient: MeiGenApiClient, config: MeiGenConfig) {
   server.tool(
     'generate_video',
-    'Generate a video using AI via MeiGen platform. Supports text-to-video, image-to-video (first/last frame), and reference-video continuation (Seedance 2.0 only — pass `referenceVideo` URL + `referenceVideoDuration` together, and prompt must explicitly say "extend / continue"). Available models include Seedance 2.0 (fast/pro tiers, 4-15s), Happyhorse 1.0 (cost-effective, 3-15s), and Veo 3.1 (fast/pro tiers, 4/6/8s, native audio). Pricing varies — seedance/happyhorse are per-second, veo is per-generation by tier × duration. See https://www.meigen.ai/model-comparison for the current schedule. With a reference video (seedance only), billable seconds = max(reference_duration + duration, min_billable[duration]); total often higher than direct generation. Generation typically takes 1–5 minutes (veo at 4k can take up to ~8 min).',
+    'Generate a video using AI via MeiGen platform. Supports text-to-video, image-to-video (first/last frame), and reference-video continuation (Seedance 2.0 only — pass `referenceVideo` URL + `referenceVideoDuration` together, and prompt must explicitly say "extend / continue"). Available models include Seedance 2.0 (mini/fast/pro tiers, mini is the cheapest default, 4-15s), Happyhorse 1.0 (cost-effective, 3-15s), Veo 3.1 (fast/pro tiers, 4/6/8s, native audio), and Grok Video 1.5 (`grok-video`, xAI — IMAGE-TO-VIDEO ONLY, firstFrame required, native audio, 4-15s, 480p/720p). Pricing varies — seedance/happyhorse/grok are per-second, veo is per-generation by tier × duration. See https://www.meigen.ai/model-comparison for the current schedule. With a reference video (seedance only), billable seconds = max(reference_duration + duration, min_billable[duration]); total often higher than direct generation. Generation typically takes 1–5 minutes (veo at 4k can take up to ~8 min).',
     generateVideoSchema,
     { readOnlyHint: false, destructiveHint: true },
     async ({ prompt, model, tier, duration, resolution, aspectRatio, firstFrame, lastFrame, referenceVideo, referenceVideoDuration }, extra) => {
@@ -152,6 +152,12 @@ export function registerGenerateVideo(server: McpServer, apiClient: MeiGenApiCli
       let generationId: string | undefined
 
       try {
+        // grok-video is image-to-video only — firstFrame is mandatory (backend rejects without it).
+        // Guard client-side for a clearer error, matching the other model-aware checks below.
+        if (model === 'grok-video' && !firstFrame) {
+          throw new Error('grok-video is image-to-video only — firstFrame is required. For text-to-video use seedance-2-0 / happyhorse-1.0 / veo-3.1.')
+        }
+
         const refList: string[] = []
         if (firstFrame) {
           refList.push(await resolveFrameImage(firstFrame, config, (msg) => notify(extra, msg), 'first frame'))
