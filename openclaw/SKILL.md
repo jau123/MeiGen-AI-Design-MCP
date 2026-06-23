@@ -1,7 +1,7 @@
 ---
-name: "AI Image Generator & Editor — GPT Image 2, Nanobanana, ComfyUI"
+name: "AI Image & Video Generator — GPT Image 2, Seedance, ComfyUI"
 description: Generate images and videos from text with multi-provider routing — supports GPT Image 2.0 (near-perfect text rendering), Nanobanana 2, Seedream 5.0, Midjourney V8.1 (unified photorealistic + anime), Flux 2 Klein (cheap drafts), Seedance 2.0 / Happyhorse 1.0 / Veo 3.1 video, and local ComfyUI workflows. Includes 1,446 curated prompts and style-aware prompt enhancement. Use when users want to create images/videos, design assets, animate photos, enhance prompts, or manage AI art workflows. NOT for: generic chat, code generation, document writing, video editing of existing footage, audio/TTS, or any task unrelated to AI image/video creation.
-version: 1.0.35
+version: 1.0.36
 homepage: https://github.com/jau123/MeiGen-AI-Design-MCP
 metadata: {"clawdbot":{"emoji":"🎨","requires":{"bins":["mcporter","npx","node"]}}}
 ---
