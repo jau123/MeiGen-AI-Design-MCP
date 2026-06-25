@@ -109,7 +109,7 @@ export const generateVideoSchema = {
   prompt: z.string().trim().min(1, 'Prompt cannot be empty').describe('The video generation prompt. Describe motion, scene, and style — not just the still image.'),
   model: z.string().min(1).describe('Video model ID. Use list_models to see available video models. Common (as of writing): "seedance-2-0" (multi-tier general purpose), "happyhorse-1.0" (cost-effective i2v/t2v), "veo-3.1" (Google Veo with two tiers, 4/6/8s, native audio), "grok-video" (xAI Grok Imagine 1.5 — IMAGE-TO-VIDEO ONLY: firstFrame REQUIRED, pure text-to-video is rejected; native audio; 4-15s; 480p/720p).'),
   tier: z.string().optional()
-    .describe('Quality tier — only for models that support tiers. seedance-2-0 accepts "mini" (default, cheapest; 480p/720p, no reference video), "fast" (480p/720p), or "pro" (highest fidelity; native 1080p and 4K); veo-3.1 accepts "fast" (default) or "pro". Tiers may be added by the platform — call list_models to see what each model exposes.'),
+    .describe('Quality tier — only for models that support tiers. seedance-2-0 accepts "mini" (default, cheapest; 480p/720p, supports reference video), "fast" (480p/720p), or "pro" (highest fidelity; native 1080p and 4K); veo-3.1 accepts "fast" (default) or "pro". Tiers may be added by the platform — call list_models to see what each model exposes.'),
   duration: z.number().int().positive().optional()
     .describe('Video duration in seconds. seedance-2-0 / happyhorse-1.0 currently accept ~3–15s (any integer in range). veo-3.1 accepts exactly 4, 6, or 8 (default 4) — other values will be rejected. Defaults to the model\'s default duration. Call list_models for the current allowed values per model.'),
   resolution: z.string().optional()
