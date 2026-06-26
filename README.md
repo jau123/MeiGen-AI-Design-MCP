@@ -3,7 +3,7 @@
 </h1>
 
 <p align="center">
-  <strong>Open-source MCP server for AI image &amp; video generation — native to every major AI coding tool</strong><br><sub>11 leading models (GPT Image 2 · Nanobanana 2 · Seedream 5.0 · Midjourney V8.1 · Flux 2 Klein · Grok Imagine · Seedance 2.0 · Happyhorse 1.0 · Veo 3.1 · Grok Video · local ComfyUI) · 1,446 curated prompts · parallel sub-agent orchestration · standalone CLI mode. Works in Claude Code, Cursor, Codex, Windsurf, Roo Code, OpenClaw, Hermes Agent, and any MCP-compatible host.</sub>
+  <strong>Open-source MCP server for AI image &amp; video generation — native to every major AI coding tool</strong><br><sub>11 leading models (GPT Image 2 · Nanobanana 2 · Seedream 5.0 · Midjourney V8.1 · Flux 2 Klein · Grok Imagine · Seedance 2.0 · Happyhorse 1.1 · Veo 3.1 · Grok Video · local ComfyUI) · 1,446 curated prompts · parallel sub-agent orchestration · standalone CLI mode. Works in Claude Code, Cursor, Codex, Windsurf, Roo Code, OpenClaw, Hermes Agent, and any MCP-compatible host.</sub>
 </p>
 
 <p align="center">
@@ -227,7 +227,7 @@ mcp_servers:
 | `comfyui_workflow` | Yes | Manage ComfyUI workflow templates: list, view, import, modify, delete |
 | `manage_preferences` | Yes | Remember your preferred style, aspect ratio, model, and favorite prompts |
 | `generate_image` | Key | Generate an image — routes to the best available provider automatically. Local reference images are auto-compressed and uploaded. |
-| `generate_video` | Key | Generate a video via MeiGen platform — Seedance 2.0 (mini/fast/pro), Happyhorse 1.0, Veo 3.1, or Grok Video 1.5 (image-to-video only). Supports text-to-video and first-frame image-to-video; local files are auto-uploaded. Saves MP4 to `~/Movies/meigen/`. |
+| `generate_video` | Key | Generate a video via MeiGen platform — Seedance 2.0 (mini/fast/pro), Happyhorse 1.1, Veo 3.1, or Grok Video 1.5 (image-to-video only). Supports text-to-video and first-frame image-to-video; local files are auto-uploaded. Saves MP4 to `~/Movies/meigen/`. |
 
 ### Slash Commands
 
