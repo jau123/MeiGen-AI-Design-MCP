@@ -15,6 +15,7 @@ import type { MeiGenConfig, ProviderType } from '../config.js'
 import { getDefaultProvider, getAvailableProviders } from '../config.js'
 import type { MeiGenApiClient } from '../lib/meigen-api.js'
 import { OpenAIProvider } from '../lib/providers/openai.js'
+import { AtlasCloudProvider } from '../lib/providers/atlascloud.js'
 import {
   ComfyUIProvider,
   loadWorkflow,
@@ -110,7 +111,7 @@ export const generateImageSchema = {
     .describe('Image quality. MeiGen gpt-image-2: "low" / "medium" / "high". OpenAI-compatible providers also accept "high".'),
   referenceImages: z.array(z.string()).optional()
     .describe('Image references for style/content guidance. Accepts both public URLs (http/https) and local file paths. Local files are automatically compressed and uploaded when needed. For ComfyUI: local files are passed directly to the workflow (requires LoadImage node). Sources: gallery URLs from search_gallery/get_inspiration, URLs from previous generate_image results, or local file paths.'),
-  provider: z.enum(['openai', 'meigen', 'comfyui']).optional()
+  provider: z.enum(['openai', 'meigen', 'comfyui', 'atlascloud']).optional()
     .describe('Which provider to use. Auto-detected from configuration if not specified.'),
   workflow: z.string().optional()
     .describe('ComfyUI workflow name to use (from comfyui_workflow list). Uses default workflow if not specified.'),
@@ -169,6 +170,14 @@ export function registerGenerateImage(server: McpServer, apiClient: MeiGenApiCli
               sharedApiSemaphore.release()
             }
           }
+          case 'atlascloud': {
+            await sharedApiSemaphore.acquire()
+            try {
+              return await generateWithAtlasCloud(config, prompt, model, size, aspectRatio, quality, resolvedRefs)
+            } finally {
+              sharedApiSemaphore.release()
+            }
+          }
           case 'meigen': {
             await sharedApiSemaphore.acquire()
             try {
@@ -209,6 +218,33 @@ export function registerGenerateImage(server: McpServer, apiClient: MeiGenApiCli
 // ============================================================
 // Provider-specific generation functions
 // ============================================================
+
+async function generateWithAtlasCloud(
+  config: MeiGenConfig,
+  prompt: string,
+  model?: string,
+  size?: string,
+  aspectRatio?: string,
+  quality?: string,
+  referenceImages?: string[],
+) {
+  const provider = new AtlasCloudProvider(config.atlascloudApiKey!, config.atlascloudBaseUrl, config.atlascloudModel)
+  const result = await provider.generate({ prompt, model, size, aspectRatio, quality, referenceImages })
+
+  const savedPath = saveImageLocally(result.imageBase64, result.mimeType)
+  const actualModel = model || config.atlascloudModel
+
+  addRecentGeneration({ prompt, provider: 'atlascloud', model: actualModel, aspectRatio })
+
+  const lines = [`Image generated successfully.`]
+  lines.push(`- Provider: Atlas Cloud (${actualModel})`)
+  if (referenceImages?.length) lines.push(`- Reference images: ${referenceImages.length} used`)
+  if (savedPath) lines.push(`- Saved to: ${savedPath}`)
+
+  return {
+    content: [{ type: 'text' as const, text: lines.join('\n') }],
+  }
+}
 
 async function generateWithOpenAI(
   config: MeiGenConfig,
@@ -372,4 +408,3 @@ async function generateWithComfyUI(
     content: [{ type: 'text' as const, text: lines.join('\n') }],
   }
 }
-

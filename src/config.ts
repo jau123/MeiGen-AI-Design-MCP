@@ -16,6 +16,11 @@ export interface MeiGenConfig {
   openaiBaseUrl: string
   openaiModel: string
 
+  // Atlas Cloud Media API mode
+  atlascloudApiKey?: string
+  atlascloudBaseUrl: string
+  atlascloudModel: string
+
   // MeiGen API base URL
   meigenBaseUrl: string
 
@@ -27,13 +32,16 @@ export interface MeiGenConfig {
   comfyuiDefaultWorkflow?: string
 }
 
-export type ProviderType = 'openai' | 'meigen' | 'comfyui'
+export type ProviderType = 'openai' | 'meigen' | 'comfyui' | 'atlascloud'
 
 interface ConfigFile {
   meigenApiToken?: string
   openaiApiKey?: string
   openaiBaseUrl?: string
   openaiModel?: string
+  atlascloudApiKey?: string
+  atlascloudBaseUrl?: string
+  atlascloudModel?: string
   uploadGatewayUrl?: string
   comfyuiUrl?: string
   comfyuiDefaultWorkflow?: string
@@ -69,6 +77,10 @@ export function loadConfig(): MeiGenConfig {
     openaiBaseUrl: process.env.OPENAI_BASE_URL || file.openaiBaseUrl || 'https://api.openai.com',
     openaiModel: process.env.OPENAI_MODEL || file.openaiModel || 'gpt-image-2',
 
+    atlascloudApiKey: process.env.ATLASCLOUD_API_KEY || file.atlascloudApiKey,
+    atlascloudBaseUrl: process.env.ATLASCLOUD_BASE_URL || file.atlascloudBaseUrl || 'https://api.atlascloud.ai/api/v1',
+    atlascloudModel: process.env.ATLASCLOUD_MODEL || file.atlascloudModel || 'bytedance/seedream-v5.0-lite',
+
     meigenBaseUrl: process.env.MEIGEN_BASE_URL || 'https://www.meigen.ai',
 
     uploadGatewayUrl: process.env.UPLOAD_GATEWAY_URL || file.uploadGatewayUrl || 'https://gen.meigen.ai',
@@ -86,6 +98,7 @@ export function getAvailableProviders(config: MeiGenConfig): ProviderType[] {
   const providers: ProviderType[] = []
   if (config.meigenApiToken) providers.push('meigen')
   if (hasComfyuiWorkflows()) providers.push('comfyui')
+  if (config.atlascloudApiKey) providers.push('atlascloud')
   if (config.openaiApiKey) providers.push('openai')
   return providers
 }
@@ -94,6 +107,7 @@ export function getAvailableProviders(config: MeiGenConfig): ProviderType[] {
 export function getDefaultProvider(config: MeiGenConfig): ProviderType | null {
   if (config.meigenApiToken) return 'meigen'
   if (hasComfyuiWorkflows()) return 'comfyui'
+  if (config.atlascloudApiKey) return 'atlascloud'
   if (config.openaiApiKey) return 'openai'
   return null
 }

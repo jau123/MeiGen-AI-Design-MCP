@@ -193,10 +193,19 @@ export function registerListModels(server: McpServer, apiClient: MeiGenApiClient
         ].join('\n'))
       }
 
+      if (providers.includes('atlascloud')) {
+        sections.push([
+          '## Atlas Cloud Media API',
+          `   Default model: ${config.atlascloudModel}`,
+          `   Base URL: ${config.atlascloudBaseUrl}`,
+          '   Use provider="atlascloud" in generate_image. You can pass any Atlas Cloud image model ID via the model parameter.',
+        ].join('\n'))
+      }
+
       // Configuration status
       const configStatus = providers.length > 0
         ? `\nConfigured providers: ${providers.join(', ')}`
-        : '\nNo image generation providers configured. On Claude Code, run /meigen:setup. On other hosts, set MEIGEN_API_TOKEN / OPENAI_API_KEY in your MCP config env block, or import a ComfyUI workflow.'
+        : '\nNo image generation providers configured. On Claude Code, run /meigen:setup. On other hosts, set MEIGEN_API_TOKEN / ATLASCLOUD_API_KEY / OPENAI_API_KEY in your MCP config env block, or import a ComfyUI workflow.'
 
       return {
         content: [{
