@@ -9,6 +9,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 
 import type { MeiGenApiClient } from '../lib/meigen-api.js'
+import { releaseByGenerationId } from '../lib/attempt-store.js'
 
 export function registerCheckGeneration(server: McpServer, apiClient: MeiGenApiClient) {
   server.tool(
@@ -37,6 +38,7 @@ export function registerCheckGeneration(server: McpServer, apiClient: MeiGenApiC
           }
         }
         if (status.status === 'failed') {
+          releaseByGenerationId(generationId)
           return {
             content: [{
               type: 'text' as const,
@@ -45,6 +47,7 @@ export function registerCheckGeneration(server: McpServer, apiClient: MeiGenApiC
             isError: true,
           }
         }
+        releaseByGenerationId(generationId) // completed:挂起尝试了结,同参数下次是新单
         const urls = status.mediaType === 'video'
           ? [status.videoUrl].filter(Boolean)
           : (status.imageUrls ?? [status.imageUrl]).filter(Boolean)

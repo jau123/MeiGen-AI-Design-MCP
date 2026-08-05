@@ -125,16 +125,16 @@ export const generateVideoSchema = {
       'Optional reference video URL for Seedance 2.0 "video continuation". Must be a MeiGen video URL on images.meigen.ai (a previous generation result `videoUrl`, or a clip uploaded via meigen.ai) — other domains are rejected by the server because billing metadata must be verifiable; local paths are not supported. Only seedance-2-0 accepts this — passing it with other models will fail. ' +
       'IMPORTANT — prompt requirement: to make the new clip semantically continue the reference, the `prompt` MUST explicitly say "extend" / "continue" (e.g. prefix with "Extend this video with the following plot:"). Without that, the model treats the video as visual reference only and the new clip may drift from a true continuation. ' +
       'Output behavior: the output is ONLY your `duration` seconds (4-15s) of new content — the reference video is NOT concatenated into the output. To get a single "original + new" clip the user must stitch them locally. ' +
-      'Billing: credits are charged at the With-reference-video rate, with `billable_seconds = max(reference_duration + duration, min_billable[duration])`. Total cost is often higher than direct generation of the same output length. Always pass `referenceVideoDuration` alongside this field — omitting it causes underbilling and broken continuation behavior.'
+      'Billing: credits are charged at the With-reference-video rate, with `billable_seconds = max(reference_duration + duration, min_billable[duration])`. Total cost is often higher than direct generation of the same output length. Always pass `referenceVideoDuration` if you know it (informational only — the server probes the authoritative duration from the video file itself for billing and clipping).'
     ),
   referenceVideoDuration: z.number().int().positive().optional()
-    .describe('Duration of the reference video in seconds (typically 2–15 — backend validates the current allowed range). REQUIRED whenever `referenceVideo` is set; if omitted the backend treats it as 0, leading to undercharged credits and misconfigured generation. Pass the actual duration of the clip at `referenceVideo`.'),
+    .describe('Optional: duration of the reference video in seconds. The server probes the authoritative duration from the MP4 itself (billing and clipping use the probed value); this field is informational and never affects billing.'),
 }
 
 export function registerGenerateVideo(server: McpServer, apiClient: MeiGenApiClient, config: MeiGenConfig) {
   server.tool(
     'generate_video',
-    'Generate a video using AI via MeiGen platform. Supports text-to-video, image-to-video (first/last frame), and reference-video continuation (Seedance 2.0 only — pass `referenceVideo` URL + `referenceVideoDuration` together, and prompt must explicitly say "extend / continue"). Available models include Seedance 2.0 (mini/fast/pro tiers, mini is the cheapest default, 4-15s), Veo 3.1 (fast/pro tiers, 4/6/8s, native audio), Grok Video 1.5 (`grok-video`, xAI — IMAGE-TO-VIDEO ONLY, firstFrame required, native audio, 4-15s, 480p/720p), and Agnes Video 2.0 (`agnes-video-2.0`, budget 480p, fixed price). Model lineup and pricing are served by list_models / https://www.meigen.ai/model-comparison — treat those as the authority, not this text. With a reference video (seedance only), billable seconds = max(reference_duration + duration, min_billable[duration]); total often higher than direct generation. Generation time varies by model and tier — the tool polls until the server reports a terminal state.',
+    'Generate a video using AI via MeiGen platform. Supports text-to-video, image-to-video (first/last frame), and reference-video continuation (Seedance 2.0 only — pass `referenceVideo` URL (the server probes the clip duration itself), and prompt must explicitly say "extend / continue"). Available models include Seedance 2.0 (mini/fast/pro tiers, mini is the cheapest default, 4-15s), Veo 3.1 (fast/pro tiers, 4/6/8s, native audio), Grok Video 1.5 (`grok-video`, xAI — IMAGE-TO-VIDEO ONLY, firstFrame required, native audio, 4-15s, 480p/720p), and Agnes Video 2.0 (`agnes-video-2.0`, budget 480p, fixed price). Model lineup and pricing are served by list_models / https://www.meigen.ai/model-comparison — treat those as the authority, not this text. With a reference video (seedance only), billable seconds = max(reference_duration + duration, min_billable[duration]); total often higher than direct generation. Generation time varies by model and tier — the tool polls until the server reports a terminal state.',
     generateVideoSchema,
     { readOnlyHint: false, destructiveHint: true },
     async ({ prompt, model, tier, duration, resolution, aspectRatio, firstFrame, lastFrame, referenceVideo, referenceVideoDuration }, extra) => {
@@ -181,9 +181,8 @@ export function registerGenerateVideo(server: McpServer, apiClient: MeiGenApiCli
           if (unsafe) {
             throw new Error(`referenceVideo URL rejected: ${unsafe}. URL: ${referenceVideo}`)
           }
-          if (typeof referenceVideoDuration !== 'number') {
-            throw new Error('referenceVideoDuration is required when referenceVideo is set (pass the clip duration in seconds, 2-15).')
-          }
+          // referenceVideoDuration 不再必填(十二审 P2):服务端从 MP4 权威探测计费/裁剪时长,
+          // 客户端值仅作参考;不传不再少扣
         } else if (typeof referenceVideoDuration === 'number') {
           throw new Error('referenceVideoDuration was passed without referenceVideo — drop it, or pass a referenceVideo URL.')
         }
@@ -225,10 +224,11 @@ export function registerGenerateVideo(server: McpServer, apiClient: MeiGenApiCli
             apiClient.suspendAttemptFor(genResponse._attempt, generationId)
             throw pollError
           }
-          // 拿到终态:确认释放幂等尝试(「再来一张」应是新单)
-          apiClient.ackAttempt(genResponse._attempt)
+
 
           if (status.status === 'failed') {
+            // 明确失败(服务端已退款):尝试终结
+            apiClient.ackAttempt(genResponse._attempt)
             throw new Error(status.error || 'Video generation failed')
           }
 
@@ -236,6 +236,7 @@ export function registerGenerateVideo(server: McpServer, apiClient: MeiGenApiCli
           // 图片模型误用:任务已完成已扣费,返回**成功**(图片 URL + ID),绝不抛错 ——
           // 抛错并提示改用 generate_image 会诱导再次提交双扣(十审 P1,对称 generate_image 的同款修复)
           if (status.mediaType && status.mediaType !== 'video') {
+            apiClient.ackAttempt(genResponse._attempt)
             const imgUrls = (status.imageUrls?.length ? status.imageUrls : [status.imageUrl]).filter(Boolean)
             return {
               content: [{
@@ -254,8 +255,12 @@ export function registerGenerateVideo(server: McpServer, apiClient: MeiGenApiCli
 
           const videoUrl = status.videoUrl
           if (!videoUrl) {
+            // URL 缺失:挂起(重试续查同任务)+ 带 ID 抛(十二审 P1)
+            apiClient.suspendAttemptFor(genResponse._attempt, generationId)
             throw new Error(`Generation ${generationId} completed but the response is missing the video URL — check https://www.meigen.ai gallery or use check_generation; do NOT re-submit (it would charge again).`)
           }
+          // URL 已确认:尝试终结(十二审 P1:ack 必须在交付确认后)
+          apiClient.ackAttempt(genResponse._attempt)
 
           await notify(extra, 'Downloading video...')
           const savedPath = await saveVideoLocally(videoUrl)

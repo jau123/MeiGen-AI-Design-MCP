@@ -98,6 +98,16 @@ export function releaseAttempt(sig: string, key: string): void {
   else attemptsBySig.set(sig, next)
 }
 
+/** 按 generationId 释放挂起尝试(check_generation 查到终态时调:该任务已了结,
+ * 同参数下一次生成应是新单,不再返回旧任务)。 */
+export function releaseByGenerationId(generationId: string): void {
+  for (const [sig, list] of attemptsBySig) {
+    const next = list.filter((a) => a.generationId !== generationId)
+    if (next.length === 0) attemptsBySig.delete(sig)
+    else if (next.length !== list.length) attemptsBySig.set(sig, next)
+  }
+}
+
 /** 测试用:清空存储。 */
 export function __resetAttempts(): void {
   attemptsBySig.clear()

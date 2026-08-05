@@ -283,16 +283,18 @@ async function generateWithMeiGen(
         'check https://www.meigen.ai or use check_generation before retrying. If it ultimately fails, credits auto-refund.'
     )
   }
-  // 拿到终态:确认释放幂等尝试(成功交付或明确失败都算终结,「再来一张」应是新单)
-  apiClient.ackAttempt(genResponse._attempt)
+
 
   if (status.status === 'failed') {
+    // 明确失败(服务端已退款):尝试终结,「再来一张」应是新单
+    apiClient.ackAttempt(genResponse._attempt)
     throw new Error(status.error || 'Generation failed')
   }
 
   // 视频模型误用:任务已完成已扣费,返回**成功**(视频 URL + ID),绝不抛错 ——
   // 抛错并提示"改用 generate_video"会诱导再次提交双扣(九审 P1)
   if (status.mediaType === 'video' && status.videoUrl) {
+    apiClient.ackAttempt(genResponse._attempt)
     return {
       content: [{
         type: 'text' as const,
@@ -310,9 +312,13 @@ async function generateWithMeiGen(
   const allImageUrls = status.imageUrls?.length ? status.imageUrls : (status.imageUrl ? [status.imageUrl] : [])
 
   if (allImageUrls.length === 0) {
-    // 任务已完成且已扣点,URL 缺失是响应异常:必须带 ID 抛出,裸错会诱导重试双扣(七审 P1)
+    // 任务已完成且已扣点,URL 缺失是响应异常:挂起尝试(重试续查同任务而非新单,
+    // 十二审 P1)并带 ID 抛出,裸错会诱导重试双扣
+    apiClient.suspendAttemptFor(genResponse._attempt, genResponse.generationId!)
     throw new Error(`Generation ${genResponse.generationId} completed but the response is missing the image URL — check https://www.meigen.ai gallery or use check_generation; do NOT re-submit (it would charge again).`)
   }
+  // URL 已确认交付:尝试终结,「再来一张」应是新单(十二审 P1:ack 必须在交付确认后)
+  apiClient.ackAttempt(genResponse._attempt)
 
   // Download first image for local save。下载失败**降级为成功返回远程 URL**:
   // 任务已完成已扣点,本地保存只是增值步骤,失败不能变成"生成失败"诱导重试双扣(七审 P1)

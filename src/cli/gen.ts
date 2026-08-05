@@ -252,20 +252,30 @@ export async function gen(argv: string[]): Promise<void> {
 
   client.ackAttempt(submitResponse._attempt)
   if (status.status === 'failed') {
+    // 明确失败(服务端已退款):尝试终结
+    client.ackAttempt(submitResponse._attempt)
     console.error(`Generation failed: ${status.error || 'unknown error'}`)
     process.exit(1)
   }
 
   if (status.mediaType === 'video') {
-    console.error('Error: this model produced video — use the MCP `generate_video` tool, not the `gen` CLI.')
-    process.exit(1)
+    // 视频模型误用:任务已扣费,交付 URL+ID 而非报错退出(十二审 P2)
+    client.ackAttempt(submitResponse._attempt)
+    console.log('This model produced a VIDEO (charged once — do NOT re-run):')
+    if (status.videoUrl) console.log(`Video URL: ${status.videoUrl}`)
+    console.log(`Generation ID: ${submitResponse.generationId}`)
+    process.exit(0)
   }
 
   const allImageUrls = status.imageUrls?.length ? status.imageUrls : (status.imageUrl ? [status.imageUrl] : [])
   if (allImageUrls.length === 0) {
-    console.error('Error: no image URL in completed generation.')
+    // URL 缺失:挂起(重跑续查同任务)+ 带 ID 报错(十二审 P1)
+    client.suspendAttemptFor(submitResponse._attempt, submitResponse.generationId!)
+    console.error(`Error: generation ${submitResponse.generationId} completed but no image URL — check ${config.meigenBaseUrl} gallery; do NOT re-run (it would charge again).`)
     process.exit(1)
   }
+  // URL 已确认:尝试终结(ack 必须在交付确认后)
+  client.ackAttempt(submitResponse._attempt)
 
   // Download + save first image locally
   let savedPath: string | undefined
