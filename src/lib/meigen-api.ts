@@ -64,6 +64,13 @@ export interface MeiGenGenerationResponse {
   error?: string
 }
 
+/**
+ * Local anti-hang safety valve for generation polling (NOT a business timeout — the
+ * server's `pollHintSeconds` drives when to give up; see waitForGeneration). 45 min
+ * comfortably covers the server's 40-min observation window + clock skew.
+ */
+export const POLL_SAFETY_VALVE_MS = 45 * 60_000
+
 export interface MeiGenGenerationStatus {
   // Backend `status/[id]/route.ts:53` maps DB 'pending' → 'processing' before responding,
   // so callers never observe 'pending' over the wire.
@@ -73,6 +80,12 @@ export interface MeiGenGenerationStatus {
   videoUrl?: string | null
   mediaType?: 'image' | 'video'
   error: string | null
+  /** Server-authoritative poll hint (2026-08-05): remaining seconds the server-side
+   * pipeline (provider budget + orphan-refund fallback) can still resolve this job.
+   * Keep polling while > 0. Absent on older servers — fall back to local safety valve. */
+  pollHintSeconds?: number | null
+  /** p90 duration estimate for this model+resolution (production percentiles). */
+  expectedWaitSeconds?: number | null
 }
 
 export class MeiGenApiClient {
@@ -247,21 +260,40 @@ export class MeiGenApiClient {
     return await res.json() as MeiGenGenerationStatus
   }
 
-  /** Poll generation status until completed or timed out */
+  /**
+   * Poll generation status until the server reports a terminal state.
+   *
+   * Timeout semantics (2026-08-05 redesign): the server is the authority on how long a
+   * job can still resolve — it sends `pollHintSeconds` (remaining observation window
+   * covering its provider budget + refund fallback). We keep polling while the server
+   * says the job is alive. `safetyValveMs` is a pure anti-hang guard (NOT a business
+   * timeout): it only fires if the server signal is absent (older backend) or the
+   * process would otherwise wait unreasonably long. Future backend budget changes
+   * therefore need no MCP release.
+   */
   async waitForGeneration(
     generationId: string,
-    timeoutMs = 300_000,
+    safetyValveMs = POLL_SAFETY_VALVE_MS,
     onProgress?: (elapsedMs: number) => Promise<void>,
   ): Promise<MeiGenGenerationStatus> {
     const startTime = Date.now()
     const pollInterval = 3_000
     let lastProgress = 0
 
-    while (Date.now() - startTime < timeoutMs) {
+    while (Date.now() - startTime < safetyValveMs) {
       const status = await this.getGenerationStatus(generationId)
 
       if (status.status === 'completed' || status.status === 'failed') {
         return status
+      }
+
+      // Server-authoritative stop: observation window exhausted (orphan refund has
+      // landed or is imminent) — no point waiting further.
+      if (typeof status.pollHintSeconds === 'number' && status.pollHintSeconds <= 0) {
+        throw new Error(
+          `Generation still processing after server observation window (job ${generationId}); ` +
+            'it may still complete — check your gallery, credits auto-refund on failure.'
+        )
       }
 
       const elapsed = Date.now() - startTime
@@ -273,6 +305,6 @@ export class MeiGenApiClient {
       await new Promise(resolve => setTimeout(resolve, pollInterval))
     }
 
-    throw new Error(`Generation timed out after ${timeoutMs / 1000}s`)
+    throw new Error(`Generation timed out after ${Math.round((Date.now() - startTime) / 1000)}s (local safety valve)`)
   }
 }

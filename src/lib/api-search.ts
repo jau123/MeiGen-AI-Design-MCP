@@ -27,15 +27,25 @@ interface ApiSearchResponse {
 }
 
 /**
- * Search posts via website API (semantic + keyword hybrid search)
- * @returns results array, or null if API call fails (caller should fallback to local)
+ * Search outcome (2026-08-05): rate-limiting is now surfaced instead of silently
+ * falling back to the bundled snapshot — the server added per-IP anti-scrape limits
+ * (429), and masking them behind stale local data misleads users.
+ * - ok: server results
+ * - rate-limited: tell the user to retry shortly; do NOT silently degrade
+ * - unavailable: network failure / server error → caller may fall back to local
  */
+export type ApiSearchOutcome =
+  | { kind: 'ok'; results: ApiSearchResult[] }
+  | { kind: 'rate-limited' }
+  | { kind: 'unavailable' }
+
+/** Search posts via website API (semantic vector + keyword hybrid search). */
 export async function apiSearchPosts(
   baseUrl: string,
   query: string,
   limit: number,
   offset: number,
-): Promise<ApiSearchResult[] | null> {
+): Promise<ApiSearchOutcome> {
   try {
     const params = new URLSearchParams({
       q: query,
@@ -51,13 +61,14 @@ export async function apiSearchPosts(
     const res = await fetch(url, { signal: controller.signal })
     clearTimeout(timeout)
 
-    if (!res.ok) return null
+    if (res.status === 429) return { kind: 'rate-limited' }
+    if (!res.ok) return { kind: 'unavailable' }
 
     const json = await res.json() as ApiSearchResponse
-    if (!json.success || !json.data) return null
+    if (!json.success || !json.data) return { kind: 'unavailable' }
 
-    return json.data
+    return { kind: 'ok', results: json.data }
   } catch {
-    return null
+    return { kind: 'unavailable' }
   }
 }

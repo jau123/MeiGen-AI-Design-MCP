@@ -48,9 +48,18 @@ export function registerSearchGallery(server: McpServer, config: MeiGenConfig) {
 
       // Has query and no category filter → try semantic search via API
       if (query && query.trim() && !category) {
-        const apiResults = await apiSearchPosts(config.meigenBaseUrl, query, limit, offset)
-        if (apiResults && apiResults.length > 0) {
-          const text = `Found ${apiResults.length} results for "${query}" (semantic search):\n\n${formatApiResults(apiResults)}\n\nShow the preview images above to the user so they can visually browse. Use get_inspiration(imageId) to get the full prompt and all images for any entry the user likes.`
+        const outcome = await apiSearchPosts(config.meigenBaseUrl, query, limit, offset)
+        if (outcome.kind === 'rate-limited') {
+          // 明确告知而非静默降级到打包快照:限流是短时态,过时数据更误导
+          return {
+            content: [{
+              type: 'text' as const,
+              text: 'Search is rate-limited right now (too many requests from this network). Please retry in about a minute — results will be fresher than the bundled offline library.',
+            }],
+          }
+        }
+        if (outcome.kind === 'ok' && outcome.results.length > 0) {
+          const text = `Found ${outcome.results.length} results for "${query}" (semantic search):\n\n${formatApiResults(outcome.results)}\n\nShow the preview images above to the user so they can visually browse. Use get_inspiration(imageId) to get the full prompt and all images for any entry the user likes.`
           return {
             content: [{
               type: 'text' as const,
@@ -58,7 +67,7 @@ export function registerSearchGallery(server: McpServer, config: MeiGenConfig) {
             }],
           }
         }
-        // API failed or no results — fall through to local search
+        // API unavailable or no results — fall through to local (bundled) search
       }
 
       // Local search (keyword-based): with category filter, or as API fallback

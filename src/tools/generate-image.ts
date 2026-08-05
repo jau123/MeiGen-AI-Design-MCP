@@ -266,7 +266,8 @@ async function generateWithMeiGen(
   // 2. Poll until completed (with progress notifications)
   const status = await apiClient.waitForGeneration(
     genResponse.generationId,
-    300_000,
+    undefined, // 服务端 pollHintSeconds 驱动;本地仅安全阀(POLL_SAFETY_VALVE_MS)
+
     async (elapsedMs) => {
       await notify(extra, `Still generating... (${Math.round(elapsedMs / 1000)}s elapsed)`)
     },

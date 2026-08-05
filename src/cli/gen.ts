@@ -216,12 +216,13 @@ export async function gen(argv: string[]): Promise<void> {
   }
 
   // Block until terminal status
-  if (!args.json) process.stderr.write(`Waiting for result (up to 5 min)...\n`)
+  if (!args.json) process.stderr.write(`Waiting for result...\n`)
   let status
   try {
     status = await client.waitForGeneration(
       submitResponse.generationId,
-      300_000,
+      undefined, // 服务端 pollHintSeconds 驱动;本地仅安全阀(POLL_SAFETY_VALVE_MS)
+
       async (elapsedMs) => {
         if (!args.json) {
           process.stderr.write(`  still working... (${Math.round(elapsedMs / 1000)}s)\n`)

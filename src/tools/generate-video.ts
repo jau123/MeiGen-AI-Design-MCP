@@ -107,19 +107,19 @@ async function saveVideoLocally(videoUrl: string): Promise<string | undefined> {
 
 export const generateVideoSchema = {
   prompt: z.string().trim().min(1, 'Prompt cannot be empty').describe('The video generation prompt. Describe motion, scene, and style — not just the still image.'),
-  model: z.string().min(1).describe('Video model ID. Use list_models to see available video models. Common (as of writing): "seedance-2-0" (multi-tier general purpose), "happyhorse-1.1" (cost-effective i2v/t2v), "veo-3.1" (Google Veo with two tiers, 4/6/8s, native audio), "grok-video" (xAI Grok Imagine 1.5 — IMAGE-TO-VIDEO ONLY: firstFrame REQUIRED, pure text-to-video is rejected; native audio; 4-15s; 480p/720p).'),
+  model: z.string().min(1).describe('Video model ID. Use list_models to see available video models. Common (as of writing): "seedance-2-0" (multi-tier general purpose), "veo-3.1" (Google Veo with two tiers, 4/6/8s, native audio), "grok-video" (xAI Grok Imagine 1.5 — IMAGE-TO-VIDEO ONLY: firstFrame REQUIRED, pure text-to-video is rejected; native audio; 4-15s; 480p/720p), "agnes-video-2.0" (budget-friendly 480p, fixed 10 credits). list_models is the authority — model lineup changes without MCP releases.'),
   tier: z.string().optional()
     .describe('Quality tier — only for models that support tiers. seedance-2-0 accepts "mini" (default, cheapest; 480p/720p, supports reference video), "fast" (480p/720p), or "pro" (highest fidelity; native 1080p and 4K); veo-3.1 accepts "fast" (default) or "pro". Tiers may be added by the platform — call list_models to see what each model exposes.'),
   duration: z.number().int().positive().optional()
-    .describe('Video duration in seconds. seedance-2-0 / happyhorse-1.1 currently accept ~3–15s (any integer in range). veo-3.1 accepts exactly 4, 6, or 8 (default 4) — other values will be rejected. Defaults to the model\'s default duration. Call list_models for the current allowed values per model.'),
+    .describe('Video duration in seconds. seedance-2-0 accepts 4–15s (any integer in range). veo-3.1 accepts exactly 4, 6, or 8 (default 4) — other values will be rejected. Defaults to the model\'s default duration. Call list_models for the current allowed values per model.'),
   resolution: z.string().optional()
     .describe('Output resolution. Common: "480p" / "720p" / "1080p" / "4k" (model-dependent; e.g. Seedance Pro adds 1080p and 4k, while Fast/Mini are 480p/720p only). Use list_models to see what each model supports. Higher resolutions cost more credits per second.'),
   aspectRatio: z.string().optional()
     .describe('Aspect ratio: "16:9", "9:16", "1:1", "4:3", "3:4", "21:9", "auto", "adaptive" (model-dependent). Defaults to "auto" when omitted.'),
   firstFrame: z.string().optional()
-    .describe('First-frame image to control where the video starts. Accepts public URL or local file path (auto-uploaded). REQUIRED for grok-video (image-to-video only — backend rejects it without a firstFrame). For seedance/happyhorse/veo it is optional: with no first frame they do pure text-to-video.'),
+    .describe('First-frame image to control where the video starts. Accepts public URL or local file path (auto-uploaded). REQUIRED for grok-video (image-to-video only — backend rejects it without a firstFrame). For other models it is optional: with no first frame they do pure text-to-video.'),
   lastFrame: z.string().optional()
-    .describe('Optional last-frame image to also control where the video ends. Used by seedance-2-0 and veo-3.1; happyhorse-1.1 ignores this field. Accepts public URL or local file path. Requires firstFrame to also be provided — passing lastFrame alone is rejected.'),
+    .describe('Optional last-frame image to also control where the video ends. Used by seedance-2-0 and veo-3.1; other models ignore this field. Accepts public URL or local file path. Requires firstFrame to also be provided — passing lastFrame alone is rejected.'),
   referenceVideo: z.string().optional()
     .describe(
       'Optional reference video URL for Seedance 2.0 "video continuation". Must be a publicly accessible HTTPS URL (typically a previous generation result `videoUrl`); local paths are not supported. Only seedance-2-0 accepts this — passing it with other models will fail. ' +
@@ -134,7 +134,7 @@ export const generateVideoSchema = {
 export function registerGenerateVideo(server: McpServer, apiClient: MeiGenApiClient, config: MeiGenConfig) {
   server.tool(
     'generate_video',
-    'Generate a video using AI via MeiGen platform. Supports text-to-video, image-to-video (first/last frame), and reference-video continuation (Seedance 2.0 only — pass `referenceVideo` URL + `referenceVideoDuration` together, and prompt must explicitly say "extend / continue"). Available models include Seedance 2.0 (mini/fast/pro tiers, mini is the cheapest default, 4-15s), Happyhorse 1.1 (cost-effective, 3-15s), Veo 3.1 (fast/pro tiers, 4/6/8s, native audio), and Grok Video 1.5 (`grok-video`, xAI — IMAGE-TO-VIDEO ONLY, firstFrame required, native audio, 4-15s, 480p/720p). Pricing varies — seedance/happyhorse/grok are per-second, veo is per-generation by tier × duration. See https://www.meigen.ai/model-comparison for the current schedule. With a reference video (seedance only), billable seconds = max(reference_duration + duration, min_billable[duration]); total often higher than direct generation. Generation typically takes 1–5 minutes (veo at 4k can take up to ~8 min).',
+    'Generate a video using AI via MeiGen platform. Supports text-to-video, image-to-video (first/last frame), and reference-video continuation (Seedance 2.0 only — pass `referenceVideo` URL + `referenceVideoDuration` together, and prompt must explicitly say "extend / continue"). Available models include Seedance 2.0 (mini/fast/pro tiers, mini is the cheapest default, 4-15s), Veo 3.1 (fast/pro tiers, 4/6/8s, native audio), Grok Video 1.5 (`grok-video`, xAI — IMAGE-TO-VIDEO ONLY, firstFrame required, native audio, 4-15s, 480p/720p), and Agnes Video 2.0 (`agnes-video-2.0`, budget 480p, fixed price). Model lineup and pricing are served by list_models / https://www.meigen.ai/model-comparison — treat those as the authority, not this text. With a reference video (seedance only), billable seconds = max(reference_duration + duration, min_billable[duration]); total often higher than direct generation. Generation time varies by model and tier — the tool polls until the server reports a terminal state.',
     generateVideoSchema,
     { readOnlyHint: false, destructiveHint: true },
     async ({ prompt, model, tier, duration, resolution, aspectRatio, firstFrame, lastFrame, referenceVideo, referenceVideoDuration }, extra) => {
@@ -155,7 +155,7 @@ export function registerGenerateVideo(server: McpServer, apiClient: MeiGenApiCli
         // grok-video is image-to-video only — firstFrame is mandatory (backend rejects without it).
         // Guard client-side for a clearer error, matching the other model-aware checks below.
         if (model === 'grok-video' && !firstFrame) {
-          throw new Error('grok-video is image-to-video only — firstFrame is required. For text-to-video use seedance-2-0 / happyhorse-1.1 / veo-3.1.')
+          throw new Error('grok-video is image-to-video only — firstFrame is required. For text-to-video use seedance-2-0 / veo-3.1 / agnes-video-2.0.')
         }
 
         const refList: string[] = []
@@ -208,12 +208,13 @@ export function registerGenerateVideo(server: McpServer, apiClient: MeiGenApiCli
           }
           generationId = genResponse.generationId
 
-          await notify(extra, 'Video generation submitted, waiting for result (typically 1–5 minutes)...')
+          await notify(extra, 'Video generation submitted, waiting for result...')
 
           // 2. Poll — 视频比图片慢,超时设 8min
           const status = await apiClient.waitForGeneration(
             generationId,
-            480_000,
+            undefined, // 服务端 pollHintSeconds 驱动;本地仅安全阀(POLL_SAFETY_VALVE_MS)
+
             async (elapsedMs) => {
               await notify(extra, `Still generating video... (${Math.round(elapsedMs / 1000)}s elapsed)`)
             },

@@ -90,7 +90,7 @@ export function registerListModels(server: McpServer, apiClient: MeiGenApiClient
             ? cfg.tags.join(', ')
             : null
           // Video pricing varies by model:
-          //   - seedance / happyhorse: per-second (rate × duration, tier/resolution dependent)
+          //   - per-second models (e.g. seedance): rate × duration, tier/resolution dependent
           //   - veo: per-generation by tier × duration (resolution doesn't affect price)
           // credits_per_generation, when present, represents the floor / base cost for the shortest
           // typical clip. Show the field only when the backend exposes a usable number; otherwise
