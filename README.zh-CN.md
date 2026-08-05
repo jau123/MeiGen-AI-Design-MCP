@@ -80,17 +80,17 @@
 
 ### 远程 MCP 端点(免安装,推荐)
 
-MeiGen 现已提供官方**无状态远程 MCP 端点** — 无需 npm 安装、无本地进程,模型清单/定价/估时永远与生产实况一致(工具描述每次请求从生产数据库动态生成):
+MeiGen 现已提供官方**无状态远程 MCP 端点** — 无需 npm 安装、无本地进程,模型清单/定价/估时自动与生产同步(工具描述由生产数据库渲染,每小时刷新):
 
 ```bash
 claude mcp add --transport http meigen https://www.meigen.ai/api/mcp \
   --header "Authorization: Bearer meigen_sk_你的令牌"
 ```
 
-兼容任意 Streamable HTTP MCP 客户端(2026-07-28 无状态协议,并向下兼容 2025 时代客户端)。只读工具(搜索/模型列表/灵感)无需令牌。远程端点返回媒体 URL;如需自动保存本地文件、离线提示词库、ComfyUI 桥接或 CLI,请使用下方 npm 包 — 两种形态共享同一账号与积分。
+兼容任意 Streamable HTTP MCP 客户端(2026-07-28 无状态协议,并向下兼容 2025 时代客户端)。只读工具(搜索/模型列表/灵感/生成状态查询)无需令牌。远程端点返回媒体 URL;如需自动保存本地文件、离线提示词库、ComfyUI 桥接或 CLI,请使用下方 npm 包 — 两种形态共享同一账号与积分。
 
 
-### Claude Code 插件（推荐）
+### Claude Code 插件(npm,本地工具)
 
 ```bash
 # 添加插件源
@@ -111,7 +111,7 @@ claude mcp add --transport http meigen https://www.meigen.ai/api/mcp \
 
 > 该市场不包含 MCP 服务配置。安装后需手动添加到项目 `.mcp.json`：
 > ```json
-> { "mcpServers": { "meigen": { "command": "npx", "args": ["-y", "meigen@1.3.3"] } } }
+> { "mcpServers": { "meigen": { "command": "npx", "args": ["-y", "meigen@1.4.0"] } } }
 > ```
 
 #### 首次配置
@@ -196,7 +196,7 @@ npx meigen gen -p "..." --json | jq -r '.imageUrls[0]'
   "mcpServers": {
     "meigen": {
       "command": "npx",
-      "args": ["-y", "meigen@1.3.3"],
+      "args": ["-y", "meigen@1.4.0"],
       "env": {
         "MEIGEN_API_TOKEN": "meigen_sk_..."
       }
@@ -215,7 +215,7 @@ npx meigen gen -p "..." --json | jq -r '.imageUrls[0]'
 mcp_servers:
   meigen:
     command: "npx"
-    args: ["-y", "meigen@1.3.3"]
+    args: ["-y", "meigen@1.4.0"]
     env:
       MEIGEN_API_TOKEN: "meigen_sk_..."
     timeout: 2700         # generate_video 会等到服务端报终态(长视频可达 15+ 分钟),Hermes 默认 120s 会超时
@@ -378,7 +378,7 @@ MeiGen MCP 支持三种图片生成后端，可以配置一个或多个 — 系�
 MeiGen MCP 尊重你的隐私。以下是数据处理方式：
 
 - **ComfyUI（本地）** — 所有处理在本机完成，不发送任何数据到外部。
-- **MeiGen 云端** — 提示词和参考图会发送到 `api.meigen.ai` 进行生成。生成的图片临时存储在 Cloudflare R2。详见 [meigen.ai/privacy](https://www.meigen.ai/privacy)。
+- **MeiGen 云端** — 提示词和参考图会发送到 `www.meigen.ai` 进行生成。生成的图片临时存储在 Cloudflare R2。详见 [meigen.ai/privacy](https://www.meigen.ai/privacy)。
 - **OpenAI 兼容 API** — 提示词和参考图会发送到你配置的 API 端点。请参考你的服务商隐私政策。
 - **参考图上传** — 图片在本地压缩（最大 2MB）后上传到 Cloudflare R2（通过 `gen.meigen.ai`），无需认证。上传图片 **24 小时后自动过期**。ComfyUI 用户可直接传本地路径,完全跳过上传。
 - **灵感搜索和提示词增强** — 在本地使用内置数据运行，不调用外部 API。

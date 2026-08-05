@@ -3,6 +3,8 @@
  * Used for MeiGen platform mode — calls the hosted generation API
  */
 
+import { randomUUID } from 'node:crypto'
+
 import type { MeiGenConfig } from '../config.js'
 
 export interface MeiGenSearchResult {
@@ -171,6 +173,9 @@ export class MeiGenApiClient {
     const body: Record<string, unknown> = {
       prompt: params.prompt,
       aspectRatio: params.aspectRatio || 'auto',
+      // 每次逻辑调用一个 UUID:HTTP 层(代理/网络栈)重发同一请求时服务端同事务判重,
+      // 不会重复扣点(2026-08-05 五审 P1;宿主 LLM 的新调用是新 UUID = 新任务)
+      idempotencyKey: randomUUID(),
     }
     if (params.modelId) {
       body.modelId = params.modelId
@@ -222,6 +227,7 @@ export class MeiGenApiClient {
       modelId: params.modelId,
       prompt: params.prompt,
       aspectRatio: params.aspectRatio || 'auto',
+      idempotencyKey: randomUUID(), // 同上:HTTP 层重放防重复扣点
     }
     if (params.resolution) body.resolution = params.resolution
     if (typeof params.duration === 'number') body.duration = params.duration

@@ -1,0 +1,66 @@
+/**
+ * check_generation — 按 ID 查询生成状态(2026-08-05 五审 P1 配套)。
+ *
+ * 用途:generate_image / generate_video 轮询中断(网络/宿主超时/安全阀)后,任务仍在
+ * 服务端跑且已扣点 —— 错误信息里带的 Generation ID 用本工具续查,而不是盲目重试双扣。
+ * 无需 API token(status 端点按 id 公开,与 web 行为一致)。
+ */
+import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
+import { z } from 'zod'
+
+import type { MeiGenApiClient } from '../lib/meigen-api.js'
+
+export function registerCheckGeneration(server: McpServer, apiClient: MeiGenApiClient) {
+  server.tool(
+    'check_generation',
+    'Check a MeiGen generation by ID — the follow-up for interrupted generate_image / generate_video polling (the error message includes the Generation ID). Returns result URLs when done. The server keeps jobs alive well beyond a single tool call; if still processing, retry later instead of re-submitting (re-submitting costs credits again).',
+    {
+      generationId: z.string().min(1).describe('Generation ID from a generate_image / generate_video response or error message'),
+    },
+    async ({ generationId }) => {
+      try {
+        const status = await apiClient.getGenerationStatus(generationId)
+        if (status.status === 'processing') {
+          if (typeof status.pollHintSeconds === 'number' && status.pollHintSeconds <= 0) {
+            return {
+              content: [{
+                type: 'text' as const,
+                text: 'The server-side observation window for this job has ended — if it ultimately fails, credits auto-refund. Check your gallery at https://www.meigen.ai later instead of polling further.',
+              }],
+            }
+          }
+          const hint = typeof status.pollHintSeconds === 'number' && status.pollHintSeconds > 0
+            ? ` The server will keep resolving it for up to ~${Math.ceil(status.pollHintSeconds / 60)} more minutes.`
+            : ''
+          return {
+            content: [{ type: 'text' as const, text: `Still processing.${hint} Retry check_generation in ~30s.` }],
+          }
+        }
+        if (status.status === 'failed') {
+          return {
+            content: [{
+              type: 'text' as const,
+              text: `Generation failed: ${status.error ?? 'unknown error'}. Credits auto-refund on failure.`,
+            }],
+            isError: true,
+          }
+        }
+        const urls = status.mediaType === 'video'
+          ? [status.videoUrl].filter(Boolean)
+          : (status.imageUrls ?? [status.imageUrl]).filter(Boolean)
+        return {
+          content: [{
+            type: 'text' as const,
+            text: [`Generation completed (${status.mediaType ?? 'image'}).`, ...urls.map((u) => `URL: ${u}`)].join('\n'),
+          }],
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error)
+        return {
+          content: [{ type: 'text' as const, text: `Status check failed: ${message}. The job may still be running — retry shortly.` }],
+          isError: true,
+        }
+      }
+    },
+  )
+}

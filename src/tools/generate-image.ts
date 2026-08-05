@@ -264,14 +264,24 @@ async function generateWithMeiGen(
   await notify(extra, 'Image generation submitted, waiting for result...')
 
   // 2. Poll until completed (with progress notifications)
-  const status = await apiClient.waitForGeneration(
-    genResponse.generationId,
-    undefined, // 服务端 pollHintSeconds 驱动;本地仅安全阀(POLL_SAFETY_VALVE_MS)
-
-    async (elapsedMs) => {
-      await notify(extra, `Still generating... (${Math.round(elapsedMs / 1000)}s elapsed)`)
-    },
-  )
+  let status
+  try {
+    status = await apiClient.waitForGeneration(
+      genResponse.generationId,
+      undefined, // 服务端 pollHintSeconds 驱动;本地仅安全阀(POLL_SAFETY_VALVE_MS)
+      async (elapsedMs) => {
+        await notify(extra, `Still generating... (${Math.round(elapsedMs / 1000)}s elapsed)`)
+      },
+    )
+  } catch (pollError) {
+    // 任务已创建且已扣点:任何轮询失败都必须带 generationId 返回,报裸错会诱导重试双扣
+    // (2026-08-05 五审 P1;与 generate-video 的 timeoutHint 同语义)
+    const msg = pollError instanceof Error ? pollError.message : String(pollError)
+    throw new Error(
+      `${msg}\n\nGeneration ID: ${genResponse.generationId}. The job may still complete in the background — ` +
+        'check https://www.meigen.ai or use check_generation before retrying. If it ultimately fails, credits auto-refund.'
+    )
+  }
 
   if (status.status === 'failed') {
     throw new Error(status.error || 'Generation failed')

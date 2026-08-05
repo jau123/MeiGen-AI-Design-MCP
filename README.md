@@ -80,14 +80,14 @@ An MCP server that turns any AI coding tool into a professional design assistant
 
 ### Remote MCP Endpoint (zero-install, recommended)
 
-MeiGen now hosts an official **stateless remote MCP endpoint** — no npm install, no local process, and it always reflects the live model lineup, pricing and time estimates (tool descriptions are generated per-request from the production database):
+MeiGen now hosts an official **stateless remote MCP endpoint** — no npm install, no local process, and its model lineup, pricing and time estimates stay in sync with production automatically (tool descriptions are rendered from the production database, refreshed hourly):
 
 ```bash
 claude mcp add --transport http meigen https://www.meigen.ai/api/mcp \
   --header "Authorization: Bearer meigen_sk_YOUR_TOKEN"
 ```
 
-Works with any Streamable-HTTP MCP client (2026-07-28 stateless protocol, with fallback for 2025-era clients). Read-only tools (search, model list, inspiration) work without a token. The remote endpoint returns media URLs; if you want automatic local file saving, prompt-library offline search, ComfyUI bridging or the CLI, use the npm package below — both share the same account and credits.
+Works with any Streamable-HTTP MCP client (2026-07-28 stateless protocol, with fallback for 2025-era clients). Read-only tools (search, model list, inspiration, generation status check) work without a token. The remote endpoint returns media URLs; if you want automatic local file saving, prompt-library offline search, ComfyUI bridging or the CLI, use the npm package below — both share the same account and credits.
 
 
 ### Claude Code Plugin (npm, local tools)
@@ -111,7 +111,7 @@ Works with any Streamable-HTTP MCP client (2026-07-28 stateless protocol, with f
 
 > This marketplace doesn't bundle MCP server config. After installing, add to your project's `.mcp.json`:
 > ```json
-> { "mcpServers": { "meigen": { "command": "npx", "args": ["-y", "meigen@1.3.3"] } } }
+> { "mcpServers": { "meigen": { "command": "npx", "args": ["-y", "meigen@1.4.0"] } } }
 > ```
 
 #### First-Time Setup
@@ -196,7 +196,7 @@ Add to your MCP config (e.g. `.mcp.json`, `claude_desktop_config.json`):
   "mcpServers": {
     "meigen": {
       "command": "npx",
-      "args": ["-y", "meigen@1.3.3"],
+      "args": ["-y", "meigen@1.4.0"],
       "env": {
         "MEIGEN_API_TOKEN": "meigen_sk_..."
       }
@@ -215,7 +215,7 @@ Add to your MCP config (e.g. `.mcp.json`, `claude_desktop_config.json`):
 mcp_servers:
   meigen:
     command: "npx"
-    args: ["-y", "meigen@1.3.3"]
+    args: ["-y", "meigen@1.4.0"]
     env:
       MEIGEN_API_TOKEN: "meigen_sk_..."
     timeout: 2700         # generate_video polls until the server reports a terminal state (long videos can run 15+ min) — default 120s is not enough
@@ -378,7 +378,7 @@ Environment variables take priority over the config file.
 MeiGen MCP respects your privacy. Here's what happens with your data:
 
 - **ComfyUI (local)** — All processing stays on your machine. No data is sent externally.
-- **MeiGen Cloud** — Prompts and reference images are sent to `api.meigen.ai` for generation. Generated images are stored temporarily on Cloudflare R2. See [meigen.ai/privacy](https://www.meigen.ai/privacy).
+- **MeiGen Cloud** — Prompts and reference images are sent to `www.meigen.ai` for generation. Generated images are stored temporarily on Cloudflare R2. See [meigen.ai/privacy](https://www.meigen.ai/privacy).
 - **OpenAI-compatible** — Prompts and reference images are sent to the configured API endpoint. See your provider's privacy policy.
 - **Reference image upload** — Images are compressed locally (max 2MB) and uploaded to Cloudflare R2 via `gen.meigen.ai`. Uploaded images expire automatically after **24 hours**. No authentication required. ComfyUI users can skip uploading entirely by passing local file paths directly.
 - **Gallery search & prompt enhancement** — Run locally against bundled data. No external API calls.

@@ -107,7 +107,7 @@ async function saveVideoLocally(videoUrl: string): Promise<string | undefined> {
 
 export const generateVideoSchema = {
   prompt: z.string().trim().min(1, 'Prompt cannot be empty').describe('The video generation prompt. Describe motion, scene, and style — not just the still image.'),
-  model: z.string().min(1).describe('Video model ID. Use list_models to see available video models. Common (as of writing): "seedance-2-0" (multi-tier general purpose), "veo-3.1" (Google Veo with two tiers, 4/6/8s, native audio), "grok-video" (xAI Grok Imagine 1.5 — IMAGE-TO-VIDEO ONLY: firstFrame REQUIRED, pure text-to-video is rejected; native audio; 4-15s; 480p/720p), "agnes-video-2.0" (budget-friendly 480p, fixed 10 credits). list_models is the authority — model lineup changes without MCP releases.'),
+  model: z.string().min(1).describe('Video model ID. Use list_models to see available video models. Common (as of writing): "seedance-2-0" (multi-tier general purpose), "veo-3.1" (Google Veo with two tiers, 4/6/8s, native audio), "grok-video" (xAI Grok Imagine 1.5 — IMAGE-TO-VIDEO ONLY: firstFrame REQUIRED, pure text-to-video is rejected; native audio; 4-15s; 480p/720p), "agnes-video-2.0" (budget-friendly 480p, flat per-video pricing). list_models is the authority — model lineup changes without MCP releases.'),
   tier: z.string().optional()
     .describe('Quality tier — only for models that support tiers. seedance-2-0 accepts "mini" (default, cheapest; 480p/720p, supports reference video), "fast" (480p/720p), or "pro" (highest fidelity; native 1080p and 4K); veo-3.1 accepts "fast" (default) or "pro". Tiers may be added by the platform — call list_models to see what each model exposes.'),
   duration: z.number().int().positive().optional()
@@ -259,7 +259,7 @@ export function registerGenerateVideo(server: McpServer, apiClient: MeiGenApiCli
         const guidance = classifyError(message)
         // 超时特殊提示:任务可能仍在后台跑,提醒用户避免重复扣费
         // 后端 pg_cron cleanup_orphan_generations 会在 ~15min 内对"从未启动"的孤儿任务自动退款
-        const timeoutHint = /timed out|timeout/i.test(message) && generationId
+        const timeoutHint = generationId
           ? `\n\nGeneration ID: ${generationId}. The job may still complete in the background — check https://www.meigen.ai before retrying. If the backend job never started, credits are automatically refunded within ~15 minutes.`
           : ''
         return {

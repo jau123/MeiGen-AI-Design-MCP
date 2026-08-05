@@ -10,6 +10,7 @@ import { registerEnhancePrompt } from './tools/enhance-prompt.js'
 import { registerSearchGallery } from './tools/search-gallery.js'
 import { registerListModels } from './tools/list-models.js'
 import { registerGetInspiration } from './tools/get-inspiration.js'
+import { registerCheckGeneration } from './tools/check-generation.js'
 import { registerGenerateImage } from './tools/generate-image.js'
 import { registerGenerateVideo } from './tools/generate-video.js'
 import { registerComfyuiWorkflow } from './tools/comfyui-workflow.js'
@@ -271,6 +272,7 @@ export function createServer() {
   registerSearchGallery(server, config)
   registerListModels(server, apiClient, config)
   registerGetInspiration(server, apiClient)
+  registerCheckGeneration(server, apiClient)
   registerManagePreferences(server)
 
   // ComfyUI workflow management
