@@ -21,41 +21,43 @@ test.beforeEach(() => {
 });
 
 test('并发同参数各拿新键(两张图 = 两单,不静默合并)', () => {
-  const k1 = acquireAttempt('sig-a', newKey);
-  const k2 = acquireAttempt('sig-a', newKey); // k1 仍 in-flight → 必须新键
+  const { key: k1 } = acquireAttempt('sig-a', newKey);
+  const { key: k2 } = acquireAttempt('sig-a', newKey); // k1 仍 in-flight → 必须新键
   assert.notEqual(k1, k2);
 });
 
 test('网络失败后重试复用同键(服务端判重不双扣)', () => {
-  const k1 = acquireAttempt('sig-a', newKey);
+  const { key: k1 } = acquireAttempt('sig-a', newKey);
   markAttemptRetryable('sig-a', k1);
-  const k2 = acquireAttempt('sig-a', newKey);
+  const { key: k2, reused } = acquireAttempt('sig-a', newKey);
   assert.equal(k2, k1);
+  assert.equal(reused, true);
 });
 
 test('5xx 语义同网络失败:标记 retryable 后复用', () => {
-  const k1 = acquireAttempt('sig-a', newKey);
+  const { key: k1 } = acquireAttempt('sig-a', newKey);
   markAttemptRetryable('sig-a', k1); // 调用方对 5xx 走同一 API
-  assert.equal(acquireAttempt('sig-a', newKey), k1);
+  assert.equal(acquireAttempt('sig-a', newKey).key, k1);
 });
 
 test('成功/4xx 释放后,下次是全新键', () => {
-  const k1 = acquireAttempt('sig-a', newKey);
+  const { key: k1 } = acquireAttempt('sig-a', newKey);
   releaseAttempt('sig-a', k1);
-  const k2 = acquireAttempt('sig-a', newKey);
+  const { key: k2, reused } = acquireAttempt('sig-a', newKey);
   assert.notEqual(k2, k1);
+  assert.equal(reused, false);
 });
 
 test('乱序:并发 A/B 中 A 失败 B 成功,重试只复用 A 的键', () => {
-  const kA = acquireAttempt('sig-a', newKey);
-  const kB = acquireAttempt('sig-a', newKey);
+  const { key: kA } = acquireAttempt('sig-a', newKey);
+  const { key: kB } = acquireAttempt('sig-a', newKey);
   markAttemptRetryable('sig-a', kA);
   releaseAttempt('sig-a', kB);
-  assert.equal(acquireAttempt('sig-a', newKey), kA);
+  assert.equal(acquireAttempt('sig-a', newKey).key, kA);
 });
 
 test('不同参数互不影响', () => {
-  const kA = acquireAttempt('sig-a', newKey);
+  const { key: kA } = acquireAttempt('sig-a', newKey);
   markAttemptRetryable('sig-a', kA);
-  assert.notEqual(acquireAttempt('sig-b', newKey), kA);
+  assert.notEqual(acquireAttempt('sig-b', newKey).key, kA);
 });

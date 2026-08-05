@@ -198,7 +198,7 @@ export class MeiGenApiClient {
    */
   private async submitWithAttemptKey(body: Record<string, unknown>): Promise<MeiGenGenerationResponse> {
     const sig = createHash('sha256').update(JSON.stringify(body)).digest('hex')
-    const key = acquireAttempt(sig, randomUUID)
+    const { key, reused } = acquireAttempt(sig, randomUUID)
     let res: Response
     let json: MeiGenGenerationResponse
     try {
@@ -216,8 +216,11 @@ export class MeiGenApiClient {
       throw error
     }
     if (!res.ok || !json.success) {
-      if (res.status >= 500) {
-        // 5xx:服务端状态不明(可能已扣点建单),保留键让重试判重
+      // 释放语义(九审 P1 收窄):只有「非复用键 + 明确业务拒绝」才释放。
+      // - 5xx / 408 / 429:服务端状态不明或瞬时,保留供重试判重
+      // - 复用键遇任何错误:该键可能对应已扣费任务,释放会导致下次铸新键双扣
+      const transient = res.status >= 500 || res.status === 408 || res.status === 429
+      if (transient || reused) {
         markAttemptRetryable(sig, key)
       } else {
         releaseAttempt(sig, key)

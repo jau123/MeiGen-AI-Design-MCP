@@ -287,9 +287,20 @@ async function generateWithMeiGen(
     throw new Error(status.error || 'Generation failed')
   }
 
-  // Detect video model misuse early — give a clear redirect instead of cryptic "no image URL"
-  if (status.mediaType === 'video') {
-    throw new Error('This model produces video. Use the generate_video tool with the same model id.')
+  // 视频模型误用:任务已完成已扣费,返回**成功**(视频 URL + ID),绝不抛错 ——
+  // 抛错并提示"改用 generate_video"会诱导再次提交双扣(九审 P1)
+  if (status.mediaType === 'video' && status.videoUrl) {
+    return {
+      content: [{
+        type: 'text' as const,
+        text: [
+          'This model produced a VIDEO (you were charged once — do NOT re-submit).',
+          `Video URL: ${status.videoUrl}`,
+          `Generation ID: ${genResponse.generationId}`,
+          'Next time use the generate_video tool for this model.',
+        ].join('\n'),
+      }],
+    }
   }
 
   // Use imageUrls array if available (e.g., V8.1 returns 4 candidates), fall back to imageUrl

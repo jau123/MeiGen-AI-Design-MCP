@@ -9,7 +9,8 @@
  * - 提交成功 / 4xx 明确拒绝 → 释放(该尝试已终结)
  * 本地 stdio 进程有状态,模块级 Map;进程重启丢失 = 退化为无幂等,可接受。
  */
-export const ATTEMPT_TTL_MS = 10 * 60_000
+// TTL 覆盖服务端 40min 观察窗(九审 P1:10min 太短,慢任务重试窗内键就过期)
+export const ATTEMPT_TTL_MS = 45 * 60_000
 
 interface Attempt {
   key: string
@@ -24,20 +25,24 @@ function prune(list: Attempt[]): Attempt[] {
   return list.filter((a) => now - a.createdAt < ATTEMPT_TTL_MS)
 }
 
-/** 取一次逻辑尝试的键:优先复用 retryable(失败重试),否则新建 in-flight。 */
-export function acquireAttempt(sig: string, newKey: () => string): string {
+/**
+ * 取一次逻辑尝试的键:优先复用 retryable(失败重试),否则新建 in-flight。
+ * 返回 reused 标志(九审 P1):复用键的请求即使遇到 4xx 也不得释放 —— 该键可能
+ * 对应服务端已扣费的任务,释放后下次铸新键会双扣;交给 TTL 自然过期。
+ */
+export function acquireAttempt(sig: string, newKey: () => string): { key: string; reused: boolean } {
   const list = prune(attemptsBySig.get(sig) ?? [])
   const retryable = list.find((a) => a.state === 'retryable')
   if (retryable) {
     retryable.state = 'in-flight'
     retryable.createdAt = Date.now()
     attemptsBySig.set(sig, list)
-    return retryable.key
+    return { key: retryable.key, reused: true }
   }
   const attempt: Attempt = { key: newKey(), state: 'in-flight', createdAt: Date.now() }
   list.push(attempt)
   attemptsBySig.set(sig, list)
-  return attempt.key
+  return { key: attempt.key, reused: false }
 }
 
 /** 网络错误 / 5xx:该尝试可能已扣点,标记可复用。 */
