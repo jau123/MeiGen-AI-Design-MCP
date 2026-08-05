@@ -229,7 +229,6 @@ async function generateWithOpenAI(
   lines.push(`- Provider: OpenAI-compatible (${model || config.openaiModel})`)
   if (referenceImages?.length) lines.push(`- Reference images: ${referenceImages.length} used`)
   if (savedPath) lines.push(`- Saved to: ${savedPath}`)
-  if (downloadNote) lines.push(`- ${downloadNote}`)
 
   return {
     content: [{ type: 'text' as const, text: lines.join('\n') }],
@@ -311,7 +310,7 @@ async function generateWithMeiGen(
     const buffer = await imageRes.arrayBuffer()
     const base64 = Buffer.from(buffer).toString('base64')
     const mimeType = imageRes.headers.get('content-type') || 'image/jpeg'
-    savedPath = saveImageLocally(base64, mimeType)
+    savedPath = saveImageLocally(base64, mimeType) ?? null
   } catch (downloadError) {
     downloadNote = `Local save skipped (${downloadError instanceof Error ? downloadError.message : String(downloadError)}) — use the Image URL directly.`
   }
@@ -384,7 +383,6 @@ async function generateWithComfyUI(
   const lines = [`Image generated successfully.`]
   lines.push(`- Provider: ComfyUI (workflow: ${workflowName})`)
   if (savedPath) lines.push(`- Saved to: ${savedPath}`)
-  if (downloadNote) lines.push(`- ${downloadNote}`)
   if (result.referenceImageWarning) lines.push(`\nWarning: ${result.referenceImageWarning}`)
 
   return {

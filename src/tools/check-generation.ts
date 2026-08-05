@@ -3,7 +3,7 @@
  *
  * 用途:generate_image / generate_video 轮询中断(网络/宿主超时/安全阀)后,任务仍在
  * 服务端跑且已扣点 —— 错误信息里带的 Generation ID 用本工具续查,而不是盲目重试双扣。
- * 无需 API token(status 端点按 id 公开,与 web 行为一致)。
+ * 配置了 API token 时走服务端归属校验;未配置时按 id 公开查询(过渡期兼容,与 web 一致)。
  */
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
