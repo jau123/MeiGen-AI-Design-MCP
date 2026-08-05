@@ -259,8 +259,13 @@ export async function gen(argv: string[]): Promise<void> {
   if (status.mediaType === 'video') {
     // 视频模型误用:任务已扣费,交付 URL+ID 而非报错退出(十二审 P2)
     console.log('This model produced a VIDEO (charged once — do NOT re-run):')
-    if (status.videoUrl) console.log(`Video URL: ${status.videoUrl}`)
     console.log(`Generation ID: ${submitResponse.generationId}`)
+    if (!status.videoUrl) {
+      // 无 URL 不能装成功(workflow 六审):exit 1 + 引导续查,与图片同款守卫
+      console.error(`No video URL in the response — check ${config.meigenBaseUrl} gallery; do NOT re-run (it would charge again).`)
+      process.exit(1)
+    }
+    console.log(`Video URL: ${status.videoUrl}`)
     process.exit(0)
   }
 

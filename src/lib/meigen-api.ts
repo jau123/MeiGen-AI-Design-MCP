@@ -267,7 +267,7 @@ export class MeiGenApiClient {
     tier?: string
     referenceImages?: string[]
     referenceVideo?: string           // 仅 Seedance 2.0:参考视频 URL(续写场景)
-    referenceVideoDuration?: number   // 参考视频时长(秒);传 referenceVideo 必须同时传
+    referenceVideoDuration?: number   // 参考视频时长(秒);可选仅供参考,服务端权威探测计费
   }): Promise<MeiGenGenerationResponse> {
     if (!this.apiToken) {
       throw new Error('MEIGEN_API_TOKEN is required for video generation via MeiGen')

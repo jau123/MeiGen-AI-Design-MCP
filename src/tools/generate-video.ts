@@ -171,8 +171,8 @@ export function registerGenerateVideo(server: McpServer, apiClient: MeiGenApiCli
         }
         const referenceImages = refList.length > 0 ? refList : undefined
 
-        // 参考视频(续写)校验:必须是 https URL,且必须配对传 referenceVideoDuration
-        // 漏传 duration 会被后端按 0 处理 → 计费偏低 + 续写效果异常(主项目 docs 已明示)
+        // 参考视频(续写)校验:必须是 https URL;referenceVideoDuration 可选且仅供参考
+        // (服务端从 MP4 权威探测计费/裁剪时长,漏传不再少扣)
         if (referenceVideo) {
           if (isLocalPath(referenceVideo)) {
             throw new Error('referenceVideo must be a public HTTPS URL (local paths are not supported — upload the clip first or use a previous generation\'s videoUrl).')
@@ -236,16 +236,20 @@ export function registerGenerateVideo(server: McpServer, apiClient: MeiGenApiCli
           // 图片模型误用:任务已完成已扣费,返回**成功**(图片 URL + ID),绝不抛错 ——
           // 抛错并提示改用 generate_image 会诱导再次提交双扣(十审 P1,对称 generate_image 的同款修复)
           if (status.mediaType && status.mediaType !== 'video') {
-            apiClient.ackAttempt(genResponse._attempt)
             const imgUrls = (status.imageUrls?.length ? status.imageUrls : [status.imageUrl]).filter(Boolean)
+            if (imgUrls.length === 0) {
+              // 误用 + URL 缺失复合异常(workflow 六审 C0):ack 必须在交付确认后 ——
+              // 提前 ack 会让同参数重试铸新键双扣;挂起保 ID 续查,对称 generate_image
+              apiClient.suspendAttemptFor(genResponse._attempt, generationId)
+              throw new Error(`Generation ${generationId} completed as ${status.mediaType} but the response is missing the media URL — use check_generation; do NOT re-submit (it would charge again).`)
+            }
+            apiClient.ackAttempt(genResponse._attempt)
             return {
               content: [{
                 type: 'text' as const,
                 text: [
                   `This model produced ${status.mediaType?.toUpperCase() ?? 'an IMAGE'} (you were charged once — do NOT re-submit).`,
-                  ...(imgUrls.length
-                    ? imgUrls.map((u) => `Image URL: ${u}`)
-                    : ['The response is missing the media URL — check https://www.meigen.ai gallery or use check_generation.']),
+                  ...imgUrls.map((u) => `Image URL: ${u}`),
                   `Generation ID: ${generationId}`,
                   'Next time use the generate_image tool for this model.',
                 ].join('\n'),
