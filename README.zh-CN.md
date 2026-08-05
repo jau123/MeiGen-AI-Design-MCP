@@ -33,7 +33,7 @@
 
 一个开源 MCP 服务器,把任何 AI 编程工具变成专业设计助理。**9 个工具** + 精选提示词库,让它能设计 logo、做产品图、把静态图动画化成视频,以及并行编排多个方向的批量生成。支持 **Claude Code**、**Cursor**、**Codex**、**Windsurf**、**Roo Code**、**OpenClaw**、**Hermes Agent** 以及任意 MCP 兼容客户端 — 后端可选 **MeiGen 平台**、任意 **OpenAI 兼容 API** 或你的 **本地 ComfyUI**。
 
-- 三种后端模式:**MeiGen 云端**(9 个图像与视频模型)、**OpenAI 兼容**(自带 key 和端点)、**本地 ComfyUI**(离线,你的 GPU)
+- 三种后端模式:**MeiGen 云端**(DB 驱动的图像/视频模型阵容,以 `list_models` 为准)、**OpenAI 兼容**(自带 key 和端点)、**本地 ComfyUI**(离线,你的 GPU)
 - 内置 1,446 条精选提示词(来自 [nanobanana-trending-prompts](https://github.com/jau123/nanobanana-trending-prompts))+ 风格感知的提示词增强
 - 通过子 Agent 实现并行批量生成,主对话上下文保持干净 — 同时提供独立 CLI 模式,适合 shell 脚本和 CI 流水线
 

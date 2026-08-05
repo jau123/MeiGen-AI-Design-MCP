@@ -33,7 +33,7 @@
 
 An MCP server that turns any AI coding tool into a professional design assistant. **9 tools** + a curated prompt library let it design logos, render product shots, animate stills into video, and orchestrate parallel batch variations. Works in **Claude Code**, **Cursor**, **Codex**, **Windsurf**, **Roo Code**, **OpenClaw**, **Hermes Agent**, and any MCP-compatible host — with the **MeiGen platform**, any **OpenAI-compatible API**, or your **local ComfyUI** as the backend.
 
-- Three backend modes: **MeiGen cloud** (9 image and video models), **OpenAI-compatible** (bring your own key and endpoint), or **local ComfyUI** (offline, your GPU)
+- Three backend modes: **MeiGen cloud** (DB-driven image & video model lineup — see `list_models`), **OpenAI-compatible** (bring your own key and endpoint), or **local ComfyUI** (offline, your GPU)
 - Built-in 1,446 curated prompt templates from [nanobanana-trending-prompts](https://github.com/jau123/nanobanana-trending-prompts) plus style-aware prompt enhancement
 - Parallel batch generation via sub-agents to keep the main context clean — plus a standalone CLI for shell scripts and CI
 
@@ -382,7 +382,7 @@ MeiGen MCP respects your privacy. Here's what happens with your data:
 - **MeiGen Cloud** — Prompts and reference images are sent to `www.meigen.ai` for generation. Generated images are stored temporarily on Cloudflare R2. See [meigen.ai/privacy](https://www.meigen.ai/privacy).
 - **OpenAI-compatible** — Prompts and reference images are sent to the configured API endpoint. See your provider's privacy policy.
 - **Reference image upload** — Images are compressed locally (max 2MB) and uploaded to Cloudflare R2 via `gen.meigen.ai`. Uploaded images expire automatically after **24 hours**. No authentication required. ComfyUI users can skip uploading entirely by passing local file paths directly.
-- **Gallery search & prompt enhancement** — Run locally against bundled data. No external API calls.
+- **Gallery search** — With a search query, the MeiGen API is queried (your query text is sent to `www.meigen.ai`); category browsing and offline fallback use bundled local data. **Prompt enhancement** runs locally with no external calls.
 
 No telemetry, analytics, or tracking of any kind.
 

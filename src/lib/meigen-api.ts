@@ -5,7 +5,7 @@
 
 import { createHash, randomUUID } from 'node:crypto'
 
-import { acquireAttempt, markAttemptRetryable, releaseAttempt } from './attempt-store.js'
+import { acquireAttempt, markAttemptCompleted, markAttemptRetryable, releaseAttempt } from './attempt-store.js'
 
 import type { MeiGenConfig } from '../config.js'
 
@@ -66,6 +66,8 @@ export interface MeiGenGenerationResponse {
   modelId?: string        // 后端返回实际使用的模型 ID(MCP 没传 modelId 时走 DB is_default)
   creditsUsed?: number
   error?: string
+  /** 短窗内命中已成功建单的同参数尝试,未重新提交(直接续查该任务) */
+  reusedPrior?: boolean
 }
 
 /**
@@ -198,7 +200,12 @@ export class MeiGenApiClient {
    */
   private async submitWithAttemptKey(body: Record<string, unknown>): Promise<MeiGenGenerationResponse> {
     const sig = createHash('sha256').update(JSON.stringify(body)).digest('hex')
-    const { key, reused } = acquireAttempt(sig, randomUUID)
+    const { key, reused, priorGenerationId } = acquireAttempt(sig, randomUUID)
+    // 短窗内同参数已成功建单(轮询失败后的宿主重试):不再提交,直接返回原任务
+    // 让调用方续查 —— 提交即扣费,重复提交就是双扣(十审 P1)
+    if (priorGenerationId) {
+      return { success: true, generationId: priorGenerationId, reusedPrior: true } as MeiGenGenerationResponse
+    }
     let res: Response
     let json: MeiGenGenerationResponse
     try {
@@ -216,18 +223,28 @@ export class MeiGenApiClient {
       throw error
     }
     if (!res.ok || !json.success) {
-      // 释放语义(九审 P1 收窄):只有「非复用键 + 明确业务拒绝」才释放。
+      // 释放语义(九审收窄 + 十审修订):
+      // - 409 idempotency_conflict:服务端明确要求换新键(stale claim),必须释放,
+      //   否则复用键每次刷新 TTL 无限自锁(十审 P1)
       // - 5xx / 408 / 429:服务端状态不明或瞬时,保留供重试判重
-      // - 复用键遇任何错误:该键可能对应已扣费任务,释放会导致下次铸新键双扣
+      // - 复用键遇其他错误:该键可能对应已扣费任务,保留(释放即下次铸新键双扣)
+      const isConflict = res.status === 409
       const transient = res.status >= 500 || res.status === 408 || res.status === 429
-      if (transient || reused) {
+      if (isConflict) {
+        releaseAttempt(sig, key)
+      } else if (transient || reused) {
         markAttemptRetryable(sig, key)
       } else {
         releaseAttempt(sig, key)
       }
       throw new Error(json.error || `Generation failed: ${res.status}`)
     }
-    releaseAttempt(sig, key)
+    // 提交成功 = 任务已建已扣费:键转 completed 短窗保留(轮询失败重试拿回同任务)
+    if (json.generationId) {
+      markAttemptCompleted(sig, key, json.generationId)
+    } else {
+      releaseAttempt(sig, key)
+    }
     return json
   }
 

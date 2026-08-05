@@ -14,9 +14,14 @@ export const ATTEMPT_TTL_MS = 45 * 60_000
 
 interface Attempt {
   key: string
-  state: 'in-flight' | 'retryable'
+  state: 'in-flight' | 'retryable' | 'completed'
   createdAt: number
+  /** completed 状态记录已创建的任务:同参数短窗重试直接续查,不再提交(十审 P1) */
+  generationId?: string
 }
+
+// completed 键的短保留窗:轮询失败后宿主重试发生在分钟级;超窗的同参数请求是真正的新生成
+export const COMPLETED_TTL_MS = 5 * 60_000
 
 const attemptsBySig = new Map<string, Attempt[]>()
 
@@ -30,8 +35,18 @@ function prune(list: Attempt[]): Attempt[] {
  * 返回 reused 标志(九审 P1):复用键的请求即使遇到 4xx 也不得释放 —— 该键可能
  * 对应服务端已扣费的任务,释放后下次铸新键会双扣;交给 TTL 自然过期。
  */
-export function acquireAttempt(sig: string, newKey: () => string): { key: string; reused: boolean } {
+export function acquireAttempt(
+  sig: string,
+  newKey: () => string,
+): { key: string; reused: boolean; priorGenerationId?: string } {
   const list = prune(attemptsBySig.get(sig) ?? [])
+  // 短窗内同参数且此前已成功建单:返回 priorGenerationId,调用方直接续查该任务,
+  // 不再提交 —— 修「提交成功→轮询失败→宿主重试整个调用→新单双扣」(十审 P1)
+  const completed = list.find((a) => a.state === 'completed' && Date.now() - a.createdAt < COMPLETED_TTL_MS && a.generationId)
+  if (completed) {
+    attemptsBySig.set(sig, list)
+    return { key: completed.key, reused: true, priorGenerationId: completed.generationId }
+  }
   const retryable = list.find((a) => a.state === 'retryable')
   if (retryable) {
     retryable.state = 'in-flight'
@@ -43,6 +58,17 @@ export function acquireAttempt(sig: string, newKey: () => string): { key: string
   list.push(attempt)
   attemptsBySig.set(sig, list)
   return { key: attempt.key, reused: false }
+}
+
+/** 提交成功:键转 completed 并记录任务 ID(短窗防重试双扣),不再立即删除。 */
+export function markAttemptCompleted(sig: string, key: string, generationId: string): void {
+  const list = attemptsBySig.get(sig)
+  const attempt = list?.find((a) => a.key === key)
+  if (attempt) {
+    attempt.state = 'completed'
+    attempt.createdAt = Date.now()
+    attempt.generationId = generationId
+  }
 }
 
 /** 网络错误 / 5xx:该尝试可能已扣点,标记可复用。 */

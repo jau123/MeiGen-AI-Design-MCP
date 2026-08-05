@@ -225,13 +225,26 @@ export function registerGenerateVideo(server: McpServer, apiClient: MeiGenApiCli
           }
 
           // mediaType guard: 防止用户传 image model id 给 generate_video,导致拿 jpg 写成 .mp4
+          // 图片模型误用:任务已完成已扣费,返回**成功**(图片 URL + ID),绝不抛错 ——
+          // 抛错并提示改用 generate_image 会诱导再次提交双扣(十审 P1,对称 generate_image 的同款修复)
           if (status.mediaType && status.mediaType !== 'video') {
-            throw new Error(`This model returned ${status.mediaType}, not video. Use generate_image for image models, or call list_models to see video model IDs.`)
+            const imgUrls = (status.imageUrls?.length ? status.imageUrls : [status.imageUrl]).filter(Boolean)
+            return {
+              content: [{
+                type: 'text' as const,
+                text: [
+                  `This model produced ${status.mediaType?.toUpperCase() ?? 'an IMAGE'} (you were charged once — do NOT re-submit).`,
+                  ...imgUrls.map((u) => `Image URL: ${u}`),
+                  `Generation ID: ${generationId}`,
+                  'Next time use the generate_image tool for this model.',
+                ].join('\n'),
+              }],
+            }
           }
 
           const videoUrl = status.videoUrl
           if (!videoUrl) {
-            throw new Error('No video URL in completed generation')
+            throw new Error(`Generation ${generationId} completed but the response is missing the video URL — check https://www.meigen.ai gallery or use check_generation; do NOT re-submit (it would charge again).`)
           }
 
           await notify(extra, 'Downloading video...')

@@ -60,6 +60,8 @@ Set credentials in `~/.clawdbot/.env`, `~/.config/meigen/config.json`, or add an
 | Tool | What it does |
 |------|-------------|
 | `generate_image` | Generate an image from a text prompt. Routes to the best available provider. Supports aspect ratio, seed, and reference images. |
+| `generate_video` | Generate a video via MeiGen (Seedance/Veo/Grok/Agnes; requires API key). Polls until the server reports a terminal state. |
+| `check_generation` | Check a generation by ID — follow-up after interrupted polling; retry this instead of re-submitting to avoid double charges. |
 | `generate_image` (with local paths) | Pass local file paths directly in `referenceImages` — images are auto-compressed locally (max 2MB, 2048px) and prepared for the selected provider. ComfyUI handles local files entirely within the local workflow. |
 | `comfyui_workflow` | List, view, import, modify, and delete ComfyUI workflow templates. Adjust steps, CFG scale, sampler, and checkpoint without editing JSON. |
 | `manage_preferences` | Save and load user preferences (default style, aspect ratio, style notes, favorite prompts). |

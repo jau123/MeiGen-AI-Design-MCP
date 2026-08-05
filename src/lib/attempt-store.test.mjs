@@ -10,7 +10,7 @@ const compiled = ts.transpileModule(source, {
   compilerOptions: { module: ts.ModuleKind.ES2022, target: ts.ScriptTarget.ES2022 },
 }).outputText;
 const moduleUrl = `data:text/javascript;base64,${Buffer.from(compiled).toString('base64')}`;
-const { acquireAttempt, markAttemptRetryable, releaseAttempt, __resetAttempts } = await import(moduleUrl);
+const { acquireAttempt, markAttemptCompleted, markAttemptRetryable, releaseAttempt, __resetAttempts } = await import(moduleUrl);
 
 let n = 0;
 const newKey = () => `key-${++n}`;
@@ -60,4 +60,28 @@ test('不同参数互不影响', () => {
   const { key: kA } = acquireAttempt('sig-a', newKey);
   markAttemptRetryable('sig-a', kA);
   assert.notEqual(acquireAttempt('sig-b', newKey).key, kA);
+});
+
+test('提交成功后短窗内同参数重试拿回 priorGenerationId(不再提交,防双扣)', () => {
+  const { key } = acquireAttempt('sig-a', newKey);
+  markAttemptCompleted('sig-a', key, 'gen-123');
+  const again = acquireAttempt('sig-a', newKey);
+  assert.equal(again.priorGenerationId, 'gen-123');
+  assert.equal(again.reused, true);
+});
+
+test('completed 键不阻塞不同参数的新请求', () => {
+  const { key } = acquireAttempt('sig-a', newKey);
+  markAttemptCompleted('sig-a', key, 'gen-123');
+  const other = acquireAttempt('sig-b', newKey);
+  assert.equal(other.priorGenerationId, undefined);
+});
+
+test('release 后同参数是全新尝试(409 换新键路径)', () => {
+  const { key } = acquireAttempt('sig-a', newKey);
+  markAttemptRetryable('sig-a', key);
+  releaseAttempt('sig-a', key); // 409 idempotency_conflict → 强制换键
+  const next = acquireAttempt('sig-a', newKey);
+  assert.notEqual(next.key, key);
+  assert.equal(next.reused, false);
 });
