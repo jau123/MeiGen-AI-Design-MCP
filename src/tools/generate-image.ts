@@ -229,6 +229,7 @@ async function generateWithOpenAI(
   lines.push(`- Provider: OpenAI-compatible (${model || config.openaiModel})`)
   if (referenceImages?.length) lines.push(`- Reference images: ${referenceImages.length} used`)
   if (savedPath) lines.push(`- Saved to: ${savedPath}`)
+  if (downloadNote) lines.push(`- ${downloadNote}`)
 
   return {
     content: [{ type: 'text' as const, text: lines.join('\n') }],
@@ -296,19 +297,24 @@ async function generateWithMeiGen(
   const allImageUrls = status.imageUrls?.length ? status.imageUrls : (status.imageUrl ? [status.imageUrl] : [])
 
   if (allImageUrls.length === 0) {
-    throw new Error('No image URL in completed generation')
+    // 任务已完成且已扣点,URL 缺失是响应异常:必须带 ID 抛出,裸错会诱导重试双扣(七审 P1)
+    throw new Error(`Generation ${genResponse.generationId} completed but the response is missing the image URL — check https://www.meigen.ai gallery or use check_generation; do NOT re-submit (it would charge again).`)
   }
 
-  // Download first image for local save
-  const imageRes = await fetch(allImageUrls[0])
-  if (!imageRes.ok) {
-    throw new Error(`Failed to download generated image: ${imageRes.status}`)
+  // Download first image for local save。下载失败**降级为成功返回远程 URL**:
+  // 任务已完成已扣点,本地保存只是增值步骤,失败不能变成"生成失败"诱导重试双扣(七审 P1)
+  let savedPath: string | null = null
+  let downloadNote: string | null = null
+  try {
+    const imageRes = await fetch(allImageUrls[0])
+    if (!imageRes.ok) throw new Error(`download ${imageRes.status}`)
+    const buffer = await imageRes.arrayBuffer()
+    const base64 = Buffer.from(buffer).toString('base64')
+    const mimeType = imageRes.headers.get('content-type') || 'image/jpeg'
+    savedPath = saveImageLocally(base64, mimeType)
+  } catch (downloadError) {
+    downloadNote = `Local save skipped (${downloadError instanceof Error ? downloadError.message : String(downloadError)}) — use the Image URL directly.`
   }
-  const buffer = await imageRes.arrayBuffer()
-  const base64 = Buffer.from(buffer).toString('base64')
-  const mimeType = imageRes.headers.get('content-type') || 'image/jpeg'
-
-  const savedPath = saveImageLocally(base64, mimeType)
 
   // 优先用后端返回的 modelId(反映真实使用的模型,包含 is_default 解析结果);
   // 若后端未回传(旧版 backend),用用户显式传入的 model,再 fallback 到占位
@@ -327,6 +333,7 @@ async function generateWithMeiGen(
   }
 
   if (savedPath) lines.push(`- Saved to: ${savedPath}`)
+  if (downloadNote) lines.push(`- ${downloadNote}`)
   lines.push(`\nYou can use any Image URL as referenceImages for follow-up generation.`)
 
   return {
@@ -377,6 +384,7 @@ async function generateWithComfyUI(
   const lines = [`Image generated successfully.`]
   lines.push(`- Provider: ComfyUI (workflow: ${workflowName})`)
   if (savedPath) lines.push(`- Saved to: ${savedPath}`)
+  if (downloadNote) lines.push(`- ${downloadNote}`)
   if (result.referenceImageWarning) lines.push(`\nWarning: ${result.referenceImageWarning}`)
 
   return {

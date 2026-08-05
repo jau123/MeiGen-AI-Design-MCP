@@ -5,30 +5,7 @@
 
 import { createHash, randomUUID } from 'node:crypto'
 
-/**
- * 幂等 attempt 键存储(2026-08-05 六审 P1:每次调用内部重新生成 UUID 挡不住
- * 「提交已扣点但响应丢失 → 宿主重试 → 新 UUID → 双扣」)。
- * 键在「逻辑工具尝试」层生成并跨重试保存:同参数在 ATTEMPT_TTL_MS 内复用同一键,
- * 服务端同事务判重返回原任务;提交成功或被明确拒绝(4xx)后释放。
- * 本地 stdio 进程有状态,模块级 Map 即可(进程重启丢失 = 退化为无幂等,可接受)。
- */
-const ATTEMPT_TTL_MS = 10 * 60_000
-const pendingAttempts = new Map<string, { key: string; createdAt: number }>()
-
-function attemptKeyFor(body: Record<string, unknown>): { sig: string; key: string } {
-  const sig = createHash('sha256').update(JSON.stringify(body)).digest('hex')
-  const existing = pendingAttempts.get(sig)
-  if (existing && Date.now() - existing.createdAt < ATTEMPT_TTL_MS) {
-    return { sig, key: existing.key }
-  }
-  const key = randomUUID()
-  pendingAttempts.set(sig, { key, createdAt: Date.now() })
-  return { sig, key }
-}
-
-function releaseAttempt(sig: string): void {
-  pendingAttempts.delete(sig)
-}
+import { acquireAttempt, markAttemptRetryable, releaseAttempt } from './attempt-store.js'
 
 import type { MeiGenConfig } from '../config.js'
 
@@ -215,9 +192,13 @@ export class MeiGenApiClient {
     return await this.submitWithAttemptKey(body)
   }
 
-  /** 提交生成请求:幂等键跨重试保存(同参数 10min 内复用;成功/4xx 释放,网络错误保留) */
+  /**
+   * 提交生成请求(2026-08-05 七审重构):并发同参数各拿新键(两张图=两单,不合并);
+   * 网络错误 / 5xx(可能已扣点)→ 键转 retryable 供重试复用;成功 / 4xx 明确拒绝 → 释放。
+   */
   private async submitWithAttemptKey(body: Record<string, unknown>): Promise<MeiGenGenerationResponse> {
-    const { sig, key } = attemptKeyFor(body)
+    const sig = createHash('sha256').update(JSON.stringify(body)).digest('hex')
+    const key = acquireAttempt(sig, randomUUID)
     let res: Response
     let json: MeiGenGenerationResponse
     try {
@@ -231,15 +212,19 @@ export class MeiGenApiClient {
       })
       json = await res.json() as MeiGenGenerationResponse
     } catch (error) {
-      // 网络层失败(响应丢失):键保留,宿主重试同参数会复用同键 → 服务端判重不双扣
+      markAttemptRetryable(sig, key)
       throw error
     }
     if (!res.ok || !json.success) {
-      // 服务端明确拒绝(402/400 等):该尝试已终结,释放键让下次是全新请求
-      releaseAttempt(sig)
+      if (res.status >= 500) {
+        // 5xx:服务端状态不明(可能已扣点建单),保留键让重试判重
+        markAttemptRetryable(sig, key)
+      } else {
+        releaseAttempt(sig, key)
+      }
       throw new Error(json.error || `Generation failed: ${res.status}`)
     }
-    releaseAttempt(sig)
+    releaseAttempt(sig, key)
     return json
   }
 

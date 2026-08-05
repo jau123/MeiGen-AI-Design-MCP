@@ -240,6 +240,7 @@ mcp_servers:
 | `manage_preferences` | Yes | Remember your preferred style, aspect ratio, model, and favorite prompts |
 | `generate_image` | Key | Generate an image — routes to the best available provider automatically. Local reference images are auto-compressed and uploaded. |
 | `generate_video` | Key | Generate a video via MeiGen platform — Seedance 2.0 (mini/fast/pro), Veo 3.1, Grok Video 1.5 (image-to-video only), or Agnes Video 2.0 (budget). Run `list_models` for the current lineup. Supports text-to-video and first-frame image-to-video; local files are auto-uploaded. Saves MP4 to `~/Movies/meigen/`. |
+| `check_generation` | No | Check a generation by ID — follow-up after interrupted polling (the error message includes the ID). Retry instead of re-submitting to avoid double charges. |
 
 ### Slash Commands
 

@@ -240,6 +240,7 @@ mcp_servers:
 | `manage_preferences` | 是 | 记住你偏好的风格、比例、模型和收藏的提示词 |
 | `generate_image` | 需要 Key | 生成图片 — 自动路由到最佳可用后端。本地参考图自动压缩上传。 |
 | `generate_video` | 需要 Key | 生成视频(MeiGen 后端) — Seedance 2.0 (mini/fast/pro 三档)、Veo 3.1、Grok Video 1.5(仅图生视频)、Agnes Video 2.0(实惠档)。用 `list_models` 查看当前在售清单。支持文生视频和首帧图生视频,本地文件自动上传。MP4 保存到 `~/Movies/meigen/`。 |
+| `check_generation` | 无需 | 按 ID 查询生成状态 — 轮询中断后的续查入口(错误信息里带 ID)。用它续查而不是重新提交,避免双扣。|
 
 ### 快捷命令
 
