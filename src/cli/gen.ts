@@ -215,6 +215,9 @@ export async function gen(argv: string[]): Promise<void> {
     return
   }
 
+  // ⚠️ CLI 无跨进程幂等保护(attempt-store 是进程内 Map,进程退出即消失;十三审):
+  // 提交时的 UUID 幂等键只防单次进程内的 HTTP 层重放。轮询中断后重跑 CLI = 新单;
+  // 错误信息始终带 generationId,人工去 gallery/status 续查,不要盲目重跑。
   // Block until terminal status
   if (!args.json) process.stderr.write(`Waiting for result...\n`)
   let status
@@ -230,8 +233,6 @@ export async function gen(argv: string[]): Promise<void> {
       },
     )
   } catch (err) {
-    // 轮询中断:挂起幂等尝试(同参数重跑 CLI 会续查同一任务,不再提交扣费,十一审)
-    client.suspendAttemptFor(submitResponse._attempt, submitResponse.generationId!)
     // Wrap polling errors so the user keeps the generationId (vital for
     // checking job state / requesting refunds out-of-band on timeout).
     const msg = err instanceof Error ? err.message : String(err)
@@ -250,17 +251,13 @@ export async function gen(argv: string[]): Promise<void> {
     process.exit(1)
   }
 
-  client.ackAttempt(submitResponse._attempt)
   if (status.status === 'failed') {
-    // 明确失败(服务端已退款):尝试终结
-    client.ackAttempt(submitResponse._attempt)
     console.error(`Generation failed: ${status.error || 'unknown error'}`)
     process.exit(1)
   }
 
   if (status.mediaType === 'video') {
     // 视频模型误用:任务已扣费,交付 URL+ID 而非报错退出(十二审 P2)
-    client.ackAttempt(submitResponse._attempt)
     console.log('This model produced a VIDEO (charged once — do NOT re-run):')
     if (status.videoUrl) console.log(`Video URL: ${status.videoUrl}`)
     console.log(`Generation ID: ${submitResponse.generationId}`)
@@ -269,14 +266,9 @@ export async function gen(argv: string[]): Promise<void> {
 
   const allImageUrls = status.imageUrls?.length ? status.imageUrls : (status.imageUrl ? [status.imageUrl] : [])
   if (allImageUrls.length === 0) {
-    // URL 缺失:挂起(重跑续查同任务)+ 带 ID 报错(十二审 P1)
-    client.suspendAttemptFor(submitResponse._attempt, submitResponse.generationId!)
     console.error(`Error: generation ${submitResponse.generationId} completed but no image URL — check ${config.meigenBaseUrl} gallery; do NOT re-run (it would charge again).`)
     process.exit(1)
   }
-  // URL 已确认:尝试终结(ack 必须在交付确认后)
-  client.ackAttempt(submitResponse._attempt)
-
   // Download + save first image locally
   let savedPath: string | undefined
   try {

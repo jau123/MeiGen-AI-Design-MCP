@@ -47,10 +47,21 @@ export function registerCheckGeneration(server: McpServer, apiClient: MeiGenApiC
             isError: true,
           }
         }
-        releaseByGenerationId(generationId) // completed:挂起尝试了结,同参数下次是新单
         const urls = status.mediaType === 'video'
           ? [status.videoUrl].filter(Boolean)
           : (status.imageUrls ?? [status.imageUrl]).filter(Boolean)
+        if (urls.length === 0) {
+          // completed 但 URL 缺失(十三审 P1):不 release(保留挂起尝试防重提双扣),
+          // 明确告知带 ID 稍后再查,绝不当成功
+          return {
+            content: [{
+              type: 'text' as const,
+              text: `Generation ${generationId} reports completed but the media URL is missing — retry check_generation shortly or look in https://www.meigen.ai gallery. Do NOT re-submit the generation (it would charge again).`,
+            }],
+            isError: true,
+          }
+        }
+        releaseByGenerationId(generationId) // URL 确认交付:挂起尝试了结,同参数下次是新单
         return {
           content: [{
             type: 'text' as const,

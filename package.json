@@ -17,7 +17,7 @@
     "build": "tsc",
     "dev": "tsx src/index.ts",
     "typecheck": "tsc --noEmit",
-    "test": "node --test src/lib/*.test.mjs"
+    "test": "node --test src/lib/*.test.mjs && node --import tsx --test src/tools/*.test.mjs"
   },
   "keywords": [
     "mcp",
