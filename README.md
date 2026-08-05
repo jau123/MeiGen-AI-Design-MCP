@@ -3,7 +3,7 @@
 </h1>
 
 <p align="center">
-  <strong>Open-source MCP server for AI image &amp; video generation — native to every major AI coding tool</strong><br><sub>11 leading models (GPT Image 2 · Nanobanana 2 · Seedream 5.0 · Midjourney V8.1 · Flux 2 Klein · Grok Imagine · Seedance 2.0 · Happyhorse 1.1 · Veo 3.1 · Grok Video · local ComfyUI) · 1,446 curated prompts · parallel sub-agent orchestration · standalone CLI mode. Works in Claude Code, Cursor, Codex, Windsurf, Roo Code, OpenClaw, Hermes Agent, and any MCP-compatible host.</sub>
+  <strong>Open-source MCP server for AI image &amp; video generation — native to every major AI coding tool</strong><br><sub>11 leading models (GPT Image 2 · Nanobanana 2 · Seedream 5.0 · Midjourney V8.1 · Flux 2 Klein · Grok Imagine · Seedance 2.0 · Veo 3.1 · Grok Video · Agnes Video · local ComfyUI) · 1,446 curated prompts · parallel sub-agent orchestration · standalone CLI mode. Works in Claude Code, Cursor, Codex, Windsurf, Roo Code, OpenClaw, Hermes Agent, and any MCP-compatible host.</sub>
 </p>
 
 <p align="center">
@@ -78,7 +78,19 @@ An MCP server that turns any AI coding tool into a professional design assistant
 
 ## Quick Start
 
-### Claude Code Plugin (Recommended)
+### Remote MCP Endpoint (zero-install, recommended)
+
+MeiGen now hosts an official **stateless remote MCP endpoint** — no npm install, no local process, and it always reflects the live model lineup, pricing and time estimates (tool descriptions are generated per-request from the production database):
+
+```bash
+claude mcp add --transport http meigen https://www.meigen.ai/api/mcp \
+  --header "Authorization: Bearer meigen_sk_YOUR_TOKEN"
+```
+
+Works with any Streamable-HTTP MCP client (2026-07-28 stateless protocol, with fallback for 2025-era clients). Read-only tools (search, model list, inspiration) work without a token. The remote endpoint returns media URLs; if you want automatic local file saving, prompt-library offline search, ComfyUI bridging or the CLI, use the npm package below — both share the same account and credits.
+
+
+### Claude Code Plugin (npm, local tools)
 
 ```bash
 # Add the plugin marketplace
@@ -206,11 +218,11 @@ mcp_servers:
     args: ["-y", "meigen@1.3.3"]
     env:
       MEIGEN_API_TOKEN: "meigen_sk_..."
-    timeout: 600          # generate_video can take 5–10 min — default 120s is not enough
+    timeout: 2700         # generate_video polls until the server reports a terminal state (long videos can run 15+ min) — default 120s is not enough
     connect_timeout: 120  # first npx download can take a minute
 ```
 
-> The `timeout: 600` and `connect_timeout: 120` overrides are important — Hermes defaults (120s / 60s) are tuned for short-running tools and will time out on video generation or first-run npx downloads.
+> The `timeout: 2700` and `connect_timeout: 120` overrides are important — Hermes defaults (120s / 60s) are tuned for short-running tools and will time out on video generation or first-run npx downloads.
 
 ---
 
@@ -227,7 +239,7 @@ mcp_servers:
 | `comfyui_workflow` | Yes | Manage ComfyUI workflow templates: list, view, import, modify, delete |
 | `manage_preferences` | Yes | Remember your preferred style, aspect ratio, model, and favorite prompts |
 | `generate_image` | Key | Generate an image — routes to the best available provider automatically. Local reference images are auto-compressed and uploaded. |
-| `generate_video` | Key | Generate a video via MeiGen platform — Seedance 2.0 (mini/fast/pro), Happyhorse 1.1, Veo 3.1, or Grok Video 1.5 (image-to-video only). Supports text-to-video and first-frame image-to-video; local files are auto-uploaded. Saves MP4 to `~/Movies/meigen/`. |
+| `generate_video` | Key | Generate a video via MeiGen platform — Seedance 2.0 (mini/fast/pro), Veo 3.1, Grok Video 1.5 (image-to-video only), or Agnes Video 2.0 (budget). Run `list_models` for the current lineup. Supports text-to-video and first-frame image-to-video; local files are auto-uploaded. Saves MP4 to `~/Movies/meigen/`. |
 
 ### Slash Commands
 

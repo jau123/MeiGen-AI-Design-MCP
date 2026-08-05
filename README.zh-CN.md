@@ -3,7 +3,7 @@
 </h1>
 
 <p align="center">
-  <strong>开源 MCP 服务器 — 把 AI 图像和视频生成原生接入到你的 AI 编程工具</strong><br><sub>支持 11 个主流模型(GPT Image 2 · Nanobanana 2 · Seedream 5.0 · Midjourney V8.1 · Flux 2 Klein · Grok Imagine · Seedance 2.0 · Happyhorse 1.1 · Veo 3.1 · Grok Video · 本地 ComfyUI),内置 1,446 条精选提示词,支持并行子 Agent 编排和独立 CLI 模式。可用于 Claude Code、Cursor、Codex、Windsurf、Roo Code、OpenClaw、Hermes Agent 及任意 MCP 兼容客户端。</sub>
+  <strong>开源 MCP 服务器 — 把 AI 图像和视频生成原生接入到你的 AI 编程工具</strong><br><sub>支持 11 个主流模型(GPT Image 2 · Nanobanana 2 · Seedream 5.0 · Midjourney V8.1 · Flux 2 Klein · Grok Imagine · Seedance 2.0 · Veo 3.1 · Grok Video · Agnes Video · 本地 ComfyUI),内置 1,446 条精选提示词,支持并行子 Agent 编排和独立 CLI 模式。可用于 Claude Code、Cursor、Codex、Windsurf、Roo Code、OpenClaw、Hermes Agent 及任意 MCP 兼容客户端。</sub>
 </p>
 
 <p align="center">
@@ -77,6 +77,18 @@
 ---
 
 ## 快速开始
+
+### 远程 MCP 端点(免安装,推荐)
+
+MeiGen 现已提供官方**无状态远程 MCP 端点** — 无需 npm 安装、无本地进程,模型清单/定价/估时永远与生产实况一致(工具描述每次请求从生产数据库动态生成):
+
+```bash
+claude mcp add --transport http meigen https://www.meigen.ai/api/mcp \
+  --header "Authorization: Bearer meigen_sk_你的令牌"
+```
+
+兼容任意 Streamable HTTP MCP 客户端(2026-07-28 无状态协议,并向下兼容 2025 时代客户端)。只读工具(搜索/模型列表/灵感)无需令牌。远程端点返回媒体 URL;如需自动保存本地文件、离线提示词库、ComfyUI 桥接或 CLI,请使用下方 npm 包 — 两种形态共享同一账号与积分。
+
 
 ### Claude Code 插件（推荐）
 
@@ -206,11 +218,11 @@ mcp_servers:
     args: ["-y", "meigen@1.3.3"]
     env:
       MEIGEN_API_TOKEN: "meigen_sk_..."
-    timeout: 600          # generate_video 可能 5–10 分钟,Hermes 默认 120s 会超时
+    timeout: 2700         # generate_video 会等到服务端报终态(长视频可达 15+ 分钟),Hermes 默认 120s 会超时
     connect_timeout: 120  # 首次 npx 下载可能需要一分钟
 ```
 
-> `timeout: 600` 和 `connect_timeout: 120` 这两个覆盖很重要 — Hermes 默认(120s / 60s)是给短命令调好的,视频生成或首次 npx 下载会超。
+> `timeout: 2700` 和 `connect_timeout: 120` 这两个覆盖很重要 — Hermes 默认(120s / 60s)是给短命令调好的,视频生成或首次 npx 下载会超。
 
 ---
 
@@ -227,7 +239,7 @@ mcp_servers:
 | `comfyui_workflow` | 是 | 管理 ComfyUI 工作流模板：列表、查看、导入、修改、删除 |
 | `manage_preferences` | 是 | 记住你偏好的风格、比例、模型和收藏的提示词 |
 | `generate_image` | 需要 Key | 生成图片 — 自动路由到最佳可用后端。本地参考图自动压缩上传。 |
-| `generate_video` | 需要 Key | 生成视频(MeiGen 后端) — Seedance 2.0 (mini/fast/pro 三档)、Happyhorse 1.1、Veo 3.1、Grok Video 1.5(仅图生视频)。支持文生视频和首帧图生视频,本地文件自动上传。MP4 保存到 `~/Movies/meigen/`。 |
+| `generate_video` | 需要 Key | 生成视频(MeiGen 后端) — Seedance 2.0 (mini/fast/pro 三档)、Veo 3.1、Grok Video 1.5(仅图生视频)、Agnes Video 2.0(实惠档)。用 `list_models` 查看当前在售清单。支持文生视频和首帧图生视频,本地文件自动上传。MP4 保存到 `~/Movies/meigen/`。 |
 
 ### 快捷命令
 
