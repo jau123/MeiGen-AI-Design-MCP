@@ -274,14 +274,17 @@ async function generateWithMeiGen(
       },
     )
   } catch (pollError) {
-    // 任务已创建且已扣点:任何轮询失败都必须带 generationId 返回,报裸错会诱导重试双扣
-    // (2026-08-05 五审 P1;与 generate-video 的 timeoutHint 同语义)
+    // 任务已创建且已扣点:挂起幂等尝试(同参数重试直接续查同一任务,不再提交扣费,
+    // 十一审),并带 generationId 返回 —— 报裸错会诱导重试双扣
+    apiClient.suspendAttemptFor(genResponse._attempt, genResponse.generationId!)
     const msg = pollError instanceof Error ? pollError.message : String(pollError)
     throw new Error(
       `${msg}\n\nGeneration ID: ${genResponse.generationId}. The job may still complete in the background — ` +
         'check https://www.meigen.ai or use check_generation before retrying. If it ultimately fails, credits auto-refund.'
     )
   }
+  // 拿到终态:确认释放幂等尝试(成功交付或明确失败都算终结,「再来一张」应是新单)
+  apiClient.ackAttempt(genResponse._attempt)
 
   if (status.status === 'failed') {
     throw new Error(status.error || 'Generation failed')

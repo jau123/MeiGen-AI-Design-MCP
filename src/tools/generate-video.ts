@@ -210,15 +210,23 @@ export function registerGenerateVideo(server: McpServer, apiClient: MeiGenApiCli
 
           await notify(extra, 'Video generation submitted, waiting for result...')
 
-          // 2. Poll — 视频比图片慢,超时设 8min
-          const status = await apiClient.waitForGeneration(
-            generationId,
-            undefined, // 服务端 pollHintSeconds 驱动;本地仅安全阀(POLL_SAFETY_VALVE_MS)
-
-            async (elapsedMs) => {
-              await notify(extra, `Still generating video... (${Math.round(elapsedMs / 1000)}s elapsed)`)
-            },
-          )
+          // 2. Poll(服务端 pollHintSeconds 驱动;本地仅安全阀)
+          let status
+          try {
+            status = await apiClient.waitForGeneration(
+              generationId,
+              undefined,
+              async (elapsedMs) => {
+                await notify(extra, `Still generating video... (${Math.round(elapsedMs / 1000)}s elapsed)`)
+              },
+            )
+          } catch (pollError) {
+            // 任务已建已扣费:挂起幂等尝试(同参数重试续查同一任务,不再提交扣费,十一审)
+            apiClient.suspendAttemptFor(genResponse._attempt, generationId)
+            throw pollError
+          }
+          // 拿到终态:确认释放幂等尝试(「再来一张」应是新单)
+          apiClient.ackAttempt(genResponse._attempt)
 
           if (status.status === 'failed') {
             throw new Error(status.error || 'Video generation failed')
@@ -234,7 +242,9 @@ export function registerGenerateVideo(server: McpServer, apiClient: MeiGenApiCli
                 type: 'text' as const,
                 text: [
                   `This model produced ${status.mediaType?.toUpperCase() ?? 'an IMAGE'} (you were charged once — do NOT re-submit).`,
-                  ...imgUrls.map((u) => `Image URL: ${u}`),
+                  ...(imgUrls.length
+                    ? imgUrls.map((u) => `Image URL: ${u}`)
+                    : ['The response is missing the media URL — check https://www.meigen.ai gallery or use check_generation.']),
                   `Generation ID: ${generationId}`,
                   'Next time use the generate_image tool for this model.',
                 ].join('\n'),

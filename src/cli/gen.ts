@@ -230,6 +230,8 @@ export async function gen(argv: string[]): Promise<void> {
       },
     )
   } catch (err) {
+    // 轮询中断:挂起幂等尝试(同参数重跑 CLI 会续查同一任务,不再提交扣费,十一审)
+    client.suspendAttemptFor(submitResponse._attempt, submitResponse.generationId!)
     // Wrap polling errors so the user keeps the generationId (vital for
     // checking job state / requesting refunds out-of-band on timeout).
     const msg = err instanceof Error ? err.message : String(err)
@@ -248,6 +250,7 @@ export async function gen(argv: string[]): Promise<void> {
     process.exit(1)
   }
 
+  client.ackAttempt(submitResponse._attempt)
   if (status.status === 'failed') {
     console.error(`Generation failed: ${status.error || 'unknown error'}`)
     process.exit(1)

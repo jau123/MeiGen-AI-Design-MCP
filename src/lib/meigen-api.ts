@@ -5,7 +5,7 @@
 
 import { createHash, randomUUID } from 'node:crypto'
 
-import { acquireAttempt, markAttemptCompleted, markAttemptRetryable, releaseAttempt } from './attempt-store.js'
+import { acquireAttempt, markAttemptRetryable, releaseAttempt, suspendAttempt } from './attempt-store.js'
 
 import type { MeiGenConfig } from '../config.js'
 
@@ -66,8 +66,10 @@ export interface MeiGenGenerationResponse {
   modelId?: string        // 后端返回实际使用的模型 ID(MCP 没传 modelId 时走 DB is_default)
   creditsUsed?: number
   error?: string
-  /** 短窗内命中已成功建单的同参数尝试,未重新提交(直接续查该任务) */
+  /** 命中「任务已建但轮询中断」的挂起尝试,未重新提交(直接续查该任务) */
   reusedPrior?: boolean
+  /** 幂等尝试句柄(内部):工具层终态 ackAttempt / 轮询中断 suspendAttemptFor */
+  _attempt?: { sig: string; key: string }
 }
 
 /**
@@ -204,7 +206,7 @@ export class MeiGenApiClient {
     // 短窗内同参数已成功建单(轮询失败后的宿主重试):不再提交,直接返回原任务
     // 让调用方续查 —— 提交即扣费,重复提交就是双扣(十审 P1)
     if (priorGenerationId) {
-      return { success: true, generationId: priorGenerationId, reusedPrior: true } as MeiGenGenerationResponse
+      return { success: true, generationId: priorGenerationId, reusedPrior: true, _attempt: { sig, key } } as MeiGenGenerationResponse
     }
     let res: Response
     let json: MeiGenGenerationResponse
@@ -239,13 +241,20 @@ export class MeiGenApiClient {
       }
       throw new Error(json.error || `Generation failed: ${res.status}`)
     }
-    // 提交成功 = 任务已建已扣费:键转 completed 短窗保留(轮询失败重试拿回同任务)
-    if (json.generationId) {
-      markAttemptCompleted(sig, key, json.generationId)
-    } else {
-      releaseAttempt(sig, key)
-    }
-    return json
+    // 提交成功 = 任务已建已扣费。键保持 in-flight,生命周期交工具层(十一审):
+    // 终态(成功交付/明确失败)→ ackAttempt 释放,「再来一张」永远新单;
+    // 轮询中断 → suspendAttemptFor 挂起保留 generationId 供续查。
+    return { ...json, _attempt: { sig, key } }
+  }
+
+  /** 工具层终态确认:释放幂等尝试(此后同参数是全新生成)。 */
+  ackAttempt(attempt?: { sig: string; key: string }): void {
+    if (attempt) releaseAttempt(attempt.sig, attempt.key)
+  }
+
+  /** 工具层轮询中断:挂起尝试保留任务 ID(同参数重试直接续查,不再提交扣费)。 */
+  suspendAttemptFor(attempt: { sig: string; key: string } | undefined, generationId: string): void {
+    if (attempt) suspendAttempt(attempt.sig, attempt.key, generationId)
   }
 
   /** Generate a video (requires API token) */

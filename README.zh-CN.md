@@ -382,7 +382,7 @@ MeiGen MCP 尊重你的隐私。以下是数据处理方式：
 - **MeiGen 云端** — 提示词和参考图会发送到 `www.meigen.ai` 进行生成。生成的图片临时存储在 Cloudflare R2。详见 [meigen.ai/privacy](https://www.meigen.ai/privacy)。
 - **OpenAI 兼容 API** — 提示词和参考图会发送到你配置的 API 端点。请参考你的服务商隐私政策。
 - **参考图上传** — 图片在本地压缩（最大 2MB）后上传到 Cloudflare R2（通过 `gen.meigen.ai`），无需认证。上传图片 **24 小时后自动过期**。ComfyUI 用户可直接传本地路径,完全跳过上传。
-- **灵感搜索和提示词增强** — 在本地使用内置数据运行，不调用外部 API。
+- **灵感搜索** — 带查询词时会请求 MeiGen API(查询文本发送到 `www.meigen.ai`);分类浏览与离线兜底使用内置本地数据。**提示词增强**完全本地运行,不调用外部 API。
 
 不包含任何遥测、分析或追踪功能。
 

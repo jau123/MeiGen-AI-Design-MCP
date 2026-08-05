@@ -10,7 +10,7 @@ const compiled = ts.transpileModule(source, {
   compilerOptions: { module: ts.ModuleKind.ES2022, target: ts.ScriptTarget.ES2022 },
 }).outputText;
 const moduleUrl = `data:text/javascript;base64,${Buffer.from(compiled).toString('base64')}`;
-const { acquireAttempt, markAttemptCompleted, markAttemptRetryable, releaseAttempt, __resetAttempts } = await import(moduleUrl);
+const { acquireAttempt, suspendAttempt, markAttemptRetryable, releaseAttempt, __resetAttempts } = await import(moduleUrl);
 
 let n = 0;
 const newKey = () => `key-${++n}`;
@@ -62,17 +62,27 @@ test('不同参数互不影响', () => {
   assert.notEqual(acquireAttempt('sig-b', newKey).key, kA);
 });
 
-test('提交成功后短窗内同参数重试拿回 priorGenerationId(不再提交,防双扣)', () => {
+test('轮询中断挂起后,同参数重试拿回 priorGenerationId(续查不再提交)', () => {
   const { key } = acquireAttempt('sig-a', newKey);
-  markAttemptCompleted('sig-a', key, 'gen-123');
+  suspendAttempt('sig-a', key, 'gen-123');
   const again = acquireAttempt('sig-a', newKey);
   assert.equal(again.priorGenerationId, 'gen-123');
   assert.equal(again.reused, true);
 });
 
-test('completed 键不阻塞不同参数的新请求', () => {
+test('正常终态 ack(release)后,同参数"再来一张"是全新单(十一审:不受时间窗劫持)', () => {
   const { key } = acquireAttempt('sig-a', newKey);
-  markAttemptCompleted('sig-a', key, 'gen-123');
+  // 模拟提交成功 → 轮询终态 → 工具层 ack
+  releaseAttempt('sig-a', key);
+  const again = acquireAttempt('sig-a', newKey);
+  assert.equal(again.priorGenerationId, undefined);
+  assert.equal(again.reused, false);
+  assert.notEqual(again.key, key);
+});
+
+test('挂起键不阻塞不同参数的新请求', () => {
+  const { key } = acquireAttempt('sig-a', newKey);
+  suspendAttempt('sig-a', key, 'gen-123');
   const other = acquireAttempt('sig-b', newKey);
   assert.equal(other.priorGenerationId, undefined);
 });
