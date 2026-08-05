@@ -3,7 +3,32 @@
  * Used for MeiGen platform mode — calls the hosted generation API
  */
 
-import { randomUUID } from 'node:crypto'
+import { createHash, randomUUID } from 'node:crypto'
+
+/**
+ * 幂等 attempt 键存储(2026-08-05 六审 P1:每次调用内部重新生成 UUID 挡不住
+ * 「提交已扣点但响应丢失 → 宿主重试 → 新 UUID → 双扣」)。
+ * 键在「逻辑工具尝试」层生成并跨重试保存:同参数在 ATTEMPT_TTL_MS 内复用同一键,
+ * 服务端同事务判重返回原任务;提交成功或被明确拒绝(4xx)后释放。
+ * 本地 stdio 进程有状态,模块级 Map 即可(进程重启丢失 = 退化为无幂等,可接受)。
+ */
+const ATTEMPT_TTL_MS = 10 * 60_000
+const pendingAttempts = new Map<string, { key: string; createdAt: number }>()
+
+function attemptKeyFor(body: Record<string, unknown>): { sig: string; key: string } {
+  const sig = createHash('sha256').update(JSON.stringify(body)).digest('hex')
+  const existing = pendingAttempts.get(sig)
+  if (existing && Date.now() - existing.createdAt < ATTEMPT_TTL_MS) {
+    return { sig, key: existing.key }
+  }
+  const key = randomUUID()
+  pendingAttempts.set(sig, { key, createdAt: Date.now() })
+  return { sig, key }
+}
+
+function releaseAttempt(sig: string): void {
+  pendingAttempts.delete(sig)
+}
 
 import type { MeiGenConfig } from '../config.js'
 
@@ -173,9 +198,6 @@ export class MeiGenApiClient {
     const body: Record<string, unknown> = {
       prompt: params.prompt,
       aspectRatio: params.aspectRatio || 'auto',
-      // 每次逻辑调用一个 UUID:HTTP 层(代理/网络栈)重发同一请求时服务端同事务判重,
-      // 不会重复扣点(2026-08-05 五审 P1;宿主 LLM 的新调用是新 UUID = 新任务)
-      idempotencyKey: randomUUID(),
     }
     if (params.modelId) {
       body.modelId = params.modelId
@@ -190,20 +212,34 @@ export class MeiGenApiClient {
       body.referenceImages = params.referenceImages
     }
 
-    const res = await fetch(`${this.baseUrl}/api/generate/v2`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${this.apiToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    })
+    return await this.submitWithAttemptKey(body)
+  }
 
-    const json = await res.json() as MeiGenGenerationResponse
+  /** 提交生成请求:幂等键跨重试保存(同参数 10min 内复用;成功/4xx 释放,网络错误保留) */
+  private async submitWithAttemptKey(body: Record<string, unknown>): Promise<MeiGenGenerationResponse> {
+    const { sig, key } = attemptKeyFor(body)
+    let res: Response
+    let json: MeiGenGenerationResponse
+    try {
+      res = await fetch(`${this.baseUrl}/api/generate/v2`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.apiToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ...body, idempotencyKey: key }),
+      })
+      json = await res.json() as MeiGenGenerationResponse
+    } catch (error) {
+      // 网络层失败(响应丢失):键保留,宿主重试同参数会复用同键 → 服务端判重不双扣
+      throw error
+    }
     if (!res.ok || !json.success) {
+      // 服务端明确拒绝(402/400 等):该尝试已终结,释放键让下次是全新请求
+      releaseAttempt(sig)
       throw new Error(json.error || `Generation failed: ${res.status}`)
     }
-
+    releaseAttempt(sig)
     return json
   }
 
@@ -227,7 +263,6 @@ export class MeiGenApiClient {
       modelId: params.modelId,
       prompt: params.prompt,
       aspectRatio: params.aspectRatio || 'auto',
-      idempotencyKey: randomUUID(), // 同上:HTTP 层重放防重复扣点
     }
     if (params.resolution) body.resolution = params.resolution
     if (typeof params.duration === 'number') body.duration = params.duration
@@ -236,27 +271,15 @@ export class MeiGenApiClient {
     if (params.referenceVideo) body.referenceVideo = params.referenceVideo
     if (typeof params.referenceVideoDuration === 'number') body.referenceVideoDuration = params.referenceVideoDuration
 
-    const res = await fetch(`${this.baseUrl}/api/generate/v2`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${this.apiToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    })
-
-    const json = await res.json() as MeiGenGenerationResponse
-    if (!res.ok || !json.success) {
-      throw new Error(json.error || `Generation failed: ${res.status}`)
-    }
-
-    return json
+    return await this.submitWithAttemptKey(body)
   }
 
   /** Check generation status by ID (no auth required) */
   async getGenerationStatus(generationId: string): Promise<MeiGenGenerationStatus> {
     const res = await fetch(
-      `${this.baseUrl}/api/generate/v2/status/${encodeURIComponent(generationId)}`
+      `${this.baseUrl}/api/generate/v2/status/${encodeURIComponent(generationId)}`,
+      // 带 token 时服务端做归属校验(2026-08-05 六审 IDOR 收敛;无 token 走公开路径兼容)
+      this.apiToken ? { headers: { Authorization: `Bearer ${this.apiToken}` } } : undefined,
     )
 
     if (!res.ok) {

@@ -3,7 +3,7 @@
 </h1>
 
 <p align="center">
-  <strong>开源 MCP 服务器 — 把 AI 图像和视频生成原生接入到你的 AI 编程工具</strong><br><sub>支持 11 个主流模型(GPT Image 2 · Nanobanana 2 · Seedream 5.0 · Midjourney V8.1 · Flux 2 Klein · Grok Imagine · Seedance 2.0 · Veo 3.1 · Grok Video · Agnes Video · 本地 ComfyUI),内置 1,446 条精选提示词,支持并行子 Agent 编排和独立 CLI 模式。可用于 Claude Code、Cursor、Codex、Windsurf、Roo Code、OpenClaw、Hermes Agent 及任意 MCP 兼容客户端。</sub>
+  <strong>开源 MCP 服务器 — 把 AI 图像和视频生成原生接入到你的 AI 编程工具</strong><br><sub>支持主流模型(GPT Image 2 · Nanobanana 2 · Seedream 5.0 · Midjourney V8.1 · Flux 2 Klein · Grok Imagine · Seedance 2.0 · Veo 3.1 · Grok Video · Agnes Video · 本地 ComfyUI),内置 1,446 条精选提示词,支持并行子 Agent 编排和独立 CLI 模式。可用于 Claude Code、Cursor、Codex、Windsurf、Roo Code、OpenClaw、Hermes Agent 及任意 MCP 兼容客户端。</sub>
 </p>
 
 <p align="center">
@@ -31,7 +31,7 @@
 
 ## 这是什么？
 
-一个开源 MCP 服务器,把任何 AI 编程工具变成专业设计助理。**8 个工具** + 1,446 条精选提示词库,让它能设计 logo、做产品图、把静态图动画化成视频,以及并行编排多个方向的批量生成。支持 **Claude Code**、**Cursor**、**Codex**、**Windsurf**、**Roo Code**、**OpenClaw**、**Hermes Agent** 以及任意 MCP 兼容客户端 — 后端可选 **MeiGen 平台**、任意 **OpenAI 兼容 API** 或你的 **本地 ComfyUI**。
+一个开源 MCP 服务器,把任何 AI 编程工具变成专业设计助理。**9 个工具** + 精选提示词库,让它能设计 logo、做产品图、把静态图动画化成视频,以及并行编排多个方向的批量生成。支持 **Claude Code**、**Cursor**、**Codex**、**Windsurf**、**Roo Code**、**OpenClaw**、**Hermes Agent** 以及任意 MCP 兼容客户端 — 后端可选 **MeiGen 平台**、任意 **OpenAI 兼容 API** 或你的 **本地 ComfyUI**。
 
 - 三种后端模式:**MeiGen 云端**(9 个图像与视频模型)、**OpenAI 兼容**(自带 key 和端点)、**本地 ComfyUI**(离线,你的 GPU)
 - 内置 1,446 条精选提示词(来自 [nanobanana-trending-prompts](https://github.com/jau123/nanobanana-trending-prompts))+ 风格感知的提示词增强

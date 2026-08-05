@@ -3,7 +3,7 @@
 </h1>
 
 <p align="center">
-  <strong>Open-source MCP server for AI image &amp; video generation — native to every major AI coding tool</strong><br><sub>11 leading models (GPT Image 2 · Nanobanana 2 · Seedream 5.0 · Midjourney V8.1 · Flux 2 Klein · Grok Imagine · Seedance 2.0 · Veo 3.1 · Grok Video · Agnes Video · local ComfyUI) · 1,446 curated prompts · parallel sub-agent orchestration · standalone CLI mode. Works in Claude Code, Cursor, Codex, Windsurf, Roo Code, OpenClaw, Hermes Agent, and any MCP-compatible host.</sub>
+  <strong>Open-source MCP server for AI image &amp; video generation — native to every major AI coding tool</strong><br><sub>Leading models (GPT Image 2 · Nanobanana 2 · Seedream 5.0 · Midjourney V8.1 · Flux 2 Klein · Grok Imagine · Seedance 2.0 · Veo 3.1 · Grok Video · Agnes Video · local ComfyUI) · 1,446 curated prompts · parallel sub-agent orchestration · standalone CLI mode. Works in Claude Code, Cursor, Codex, Windsurf, Roo Code, OpenClaw, Hermes Agent, and any MCP-compatible host.</sub>
 </p>
 
 <p align="center">
@@ -31,7 +31,7 @@
 
 ## What Is This?
 
-An MCP server that turns any AI coding tool into a professional design assistant. **8 tools** + a curated 1,446-prompt library let it design logos, render product shots, animate stills into video, and orchestrate parallel batch variations. Works in **Claude Code**, **Cursor**, **Codex**, **Windsurf**, **Roo Code**, **OpenClaw**, **Hermes Agent**, and any MCP-compatible host — with the **MeiGen platform**, any **OpenAI-compatible API**, or your **local ComfyUI** as the backend.
+An MCP server that turns any AI coding tool into a professional design assistant. **9 tools** + a curated prompt library let it design logos, render product shots, animate stills into video, and orchestrate parallel batch variations. Works in **Claude Code**, **Cursor**, **Codex**, **Windsurf**, **Roo Code**, **OpenClaw**, **Hermes Agent**, and any MCP-compatible host — with the **MeiGen platform**, any **OpenAI-compatible API**, or your **local ComfyUI** as the backend.
 
 - Three backend modes: **MeiGen cloud** (9 image and video models), **OpenAI-compatible** (bring your own key and endpoint), or **local ComfyUI** (offline, your GPU)
 - Built-in 1,446 curated prompt templates from [nanobanana-trending-prompts](https://github.com/jau123/nanobanana-trending-prompts) plus style-aware prompt enhancement
