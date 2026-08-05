@@ -239,7 +239,7 @@ mcp_servers:
 | `comfyui_workflow` | 是 | 管理 ComfyUI 工作流模板：列表、查看、导入、修改、删除 |
 | `manage_preferences` | 是 | 记住你偏好的风格、比例、模型和收藏的提示词 |
 | `generate_image` | 需要 Key | 生成图片 — 自动路由到最佳可用后端。本地参考图自动压缩上传。 |
-| `generate_video` | 需要 Key | 生成视频(MeiGen 后端) — Seedance 2.0 (mini/fast/pro 三档)、Veo 3.1、Grok Video 1.5(仅图生视频)、Agnes Video 2.0(实惠档)。用 `list_models` 查看当前在售清单。支持文生视频和首帧图生视频,本地文件自动上传。MP4 保存到 `~/Movies/meigen/`。 |
+| `generate_video` | 需要 Key | 使用 MeiGen 当前在售的视频模型生成视频。模型、档位、分辨率、输出时长、首帧要求与参考视频限制均以 `list_models` 返回的实时能力为准；本地首帧图会自动上传，MP4 默认保存到 `~/Movies/meigen/`。 |
 | `check_generation` | 无需 | 按 ID 查询生成状态 — 轮询中断后的续查入口(错误信息里带 ID)。用它续查而不是重新提交,避免双扣。|
 
 ### 快捷命令

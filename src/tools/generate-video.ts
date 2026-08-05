@@ -107,34 +107,34 @@ async function saveVideoLocally(videoUrl: string): Promise<string | undefined> {
 
 export const generateVideoSchema = {
   prompt: z.string().trim().min(1, 'Prompt cannot be empty').describe('The video generation prompt. Describe motion, scene, and style — not just the still image.'),
-  model: z.string().min(1).describe('Video model ID. Use list_models to see available video models. Common (as of writing): "seedance-2-0" (multi-tier general purpose), "veo-3.1" (Google Veo with two tiers, 4/6/8s, native audio), "grok-video" (xAI Grok Imagine 1.5 — IMAGE-TO-VIDEO ONLY: firstFrame REQUIRED, pure text-to-video is rejected; native audio; 4-15s; 480p/720p), "agnes-video-2.0" (budget-friendly 480p, flat per-video pricing). list_models is the authority — model lineup changes without MCP releases.'),
+  model: z.string().min(1).describe('Video model ID. REQUIRED; call list_models for the live lineup and capabilities.'),
   tier: z.string().optional()
-    .describe('Quality tier — only for models that support tiers. seedance-2-0 accepts "mini" (default, cheapest; 480p/720p, supports reference video), "fast" (480p/720p), or "pro" (highest fidelity; native 1080p and 4K); veo-3.1 accepts "fast" (default) or "pro". Tiers may be added by the platform — call list_models to see what each model exposes.'),
+    .describe('Optional model tier. Use list_models for the selected model\'s live tier values.'),
   duration: z.number().int().positive().optional()
-    .describe('Video duration in seconds. seedance-2-0 accepts 4–15s (any integer in range). veo-3.1 accepts exactly 4, 6, or 8 (default 4) — other values will be rejected. Defaults to the model\'s default duration. Call list_models for the current allowed values per model.'),
+    .describe('Video duration in seconds. Use list_models for the model\'s enum/range; when omitted the server uses the omitted-request default shown there.'),
   resolution: z.string().optional()
-    .describe('Output resolution. Common: "480p" / "720p" / "1080p" / "4k" (model-dependent; e.g. Seedance Pro adds 1080p and 4k, while Fast/Mini are 480p/720p only). Use list_models to see what each model supports. Higher resolutions cost more credits per second.'),
+    .describe('Output resolution. Use list_models for the selected model/tier\'s live values.'),
   aspectRatio: z.string().optional()
     .describe('Aspect ratio: "16:9", "9:16", "1:1", "4:3", "3:4", "21:9", "auto", "adaptive" (model-dependent). Defaults to "auto" when omitted.'),
   firstFrame: z.string().optional()
-    .describe('First-frame image to control where the video starts. Accepts public URL or local file path (auto-uploaded). REQUIRED for grok-video (image-to-video only — backend rejects it without a firstFrame). For other models it is optional: with no first frame they do pure text-to-video.'),
+    .describe('First-frame image when required or supported by the selected model. Accepts a public URL or local file path (auto-uploaded); use list_models and let the server enforce the live model contract.'),
   lastFrame: z.string().optional()
-    .describe('Optional last-frame image to also control where the video ends. Used by seedance-2-0 and veo-3.1; other models ignore this field. Accepts public URL or local file path. Requires firstFrame to also be provided — passing lastFrame alone is rejected.'),
+    .describe('Optional last-frame image for a model that supports it. Accepts a public URL or local file path; requires firstFrame. Use list_models for the live model contract.'),
   referenceVideo: z.string().optional()
     .describe(
-      'Optional reference video URL for Seedance 2.0 "video continuation". Must be a MeiGen video URL on images.meigen.ai (a previous generation result `videoUrl`, or a clip uploaded via meigen.ai) — other domains are rejected by the server because billing metadata must be verifiable; local paths are not supported. Only seedance-2-0 accepts this — passing it with other models will fail. ' +
+      'Optional reference video URL for a model that advertises reference-video support in list_models. Must be a MeiGen video URL on images.meigen.ai (a previous generation result `videoUrl`, or a clip uploaded via meigen.ai) — other domains are rejected because billing metadata must be verifiable; local paths are not supported. ' +
       'IMPORTANT — prompt requirement: to make the new clip semantically continue the reference, the `prompt` MUST explicitly say "extend" / "continue" (e.g. prefix with "Extend this video with the following plot:"). Without that, the model treats the video as visual reference only and the new clip may drift from a true continuation. ' +
-      'Output behavior: the output is ONLY your `duration` seconds (4-15s) of new content — the reference video is NOT concatenated into the output. To get a single "original + new" clip the user must stitch them locally. ' +
-      'Billing: credits are charged at the With-reference-video rate, with `billable_seconds = max(reference_duration + duration, min_billable[duration])`. Total cost is often higher than direct generation of the same output length. Always pass `referenceVideoDuration` if you know it (informational only — the server probes the authoritative duration from the video file itself for billing and clipping).'
+      'Output behavior: the output is only the configured `duration` of new content — the reference video is not concatenated into the output. ' +
+      'Billing may include the reference clip and model-specific minimums. The server probes authoritative MP4 duration; do not estimate billing from client metadata.'
     ),
   referenceVideoDuration: z.number().int().positive().optional()
-    .describe('Optional: duration of the reference video in seconds. The server probes the authoritative duration from the MP4 itself (billing and clipping use the probed value); this field is informational and never affects billing.'),
+    .describe('Deprecated compatibility hint. Ignored because the server probes authoritative MP4 duration.'),
 }
 
 export function registerGenerateVideo(server: McpServer, apiClient: MeiGenApiClient, config: MeiGenConfig) {
   server.tool(
     'generate_video',
-    'Generate a video using AI via MeiGen platform. Supports text-to-video, image-to-video (first/last frame), and reference-video continuation (Seedance 2.0 only — pass `referenceVideo` URL (the server probes the clip duration itself), and prompt must explicitly say "extend / continue"). Available models include Seedance 2.0 (mini/fast/pro tiers, mini is the cheapest default, 4-15s), Veo 3.1 (fast/pro tiers, 4/6/8s, native audio), Grok Video 1.5 (`grok-video`, xAI — IMAGE-TO-VIDEO ONLY, firstFrame required, native audio, 4-15s, 480p/720p), and Agnes Video 2.0 (`agnes-video-2.0`, budget 480p, fixed price). Model lineup and pricing are served by list_models / https://www.meigen.ai/model-comparison — treat those as the authority, not this text. With a reference video (seedance only), billable seconds = max(reference_duration + duration, min_billable[duration]); total often higher than direct generation. Generation time varies by model and tier — the tool polls until the server reports a terminal state.',
+    'Generate a video using a required MeiGen model ID. Model lineup, tiers, resolutions, output-duration enum/range and reference-video range are live capabilities served by list_models; do not rely on snapshots. The server validates and prices every combination before dispatch. Video generation is slow and costs credits — confirm before submitting and never run videos in parallel.',
     generateVideoSchema,
     { readOnlyHint: false, destructiveHint: true },
     async ({ prompt, model, tier, duration, resolution, aspectRatio, firstFrame, lastFrame, referenceVideo, referenceVideoDuration }, extra) => {
@@ -152,12 +152,6 @@ export function registerGenerateVideo(server: McpServer, apiClient: MeiGenApiCli
       let generationId: string | undefined
 
       try {
-        // grok-video is image-to-video only — firstFrame is mandatory (backend rejects without it).
-        // Guard client-side for a clearer error, matching the other model-aware checks below.
-        if (model === 'grok-video' && !firstFrame) {
-          throw new Error('grok-video is image-to-video only — firstFrame is required. For text-to-video use seedance-2-0 / veo-3.1 / agnes-video-2.0.')
-        }
-
         const refList: string[] = []
         if (firstFrame) {
           refList.push(await resolveFrameImage(firstFrame, config, (msg) => notify(extra, msg), 'first frame'))
@@ -199,7 +193,8 @@ export function registerGenerateVideo(server: McpServer, apiClient: MeiGenApiCli
             tier,
             referenceImages,
             referenceVideo,
-            referenceVideoDuration,
+            // referenceVideoDuration intentionally omitted: server probes MP4 and it must not
+            // participate in the idempotency signature.
           })
 
           if (!genResponse.generationId) {

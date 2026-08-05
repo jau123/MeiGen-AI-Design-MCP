@@ -6,6 +6,7 @@
 import { z } from 'zod'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { MeiGenApiClient } from '../lib/meigen-api.js'
+import { minimumVideoCredits, videoCapabilitiesForModel } from '../lib/video-capabilities.js'
 import type { MeiGenConfig } from '../config.js'
 import { getAvailableProviders } from '../config.js'
 import {
@@ -67,6 +68,7 @@ export function registerListModels(server: McpServer, apiClient: MeiGenApiClient
 
         const renderVideo = (m: typeof videoModels[number], i: number) => {
           const cfg = m.extra_config || {}
+          const video = videoCapabilitiesForModel(m)
           const tiers = Array.isArray(cfg.tiers) && cfg.tiers.length > 0
             ? cfg.tiers.join(', ')
             : null
@@ -83,20 +85,33 @@ export function registerListModels(server: McpServer, apiClient: MeiGenApiClient
           const tierResLine = tierRes
             ? `   Resolutions by tier: ${Object.entries(tierRes).map(([t, list]) => `${t} ${Array.isArray(list) ? list.join('/') : ''}`.trim()).join(', ')}`
             : null
-          const durations = Array.isArray(cfg.durations) && cfg.durations.length > 0
-            ? `${cfg.durations[0]}–${cfg.durations[cfg.durations.length - 1]}s`
-            : (typeof cfg.defaultDuration === 'number' ? `fixed ${cfg.defaultDuration}s` : null)
+          const outputDuration = video.valid ? video.outputDuration : null
+          const durations = outputDuration?.kind === 'enum'
+            ? `${outputDuration.values.join(', ')}s (default ${outputDuration.default}s)`
+            : outputDuration?.kind === 'range'
+              ? `${outputDuration.min}–${outputDuration.max}s, step ${outputDuration.step}s (default ${outputDuration.default}s)`
+              : null
+          const requestDefault = video.billing?.requestDefaultSeconds
+          const requestDefaultNote =
+            outputDuration && requestDefault !== undefined && requestDefault !== outputDuration.default
+              ? `; omitted-request default ${requestDefault}s`
+              : ''
+          const referenceVideo = video.valid ? video.referenceVideo : null
+          const referenceResolutionDetail = referenceVideo?.resolutionsByTier
+            ? Object.entries(referenceVideo.resolutionsByTier)
+                .map(([tier, values]) => `${tier} ${values.join('/')}`)
+                .join(', ')
+            : referenceVideo?.resolutions?.join(', ')
+          const referenceUploadLimit =
+            typeof referenceVideo?.maxUploadBytes === 'number'
+              ? `; upload ≤${Math.floor(referenceVideo.maxUploadBytes / 1024 / 1024)}MB`
+              : ''
           const tags = Array.isArray(cfg.tags) && cfg.tags.length > 0
             ? cfg.tags.join(', ')
             : null
-          // Video pricing varies by model:
-          //   - per-second models (e.g. seedance): rate × duration, tier/resolution dependent
-          //   - veo: per-generation by tier × duration (resolution doesn't affect price)
-          // credits_per_generation, when present, represents the floor / base cost for the shortest
-          // typical clip. Show the field only when the backend exposes a usable number; otherwise
-          // direct users to the live page for the full schedule.
-          const cost = m.credits_per_generation > 0
-            ? `from ${m.credits_per_generation} credits (variable pricing — see model-comparison for the full schedule)`
+          const minimumCost = minimumVideoCredits(m, video)
+          const cost = minimumCost !== null
+            ? `minimum ${minimumCost} credits (variable pricing — see model-comparison for the full schedule)`
             : null
           return [
             `${i + 1}. ${m.name}`,
@@ -105,10 +120,14 @@ export function registerListModels(server: McpServer, apiClient: MeiGenApiClient
             tiers ? `   Tiers: ${tiers}` : '',
             resolutions ? `   Resolutions: ${resolutions}` : '',
             tierResLine || '',
-            durations ? `   Duration: ${durations}` : '',
+            durations ? `   Duration: ${durations}${requestDefaultNote}` : '',
             `   Ratios: ${m.supported_ratios.join(', ')}`,
             cost ? `   Cost: ${cost}` : '',
-            cfg.supportsReferenceVideo ? `   Supports reference video continuation: yes (pass referenceVideo + referenceVideoDuration to generate_video)` : '',
+            referenceVideo?.enabled
+              ? `   Reference video: ${referenceVideo.minSeconds}–${referenceVideo.maxSeconds}s${referenceVideo.tiers ? `; tiers ${referenceVideo.tiers.join(', ')}` : ''}${referenceResolutionDetail ? `; resolutions ${referenceResolutionDetail}` : ''}${referenceUploadLimit} (server probes duration)`
+              : '',
+            video.valid && video.requiresFirstFrame ? '   First frame: Required' : '',
+            !video.valid ? '   Video settings: temporarily unavailable' : '',
             m.description ? `   Description: ${m.description}` : '',
           ].filter(Boolean).join('\n')
         }
@@ -126,7 +145,7 @@ export function registerListModels(server: McpServer, apiClient: MeiGenApiClient
         if (videoModels.length > 0) {
           sections.push(
             `## MeiGen Platform — Video Models${providers.includes('meigen') ? '' : ' (requires MEIGEN_API_TOKEN)'}\n\n` +
-            `Use the \`generate_video\` tool to create videos. Pricing is per-second (see https://www.meigen.ai/model-comparison).\n\n` +
+            `Use the \`generate_video\` tool to create videos. Pricing varies by model, tier, resolution, and duration, and may be per-second or per-call (see https://www.meigen.ai/model-comparison).\n\n` +
             videoModels.map(renderVideo).join('\n\n')
           )
         }

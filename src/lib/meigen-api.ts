@@ -58,6 +58,34 @@ export interface MeiGenModel {
     tags?: string[]
     [key: string]: unknown
   } | null
+  /** Stable public capability contract from /api/models. Do not parse pricing fields for support. */
+  capabilities?: {
+    video?: {
+      valid?: boolean
+      outputDuration:
+        | { kind: 'enum'; values: number[]; default: number }
+        | { kind: 'range'; min: number; max: number; step: number; default: number }
+        | null
+      referenceVideo: {
+        enabled: boolean
+        minSeconds: number
+        maxSeconds: number
+        tiers?: string[]
+        resolutions?: string[]
+        resolutionsByTier?: Record<string, string[]>
+        maxUploadBytes?: number
+      }
+      billing?: {
+        mode: 'per_second' | 'per_call'
+        requestDefaultSeconds: number
+        referenceSeconds?:
+          | 'output_only'
+          | 'reference_plus_output'
+          | 'reference_plus_output_with_minimum_table'
+      } | null
+      requiresFirstFrame: boolean
+    }
+  }
 }
 
 export interface MeiGenGenerationResponse {
@@ -267,7 +295,7 @@ export class MeiGenApiClient {
     tier?: string
     referenceImages?: string[]
     referenceVideo?: string           // 仅 Seedance 2.0:参考视频 URL(续写场景)
-    referenceVideoDuration?: number   // 参考视频时长(秒);可选仅供参考,服务端权威探测计费
+    referenceVideoDuration?: number   // deprecated compatibility input; never sent (server probes MP4)
   }): Promise<MeiGenGenerationResponse> {
     if (!this.apiToken) {
       throw new Error('MEIGEN_API_TOKEN is required for video generation via MeiGen')
@@ -283,7 +311,7 @@ export class MeiGenApiClient {
     if (params.tier) body.tier = params.tier
     if (params.referenceImages?.length) body.referenceImages = params.referenceImages
     if (params.referenceVideo) body.referenceVideo = params.referenceVideo
-    if (typeof params.referenceVideoDuration === 'number') body.referenceVideoDuration = params.referenceVideoDuration
+    // Never send client-reported clip duration: it must not affect request identity or billing.
 
     return await this.submitWithAttemptKey(body)
   }
