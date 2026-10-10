@@ -116,7 +116,7 @@ These commands belong to the Claude plugin; a bare MCP connection does not insta
 
 ## OpenClaw distribution
 
-The OpenClaw manifest explicitly declares its MCP server and skills. Some CLI versions load this directory as a Claude-compatible bundle instead; Claude-only commands, agents, hooks and output styles depend on the actual loader and are not promised by the native manifest. The standalone ClawHub Skill is a separate distribution. See the [upgrade guide](../README.md#upgrading) and [direct HTTP API](../SKILLS_API.md).
+This directory remains the Claude/local stdio distribution, including its legacy OpenClaw manifest for existing integrations. New OpenClaw installations use the separate [ClawHub 4.0 bundle](../openclaw-plugin/README.md) with remote OAuth, built from `openclaw-plugin/` and shared Skill sources. Do not publish this legacy directory as the current ClawHub release. The standalone Skill is already included in the new bundle; do not install both copies. See [setup and migration](../SETUP.md#openclaw).
 
 ## Publishing
 

@@ -23,7 +23,7 @@
     "build": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\" && tsc",
     "dev": "tsx src/index.ts",
     "typecheck": "tsc --noEmit",
-    "test": "node --import tsx --test src/lib/*.test.mjs && node --import tsx --test src/tools/*.test.mjs && node --test scripts/ci/release.test.mjs",
+    "test": "node --import tsx --test src/lib/*.test.mjs && node --import tsx --test src/tools/*.test.mjs && node --test scripts/ci/*.test.mjs",
     "prepack": "pnpm run build",
     "release:check": "node scripts/release.mjs check",
     "release:dry-run": "node scripts/release.mjs dry-run",

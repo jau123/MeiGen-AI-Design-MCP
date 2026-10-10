@@ -1,0 +1,6 @@
+{
+  "name": "meigen",
+  "description": "Find visual inspiration, create images and videos, and reuse your MeiGen favorites with remote OAuth.",
+  "version": "4.0.1",
+  "author": { "name": "MeiGen", "url": "https://www.meigen.ai" }
+}

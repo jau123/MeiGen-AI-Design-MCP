@@ -1,18 +1,29 @@
 ---
 name: "MeiGen"
 description: Compose MeiGen image/video and five dedicated image tools inside an existing workflow, or opt into creative planning. Preserves caller prompts, parameters, approved count and budget; includes discovery and recoverable task handles.
-version: 3.0.0
+version: 3.1.0
 homepage: https://github.com/jau123/MeiGen-AI-Design-MCP
-metadata: {"clawdbot":{"emoji":"🎨","requires":{"bins":["mcporter","npx","node"]}}}
+metadata: {"openclaw":{"emoji":"🎨","homepage":"https://www.meigen.ai/mcp?tab=openclaw"}}
 ---
 
 # MeiGen
 
-This standalone ClawHub Skill supplies instructions. It does not install an MCP connection by itself. Its version is independent of the npm server and the `meigen-ai-design` plugin.
+This Skill supplies instructions, not an MCP connection by itself. It is distributed on its own and inside the `meigen-ai-design` ClawHub bundle. Use one copy. Its version is independent of the npm server and plugin.
 
 ## Connect
 
-For a new MeiGen connection, add `https://www.meigen.ai/api/mcp` in the host’s remote MCP settings and complete OAuth sign-in and consent. Use an OAuth-capable host; private library access is unavailable through API keys or local stdio. Do not create a new API key as a fallback.
+Use the installed MeiGen tools if present; inspect their schema before calling. For a new OpenClaw connection, prefer the [ClawHub plugin](https://clawhub.ai/plugins/meigen-ai-design). Current OpenClaw supports remote Streamable HTTP and OAuth directly; Node.js, npx and mcporter are not Skill prerequisites.
+
+With the user's setup authorization, first inspect existing MCP entries privately. Do not print credentials, overwrite an entry, add duplicate tools, or switch a local/BYOK provider to paid cloud generation without their choice. For a new entry:
+
+```bash
+openclaw mcp add meigen --url https://www.meigen.ai/api/mcp --transport streamable-http --auth oauth --timeout 240
+openclaw mcp login meigen
+```
+
+`mcp add` refuses to overwrite an existing entry. OpenClaw login reads saved MCP entries, so the same server must be saved even when supplied by the plugin; the saved entry overrides the bundle default. Reuse a matching OAuth connection. If an old local entry is present, preserve its configuration and credentials; explain the migration options in the plugin README before changing it. Do not use `mcp set` as a blind update.
+
+Let the user complete browser sign-in and consent. Never ask for credentials in chat or create a new API key as a fallback. After login, run `openclaw mcp doctor meigen --probe` and actually call `list_skills`. Do not generate or upload during a connection check. Registration or plugin installation alone is not proof of access. Private library tools need the additional library scopes; follow the host's incremental OAuth consent when requested. Other hosts must support remote HTTP MCP and OAuth.
 
 ### Existing legacy stdio / BYOK only
 
@@ -55,14 +66,16 @@ The caller generates and persists `requestId` for each logical step. For interru
 
 ## Tool inventory
 
-The local npm server exposes **16 tools**. The matching remote server exposes **19 tools**, including five private-library tools available only through OAuth, and excluding local `enhance_prompt` and `manage_preferences`. npm 3.0.0 is prepared but not published by this source change. Inspect runtime `listTools` before calling a tool.
+The published `meigen@3.0.0` local npm server exposes **16 tools**. The remote server exposes **19 tools**, including five private-library tools available only through OAuth, and excluding local `enhance_prompt` and `manage_preferences`. Inspect runtime `listTools` before calling a tool.
+
+Upgrading from 2.x removes ComfyUI and the bundled offline prompt library. Back up the existing MCP configuration and update only its npm version, preserving credentials and host settings. User-owned ComfyUI workflows are not deleted, and unsupported providers are never redirected to paid generation. See the [3.0 migration guide](https://github.com/jau123/MeiGen-AI-Design-MCP/blob/main/RELEASE_NOTES_3.0.0.md).
 
 | Scope | Tools | Behavior |
 |---|---|---|
 | Cloud, public discovery | `search_gallery`, `get_inspiration`, `list_models`, `list_skills` | No API key needed; no generation charge. A configured key makes `search_gallery` count against that account's daily search quota rather than the shared per-IP budget |
 | Remote OAuth only, account library | `search_favorites`, `list_boards`, `search_history`, `get_library_item`, `save_favorite` | OAuth required; unavailable to stdio/API keys; no generation charge; saving requires user intent |
 | Cloud, ordinary generation | `generate_image`, `generate_video`, `check_generation` | MeiGen generation needs purchased credits; status checks do not start a new job |
-| Cloud, five workflows | `remove_background`, `generate_product_detail_images`, `generate_marketing_poster`, `generate_ai_background`, `upscale_image` | MeiGen key and purchased credits only |
+| Cloud, five workflows | `remove_background`, `generate_product_detail_images`, `generate_marketing_poster`, `generate_ai_background`, `upscale_image` | MeiGen account authorization and purchased credits; existing local API keys remain compatible |
 | Cloud, workflow status | `check_skill` | Authenticated status/refunds; no new charge |
 | Cloud, image preparation | `upload_skill_image` | Authenticated preparation with a positive purchased-credit balance; use purpose=upscale for enhancement attachments; no generation charge |
 | Local additions | `enhance_prompt`, `manage_preferences` | Prompt enhancement, local preferences |
@@ -79,7 +92,7 @@ For another batch of public inspiration in the same direction, call `search_gall
 
 ## Ordinary generation and optional creative help
 
-Call `generate_image` with the supplied prompt and parameters. `generate_video` requires a model; use `list_models` for current capabilities and prices whenever needed, not only when a user asks to browse. For image-to-video, chain a completed frame URL into `firstFrame`. Reference clips go in `referenceVideos` / `referenceAudios` (`images.meigen.ai` URLs, or local `.mp4`/`.mov`/`.wav`/`.mp3` files which are uploaded for you — other hosts are rejected) and can be named in the prompt as "Video 1" / "Audio 1"; `list_models` holds each model's clip count and second budget, some models need a reference image or video before any audio, and reference audio is never billed. Preserve the caller's selected model/provider and ratio.
+Call `generate_image` with the supplied prompt and parameters. `generate_video` requires a model; use `list_models` for current capabilities and prices whenever needed, not only when a user asks to browse. For image-to-video, chain a completed frame URL into `firstFrame`. Reference clips go in `referenceVideos` / `referenceAudios` (`images.meigen.ai` URLs; only local npm can also upload local `.mp4`/`.mov`/`.wav`/`.mp3` files — other URL hosts are rejected) and can be named in the prompt as "Video 1" / "Audio 1"; `list_models` holds each model's clip count and second budget, some models need a reference image or video before any audio, and reference audio is never billed. Preserve the caller's selected model/provider and ratio.
 
 For composed MeiGen jobs, persist a UUID `requestId` and exact input per step, then use `wait: false`, `download: false`. Local legacy defaults remain `wait: true`, `download: true`; no download occurs with `wait: false`. Remote MCP returns URLs without local downloads. Follow the installed schema for provider/transport support. Recover across restarts using `check_generation` with the original `requestId` or `generationId`; keep IDs and inputs unchanged on transient failure and follow `nextAction`, polling hints and `Retry-After`.
 

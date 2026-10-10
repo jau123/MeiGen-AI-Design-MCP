@@ -17,4 +17,4 @@ For BYOK ordinary image generation, the corresponding environment variables are 
 
 Multiple providers can coexist. Ordinary image provider auto-selection is MeiGen, then OpenAI-compatible. This order never redirects a dedicated Skill to BYOK.
 
-For remote HTTP MCP, use OAuth account sign-in for `https://www.meigen.ai/api/mcp`. Fixed API keys are retained only for existing legacy generation/search integrations; they cannot access favorites, boards or history. Remote MCP does not include local `enhance_prompt` or `manage_preferences`. It cannot read a file on the user's machine merely because a path was supplied.
+For remote HTTP MCP, use OAuth account sign-in for `https://www.meigen.ai/api/mcp`. Existing local API keys remain compatible with generation, public search and Skills, but cannot access the private library. New connections use remote OAuth. Remote MCP does not include local `enhance_prompt` or `manage_preferences`. It cannot read a file on the user's machine merely because a path was supplied.

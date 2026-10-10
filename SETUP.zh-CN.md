@@ -78,17 +78,22 @@ npm `search_gallery` 的查询词与分类合并后不超过 200 个 UTF-16 码�
 
 ### OpenClaw
 
-新用户先通过兼容客户端连接远程 OAuth 并登录。[ClawHub 完整插件](https://clawhub.ai/plugins/meigen-ai-design)仍内置旧版 stdio 连接，供现有集成维护（其他扩展取决于客户端加载方式）：
+使用支持原生 HTTP MCP 与 OAuth 的新版 OpenClaw（已用 2026.9.9 验证）。[ClawHub 插件](https://clawhub.ai/plugins/meigen-ai-design)包含创作指引与 MeiGen 远程工具：
 
 ```bash
 openclaw plugins install clawhub:meigen-ai-design
+# 仅用于新连接
+openclaw mcp add meigen --url https://www.meigen.ai/api/mcp --transport streamable-http --auth oauth --timeout 240
+openclaw mcp login meigen
 ```
 
-或仅安装技能（不含命令/agents）：
+在浏览器自行登录并授权。即使插件提供了服务定义，登录仍需要保存同名 `mcp.servers.meigen` 条目；它覆盖插件默认连接，不会重复加载工具。已有条目时 `mcp add` 会拒绝覆盖。复用匹配的 OAuth 连接，不要盲目使用 `mcp set`。
 
-```bash
-npx clawhub@latest install creative-toolkit
-```
+运行 `openclaw mcp doctor meigen --probe`，再打开新对话，让 MeiGen 查询 Skills 和价格，以真实工具调用确认连接，不必生成。收藏、画板和历史记录需要额外的资料库 OAuth 权限，生成使用已购买积分。
+
+**ClawHub 插件 3.x 升级到 4.0：**默认连接从本地 stdio 改为远程 OAuth。先备份配置；已保存的本地、代理或 BYOK 条目不会自动迁移，仍会覆盖插件默认连接。自行选择保留本地能力或迁移到 OAuth，旧凭据保存在私密备份中，确保仅保留一套有效 MeiGen 连接。远程工具不提供本地偏好、提示词增强、自动本地文件处理或 BYOK。运行时 ID 仍为 `meigen`，分发标识仍为 `meigen-ai-design`。
+
+仅需远程连接、不需要创作指引时，跳过插件安装，直接使用同一组 add/login 命令。独立 Skill（`npx clawhub@latest install creative-toolkit`）只提供指引，不要与插件内的副本重复安装。远程 OpenClaw 不依赖 mcporter。
 
 ### CLI 模式(不需要 MCP 宿主)
 
@@ -235,9 +240,9 @@ Skill 客户端实现说明：在内部生成 `requestId`，保存原始参数�
 
 ## 从旧版本升级
 
-- **远程 MCP：** URL 和有效的 MeiGen Key 可继续使用。后端发布后重新连接，调用 `list_skills`；以当前连接返回的工具列表为准。仅更新 npm 不会启用远程 API。
+- **远程 MCP：** 保留服务地址并通过 OAuth 登录；既有固定 Key 请求头仅作旧版兼容，切换 OAuth 时移除。后端发布后重新连接，调用 `list_skills`；以当前连接返回的工具列表为准。仅更新 npm 不会启用远程 API。
 - **本地 npm：** 固定版本配置改为 `meigen@3.0.0` 并重启；全局安装用户执行 `npm install -g meigen@3.0.0`。先确认 npm 上已有该版本。
-- **插件用户：** Claude marketplace、OpenClaw 插件与独立 ClawHub Skill 分别更新；仅更新 npm 不会刷新安装时复制的指导文件。使用插件内置连接时，不要再手动添加第二套 MCP。
+- **插件用户：** Claude marketplace、OpenClaw 插件与独立 ClawHub Skill 分别更新；仅更新 npm 不会刷新安装时复制的指导文件。保留一套有效服务。OpenClaw OAuth 登录需要同名 `meigen` 条目，覆盖插件默认配置，不重复工具。
 - **工作流调用：** 本地保留 `wait: true`／`download: true` 默认值；新工作流应持久化 UUID `requestId`、用 `wait: false` 并按原 ID 恢复。远程保留旧 `attemptId`，但无法对所有旧回执追溯证明历史参数一致性。服务器和插件指引都需更新，才能使用可选创意流程。
 - **现有配置和任务：** 通用生图仍可使用原来的 MeiGen/OpenAI 配置；五项 Skills 需要已授权的 MeiGen 账号与购买积分（本地 npm/API Key 路径使用 Key）。中断任务保留原 ID 和输入，先恢复，不能为升级重新付费提交。
 - **材料变化：** 本地 Skill 路径必须为绝对路径、`~/` 或 `file://`；不再按不可见的进程目录猜相对路径。图片会清除元数据，GIF 只取首帧；upscale 要传静态原图。保留原始素材并下载需要保存的结果；结果链接不作永久存档保证。

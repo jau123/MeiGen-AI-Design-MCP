@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "meigen": {
+      "url": "https://www.meigen.ai/api/mcp",
+      "transport": "streamable-http",
+      "auth": "oauth",
+      "requestTimeoutMs": 240000
+    }
+  }
+}

@@ -9,7 +9,7 @@
   <a href="https://chatgpt.com/plugins/plugin_asdk_app_6ab66d24f56481919361b6c33f7c1928"><img src="https://img.shields.io/badge/ChatGPT-111111?style=for-the-badge" alt="Install for ChatGPT"></a>
   <a href="#remote-mcp"><img src="https://img.shields.io/badge/Claude-111111?style=for-the-badge" alt="Connect Claude"></a>
   <a href="#remote-mcp"><img src="https://img.shields.io/badge/Cursor-111111?style=for-the-badge" alt="Connect Cursor"></a>
-  <a href="#remote-mcp"><img src="https://img.shields.io/badge/OpenClaw-111111?style=for-the-badge" alt="Connect OpenClaw"></a>
+  <a href="#openclaw"><img src="https://img.shields.io/badge/OpenClaw-111111?style=for-the-badge" alt="Connect OpenClaw"></a>
   <a href="#other-clients"><img src="https://img.shields.io/badge/Other_MCP-111111?style=for-the-badge" alt="Connect other MCP clients"></a>
 </p>
 
@@ -36,7 +36,7 @@ Choose the AI tool you use:
 | **ChatGPT** | [Install from the official ChatGPT store](https://chatgpt.com/plugins/plugin_asdk_app_6ab66d24f56481919361b6c33f7c1928) → sign in to MeiGen → start a new chat and use MeiGen. No API key needed. |
 | **Claude** | [Connect remote MCP](#remote-mcp) and sign in to MeiGen. Optional [creative helpers](#claude-code) are available separately. |
 | **Cursor** | [Add the remote MCP URL](#remote-mcp), then sign in. |
-| **OpenClaw** | [Connect remote MCP](#remote-mcp) with an OAuth-capable host; optional [ClawHub instructions](#openclaw). |
+| **OpenClaw** | [Install from ClawHub](#openclaw), then sign in with OAuth. |
 | **Other MCP clients** | [Connect remote MCP](#remote-mcp) with OAuth. [Setup guide →](SETUP.md) |
 
 Try a search first:
@@ -133,13 +133,16 @@ Use `/meigen:setup` for connection guidance or existing legacy/BYOK configuratio
 <details>
 <summary><strong>OpenClaw</strong></summary>
 
-For new connections, use [remote OAuth](#remote-mcp). The [full plugin from ClawHub](https://clawhub.ai/plugins/meigen-ai-design) retains a bundled legacy stdio connection:
+Install [MeiGen from ClawHub](https://clawhub.ai/plugins/meigen-ai-design) in current OpenClaw, then connect your account with OAuth:
 
 ```bash
 openclaw plugins install clawhub:meigen-ai-design
+# New connection only; preserve any existing meigen entry
+openclaw mcp add meigen --url https://www.meigen.ai/api/mcp --transport streamable-http --auth oauth --timeout 240
+openclaw mcp login meigen
 ```
 
-For the standalone Skill instead: `npx clawhub@latest install creative-toolkit`. [Setup and troubleshooting →](SETUP.md)
+The 4.0 plugin includes creative guides and remote tools, including OAuth-only favorites, boards and history. The standalone `creative-toolkit` Skill is instructions only and is not needed alongside the plugin. [Setup and migration from local 3.x →](SETUP.md#openclaw)
 
 </details>
 

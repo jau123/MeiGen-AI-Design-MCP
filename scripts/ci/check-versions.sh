@@ -10,7 +10,9 @@ const pkg = json('package.json')
 const lock = json('package-lock.json')
 const plugin = json('plugin/.claude-plugin/plugin.json')
 const entry = json('.claude-plugin/marketplace.json').plugins.find(p => p.name === plugin.name)
-const openclaw = json('plugin/openclaw.plugin.json')
+const openclaw = json('openclaw-plugin/package.json')
+const openclawManifest = json('openclaw-plugin/.claude-plugin/plugin.json')
+if (openclaw.version !== openclawManifest.version) throw new Error('OpenClaw package and bundle manifest versions differ')
 const server = readFileSync('src/server.ts', 'utf8').match(/version:\s*['"]([0-9]+\.[0-9]+\.[0-9]+)['"]/)?.[1]
 const skill = readFileSync('openclaw/SKILL.md', 'utf8').match(/^version:\s*(\S+)/m)?.[1]
 const semver = /^\d+\.\d+\.\d+(?:-[\w.-]+)?(?:\+[\w.-]+)?$/
@@ -22,7 +24,7 @@ for (const [name, version] of [['npm', pkg.version], ['Claude plugin', plugin.ve
   if (!version || !semver.test(version)) fail(`${name} has an invalid or missing version`)
   console.log(`${name}: ${version}`)
 }
-for (const [path, servers] of [['plugin/.mcp.json', json('plugin/.mcp.json').mcpServers], ['plugin/openclaw.plugin.json', openclaw.mcpServers]]) {
+for (const [path, servers] of [['plugin/.mcp.json', json('plugin/.mcp.json').mcpServers], ['plugin/openclaw.plugin.json', json('plugin/openclaw.plugin.json').mcpServers]]) {
   const server = servers?.meigen
   if (server?.command !== 'npx' || !server.args?.includes(`meigen@${pkg.version}`)) fail(`${path} must declare the pinned meigen npm server`)
 }

@@ -40,7 +40,7 @@ The caller generates and persists `requestId` for each logical step. For interru
 ## Prerequisites
 
 1. **A reference image is required** — the user MUST provide a product photo (URL or local path). If they have not, ask once: "Please share the product photo you want me to work from." Do NOT try to invent a product without a reference.
-2. For the generic photoshoot below, confirm a provider is configured (MeiGen / OpenAI-compatible). Dedicated Skills require MeiGen. If not, hand off to `/meigen:setup`.
+2. For the generic photoshoot below, check the installed connection first: remote MeiGen uses OAuth; existing local npm may use MeiGen or OpenAI-compatible credentials. Dedicated Skills require MeiGen. If disconnected, follow the host-specific setup guide; `/meigen:setup` is available only in the Claude plugin.
 
 ## The 4 directions
 

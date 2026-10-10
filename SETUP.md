@@ -76,17 +76,22 @@ For npm `search_gallery`, keep the combined query and category within 200 UTF-16
 
 ### OpenClaw
 
-For new connections, add `https://www.meigen.ai/api/mcp` in an OAuth-capable host and sign in. The full plugin from [ClawHub](https://clawhub.ai/plugins/meigen-ai-design) retains its legacy stdio connection (other features depend on the loader):
+Use a current OpenClaw release with native HTTP MCP and OAuth (validated with 2026.9.9). The [ClawHub plugin](https://clawhub.ai/plugins/meigen-ai-design) includes creative guides and remote MeiGen tools:
 
 ```bash
 openclaw plugins install clawhub:meigen-ai-design
+# New connection only
+openclaw mcp add meigen --url https://www.meigen.ai/api/mcp --transport streamable-http --auth oauth --timeout 240
+openclaw mcp login meigen
 ```
 
-Or install only the skill (no commands/agents):
+Sign in and approve access yourself in the browser. Login needs a saved `mcp.servers.meigen` entry even when supplied by the bundle; the saved entry overrides the default without duplicating tools. `mcp add` refuses to overwrite an existing entry. Reuse a matching OAuth entry; never blindly use `mcp set`.
 
-```bash
-npx clawhub@latest install creative-toolkit
-```
+Run `openclaw mcp doctor meigen --probe`, then start a new conversation and ask MeiGen to list Skills and prices. Verify an actual tool call, not just installation. No generation is needed. Private favorites, boards and history require the library OAuth permissions. Generation uses purchased credits.
+
+**Upgrading the ClawHub plugin from 3.x to 4.0:** the default changes from local stdio to remote OAuth. Back up existing configuration first. Saved local, wrapper or BYOK entries are not migrated and still override the bundle. Choose whether to retain their local capabilities or deliberately switch to remote OAuth, preserving old credentials in your private backup. Keep one active MeiGen connection. Remote tools do not provide local preferences, local prompt enhancement, automatic local-file handling or BYOK. The runtime ID stays `meigen`; distribution ID stays `meigen-ai-design`.
+
+For a direct remote connection without creative guides, skip the plugin install and use the same add/login commands. The standalone Skill (`npx clawhub@latest install creative-toolkit`) supplies guidance only; do not install it alongside the bundle's copy. No mcporter prerequisite is needed for remote OpenClaw.
 
 ### Use as CLI (no MCP host required)
 
@@ -233,7 +238,7 @@ For Skill client implementers: generate `requestId` internally, keep it with the
 
 - **Remote MCP:** keep the endpoint and reconnect with OAuth account sign-in; remove any fixed Authorization header when switching. After backend deployment, reconnect and call `list_skills`; verify the installed tool list. Updating npm alone does not deploy the APIs.
 - **Local npm:** change pinned configurations to `meigen@3.0.0` and restart; global installations can run `npm install -g meigen@3.0.0`. Check that the version is available on npm first.
-- **Plugin users:** update the Claude marketplace plugin, OpenClaw native plugin or standalone ClawHub Skill separately. Updating npm alone does not replace installed instruction files. Do not add a second MCP entry when the plugin already supplies one.
+- **Plugin users:** update the Claude marketplace plugin, OpenClaw ClawHub bundle or standalone ClawHub Skill separately. Updating npm alone does not replace installed instruction files. Keep one effective server. OpenClaw OAuth login requires a saved entry with the same `meigen` name, which overrides its bundle default.
 - **Composable calls:** local `wait: true` / `download: true` remain defaults. New workflows should persist UUID `requestId`, use `wait: false` and recover by that ID. Remote legacy `attemptId` remains accepted; older receipts cannot retroactively prove every historical parameter mismatch. Update plugin instructions as well as the server to get the optional creative flow.
 - **Existing configuration and jobs:** general generation keeps its MeiGen/OpenAI configuration; the five Skills need an authorized MeiGen account and purchased credits. Preserve IDs and inputs for interrupted jobs and recover them; an upgrade is not a reason to resubmit a paid request.
 - **Input changes:** local Skill paths must be absolute, `~/` or `file://`; relative paths are rejected instead of being resolved against a hidden process directory. Images lose metadata, GIF references use the first frame, and Upscale needs a still original. Keep original assets and download results you need; result links are not a permanent-storage guarantee.

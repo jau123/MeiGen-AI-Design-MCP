@@ -9,7 +9,7 @@
   <a href="https://chatgpt.com/plugins/plugin_asdk_app_6ab66d24f56481919361b6c33f7c1928"><img src="https://img.shields.io/badge/ChatGPT-111111?style=for-the-badge" alt="安装 ChatGPT 插件"></a>
   <a href="#remote-mcp"><img src="https://img.shields.io/badge/Claude-111111?style=for-the-badge" alt="连接 Claude"></a>
   <a href="#remote-mcp"><img src="https://img.shields.io/badge/Cursor-111111?style=for-the-badge" alt="连接 Cursor"></a>
-  <a href="#remote-mcp"><img src="https://img.shields.io/badge/OpenClaw-111111?style=for-the-badge" alt="连接 OpenClaw"></a>
+  <a href="#openclaw"><img src="https://img.shields.io/badge/OpenClaw-111111?style=for-the-badge" alt="连接 OpenClaw"></a>
   <a href="#other-clients"><img src="https://img.shields.io/badge/Other_MCP-111111?style=for-the-badge" alt="连接其他 MCP 客户端"></a>
 </p>
 
@@ -36,7 +36,7 @@
 | **ChatGPT** | [从 ChatGPT 官方商店安装插件](https://chatgpt.com/plugins/plugin_asdk_app_6ab66d24f56481919361b6c33f7c1928) → 登录 MeiGen → 新建对话并使用 MeiGen，无需 API Key。 |
 | **Claude** | [连接远程 OAuth](#remote-mcp)并登录，另有可选[创意助手](#claude-code)。 |
 | **Cursor** | [添加远程 MCP 地址](#remote-mcp)，然后登录。 |
-| **OpenClaw** | 通过兼容客户端[连接远程 OAuth](#remote-mcp)，也可使用 [ClawHub 指引](#openclaw)。 |
+| **OpenClaw** | [从 ClawHub 安装](#openclaw)，再通过 OAuth 登录。 |
 | **其他 MCP 客户端** | [连接远程 OAuth](#remote-mcp)。[配置指南 →](SETUP.zh-CN.md) |
 
 可以先试试搜索：
@@ -135,13 +135,16 @@ OAuth 登录需要客户端支持；不支持时请使用兼容的客户端或 C
 <details>
 <summary><strong>OpenClaw</strong></summary>
 
-新用户优先连接远程 OAuth。[ClawHub 完整插件](https://clawhub.ai/plugins/meigen-ai-design)保留旧版 stdio 连接：
+在新版 OpenClaw 中安装 [ClawHub 的 MeiGen 插件](https://clawhub.ai/plugins/meigen-ai-design)，再通过 OAuth 连接账号：
 
 ```bash
 openclaw plugins install clawhub:meigen-ai-design
+# 仅用于新连接；已有 meigen 条目请保留并先检查
+openclaw mcp add meigen --url https://www.meigen.ai/api/mcp --transport streamable-http --auth oauth --timeout 240
+openclaw mcp login meigen
 ```
 
-仅需独立 Skill 时，使用 `npx clawhub@latest install creative-toolkit`。[配置与排错 →](SETUP.zh-CN.md)
+4.0 插件包含创作指引和远程工具，以及仅限 OAuth 的收藏、画板与历史记录。独立 `creative-toolkit` Skill 只提供指引，安装插件后无需再装。[安装及旧版 3.x 迁移 →](SETUP.zh-CN.md#openclaw)
 
 </details>
 
