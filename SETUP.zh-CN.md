@@ -1,6 +1,6 @@
 # MCP 客户端配置
 
-> 当前源码准备发布 3.0.0；本次修改尚未发布 npm 或插件。安装示例指向即将发布的主版本，升级前请核实仓库可用版本。[3.0 迁移说明](RELEASE_NOTES_3.0.0.md)涵盖 ComfyUI／离线库移除及远程 OAuth 账号资料库。
+> 从 2.x 升级前，请阅读 [3.0 迁移说明](RELEASE_NOTES_3.0.0.md)。ComfyUI 与内置离线提示词库已移除，私人资料库通过远程 OAuth 访问。
 
 [返回首页](README.zh-CN.md) · [English](SETUP.md)
 
@@ -33,7 +33,7 @@ codex mcp add meigen --url https://www.meigen.ai/api/mcp
 codex mcp login meigen
 ```
 
-已有条目切换 OAuth 时，移除固定 Authorization 请求头或 `bearer_token_env_var`，保留其他服务。较长 Skill 可在原条目设置 `tool_timeout_sec = 240`。通用 OAuth 需服务端完成开放且客户端版本兼容。
+已有条目切换 OAuth 时，移除固定 Authorization 请求头或 `bearer_token_env_var`，保留其他服务。较长 Skill 可在原条目设置 `tool_timeout_sec = 240`。OAuth 登录需要客户端版本兼容。
 
 ### 旧版 stdio／API Key 兼容
 
@@ -56,9 +56,9 @@ tool_timeout_sec = 240
 
 ### Cursor / VS Code / Windsurf / Roo Code
 
-升级已有 stdio 连接时，先备份配置，在 3.0.0 正式发布后只把 `args` 中的 npm 包版本改为 `meigen@3.0.0`，保留 `env`、超时、自定义选项与其他服务，不要整段替换。JSONC 配置应保留注释，手动修改版本。
+升级已有 stdio 连接时，先备份配置，只把 `args` 中的 npm 包版本改为 `meigen@3.0.0`，保留 `env`、超时、自定义选项与其他服务，不要整段替换。JSONC 配置应保留注释，手动修改版本。
 
-即将发布的 3.0.0 初始化命令也可用于旧版本地连接：
+3.0.0 初始化命令也可用于旧版本地连接：
 
 ```bash
 npx -y meigen@3.0.0 init cursor      # Cursor

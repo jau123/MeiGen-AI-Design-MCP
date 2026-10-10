@@ -1,17 +1,15 @@
 <h1 align="center">MeiGen AI Design MCP</h1>
 
-> 3.0.0 is prepared in this source checkout and has not been published by this change. Installation pins target the upcoming major release; verify registry availability before upgrading. Read the [3.0 migration notes](RELEASE_NOTES_3.0.0.md) for removed ComfyUI/offline-library support and the remote OAuth account library.
-
 <p align="center">
-  Open-source visual tools for your AI assistant: inspiration, images, videos and product visuals.<br>
-  Works with ChatGPT, Claude, Cursor, OpenClaw and other MCP clients.
+  Discover inspiration. Create images and videos with the latest AI models.<br>
+  Open-source MCP tools for ChatGPT, Claude, Cursor, OpenClaw and other AI assistants.
 </p>
 
 <p align="center">
   <a href="https://chatgpt.com/plugins/plugin_asdk_app_6ab66d24f56481919361b6c33f7c1928"><img src="https://img.shields.io/badge/ChatGPT-111111?style=for-the-badge" alt="Install for ChatGPT"></a>
-  <a href="#claude-code"><img src="https://img.shields.io/badge/Claude-111111?style=for-the-badge" alt="Install for Claude"></a>
+  <a href="#remote-mcp"><img src="https://img.shields.io/badge/Claude-111111?style=for-the-badge" alt="Connect Claude"></a>
   <a href="#remote-mcp"><img src="https://img.shields.io/badge/Cursor-111111?style=for-the-badge" alt="Connect Cursor"></a>
-  <a href="#openclaw"><img src="https://img.shields.io/badge/OpenClaw-111111?style=for-the-badge" alt="Install for OpenClaw"></a>
+  <a href="#remote-mcp"><img src="https://img.shields.io/badge/OpenClaw-111111?style=for-the-badge" alt="Connect OpenClaw"></a>
   <a href="#other-clients"><img src="https://img.shields.io/badge/Other_MCP-111111?style=for-the-badge" alt="Connect other MCP clients"></a>
 </p>
 
@@ -45,6 +43,8 @@ Try a search first:
 
 > Use MeiGen to find minimalist product photography inspiration. Show me the reference images and prompts.
 
+Want more options? With remote MCP, ask for another batch of the same search, or describe a new direction.
+
 Search and model/Skill lookups do not spend generation credits. MeiGen Cloud generation uses **purchased credits** from your account; daily free credits do not apply. Check current prices and confirm the scope before generating.
 
 <a id="features"></a>
@@ -56,6 +56,7 @@ Search and model/Skill lookups do not spend generation credits. MeiGen Cloud gen
 |---|---|
 | Inspiration search | “Find cinematic portrait references and show their prompts.” |
 | Image & video generation | “Create one product photo, then animate it into a short video.” |
+| Personal library — remote OAuth | “Find my saved references, or the prompt from a previous creation.” |
 | Background removal | “Remove this background and give me a transparent PNG.” |
 | Product Detail Images | “Make a hero shot, a close-up and a lifestyle image for this product.” |
 | Marketing Poster | “Design one poster for our weekend coffee tasting.” |
@@ -63,6 +64,14 @@ Search and model/Skill lookups do not spend generation credits. MeiGen Cloud gen
 | Upscale | “Enhance this original photo while preserving its appearance.” |
 
 Provide a source image when the task needs one. Your assistant checks available models, options and prices with `list_models` / `list_skills`, prepares inputs, and returns results. See the [Skill API guide](SKILLS_API.md) for input limits and tool-call examples.
+
+### Bring your MeiGen library into the conversation
+
+Browse and save ideas in MeiGen, then continue with your assistant. With [remote OAuth](#remote-mcp), it can search your favorites, browse boards, find past creations and read a selected original prompt. For questions about your preferred style, it can use relevant favorites as references.
+
+Ask to save a selected inspiration or your own result, optionally to a private board. Saving requires your request or prior permission, does not publish the work, and does not spend generation credits. Reading and saving use separate account permissions; existing connections may need additional consent.
+
+**Available through remote OAuth.** Local npm and API keys cannot access the private library. Personal-library tools are not yet available in the official ChatGPT plugin. See the [account-library reference](RELEASE_NOTES_3.0.0.md#remote-account-library) for tool names and prompt pagination.
 
 ### One product, four directions
 
@@ -79,23 +88,7 @@ Provide a source image when the task needs one. Your assistant checks available 
 
 ## Manual MCP setup
 
-| Connection | Best for |
-|---|---|
-| **Remote OAuth MCP — recommended** | MeiGen account sign-in for creation, favorites, boards and history. No local install. |
-| **Local npm — legacy compatibility / BYOK** | Existing API keys for generation, public search and Skills; local file preparation/saving and OpenAI-compatible image APIs. No private library. |
-| **Client plugins** | Optional creative helpers; current bundled MCP configuration remains legacy stdio. |
-
-Keep one MeiGen connection per client to avoid duplicate tools. All five visual Skills and video generation use MeiGen Cloud; OpenAI-compatible providers support local general image generation.
-
-### Account library through remote OAuth (next backend release)
-
-With remote MeiGen OAuth account sign-in, `search_favorites` finds saved inspiration, `list_boards` finds project boards, and `search_history` finds earlier creations with prompt excerpts. Use `get_library_item` to read a selected original user prompt. `save_favorite` saves an existing gallery item or authorized generation, optionally to an owned private board, with the user's stated reason. Repeated saves do not remove the item or overwrite an existing note.
-
-For requests about your taste or preferred style, the assistant can consult relevant favorites instead of guessing. Saving needs an explicit request or prior opt-in; liking a result alone does not automatically save it. These tools do not spend generation credits. Only the remote OAuth connection exposes these tools. Local npm, legacy MeiGen API keys and OpenAI-compatible provider keys cannot access the private library.
-
-“Show another batch” keeps the same gallery query and uses the returned snapshot and next offset. A new creative direction starts a new search. Results no longer come from a bundled offline library.
-
-For the 3.0.0 npm `search_gallery` tool, the combined query and optional category must fit within 200 UTF-16 code units. `limit` accepts integers from 1–20 (default 3), with at most 3 results returned; `offset` accepts integers from 0–100000. Fractional values are rejected. Use the returned `nextOffset`, not a guessed page number.
+Use remote OAuth for a new MeiGen connection. Keep one connection per client to avoid duplicate tools. Local npm and the optional client plugins below support existing API-key integrations and OpenAI-compatible image providers.
 
 <a id="remote-mcp"></a>
 
@@ -126,7 +119,9 @@ Existing local integrations and BYOK workflows can keep this stdio configuration
 }
 ```
 
-Existing local API keys remain compatible with generation, public search and Skills as `MEIGEN_API_TOKEN` in the server launch environment, but cannot access the private library. New connections use remote OAuth. Keep them private. This server has no OAuth login or personal-library tools; use the remote connection for those features. See [client-specific setup, providers and CLI](SETUP.md).
+Existing local API keys remain compatible with generation, public search and Skills as `MEIGEN_API_TOKEN` in the server's private environment, but cannot access the private library. New connections use remote OAuth. OpenAI-compatible providers support general image generation; video and the five visual Skills use MeiGen Cloud. See [client-specific setup, providers and CLI](SETUP.md).
+
+**Upgrading from 2.x?** [3.0.0 is available on npm](https://www.npmjs.com/package/meigen/v/3.0.0). It removes ComfyUI and the bundled offline prompt library. Read the [migration notes](RELEASE_NOTES_3.0.0.md) and preserve your existing credentials and settings when updating.
 
 <a id="claude-code"></a>
 
@@ -196,5 +191,3 @@ If a generation is interrupted, check the original task with `check_generation` 
 Featured in [Awesome MCP Servers](https://github.com/punkpeye/awesome-mcp-servers) and [wshobson/agents](https://github.com/wshobson/agents/tree/main/plugins/meigen-ai-design).
 
 [MIT](LICENSE). The open-source server is free to use; cloud generation and third-party providers have their own usage costs.
-
-Account-library tools are available only through the remote OAuth connection at `https://www.meigen.ai/api/mcp`, after MeiGen sign-in and consent. API keys and local npm cannot access favorites, boards, history or item details. Lists return prompt excerpts; use the remote `get_library_item` tool to read a selected full prompt in Unicode code-point pages (default 8000, maximum 16000). `prompt.length` is the total safe prompt length; `nextOffset=null` marks the final part. Full data appears once in `structuredContent`; text is a short summary.

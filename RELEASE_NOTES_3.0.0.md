@@ -1,12 +1,12 @@
-# MeiGen 3.0.0 — migration and release candidate
+# MeiGen 3.0.0 — migration guide
 
-This is an upcoming major release, not a publication record. npm, the Claude plugin, OpenClaw plugin and standalone Skill are prepared at 3.0.0. Each channel still requires its own authorized release and verification.
+Released on npm on **2026-10-10**. The standard remote OAuth server also supports the account library. ChatGPT and optional plugin/Skill distributions have separate release processes; installing npm does not update those connections.
 
 ## Upgrade from 2.x
 
 1. Remove `COMFYUI_URL` from the MCP environment and `comfyuiUrl` / `comfyuiDefaultWorkflow` from `~/.config/meigen/config.json`. The `comfyui` provider and `comfyui_workflow` tool no longer exist. Update workflows that call them before upgrading. Explicit `provider: "comfyui"` is rejected; it is never redirected to a paid provider. User-owned workflow files are left untouched.
 2. Remove assumptions about the bundled 1,400-prompt collection, fixed category counts, offline search or locally stored prompt IDs. `search_gallery` and `get_inspiration` now use the live MeiGen service. There is no offline fallback: network/service failures return an error. The optional legacy category argument is a search topic, not a strict local category filter.
-3. After 3.0.0 is available in the registry, back up the existing MCP configuration and edit only the npm version in its command arguments to `meigen@3.0.0`; preserve credentials, environment variables, timeouts, custom fields and other servers. For JSONC, keep comments and edit manually. Do not replace a working entry or run an older initializer to upgrade. Restart/reconnect the host. Configurations using `meigen@latest` will receive the major version when it becomes the default; pin a version if you need an explicit upgrade window. Refresh copied plugin/Skill instructions through their own distribution channel.
+3. Back up the existing MCP configuration and edit only the npm version in its command arguments to `meigen@3.0.0`; preserve credentials, environment variables, timeouts, custom fields and other servers. For JSONC, keep comments and edit manually. Do not replace a working entry or run an older initializer to upgrade. Restart/reconnect the host. Configurations using `meigen@latest` now resolve to 3.0.0; pin a version if you need an explicit upgrade window. Refresh copied plugin/Skill instructions through their own distribution channel.
 4. Use a remote OAuth connection to `https://www.meigen.ai/api/mcp` for favorites, boards and generation history. Sign in and approve access in the host. API keys cannot access the private library; there are no API-key library permissions to enable. Local stdio has no OAuth implementation and does not expose the five library tools. Existing local API keys remain compatible with generation, public search and Skills, but cannot access the private library. New connections use remote OAuth. Keep existing credentials private and do not replace a working legacy configuration merely to upgrade.
 
 The 3.0.0 `init` command only upgrades recognized direct `npx` MeiGen invocations. It preserves their executable path, local options and other servers, creates a private backup and writes atomically. It refuses malformed JSON, JSONC, invalid config shapes, remote connections, OAuth proxies such as `mcp-remote` (including `stdio` entries), shell wrappers and other custom commands rather than replacing them. It still writes `meigen@latest`; edit the version manually to keep a pin.
@@ -15,9 +15,9 @@ The 3.0.0 `init` command only upgrades recognized direct `npx` MeiGen invocation
 
 Cancelling `search_gallery` produces a distinct `cancelled` result with neutral text and no retry advice. It does not misreport a gallery outage or emit already retrieved previews after cancellation.
 
-## Remote account library (pending backend rollout)
+## Remote account library
 
-After the matching backend is deployed and verified, the remote OAuth connection will expose five authenticated tools: `search_favorites`, `list_boards`, `search_history`, `get_library_item` and `save_favorite`. They do not spend generation credits. Lists return `promptExcerpt` (at most 500 Unicode code points), `promptLength` and `promptTruncated`, not the complete prompt. Select an entry before retrieving its prompt with `get_library_item`.
+The remote OAuth connection exposes five authenticated tools: `search_favorites`, `list_boards`, `search_history`, `get_library_item` and `save_favorite`. They do not spend generation credits. Lists return `promptExcerpt` (at most 500 Unicode code points), `promptLength` and `promptTruncated`, not the complete prompt. Select an entry before retrieving its prompt with `get_library_item`.
 
 `get_library_item(contentType, sourceId, promptOffset=0, promptLimit=8000)` calls `GET /api/library/item`. The maximum `promptLimit` is 16000. Its response is `{ success: true, item, prompt: { text, offset, length, nextOffset } }`; `item` has the same summary projection as list entries. All prompt offsets and lengths count Unicode code points, not UTF-16 code units or bytes. `prompt.length` is the **total** length of the permitted prompt, equal to `item.promptLength`; `nextOffset` is the next part's starting offset, or `null` on the final part. Keep the same content type and source ID when continuing.
 
@@ -27,12 +27,12 @@ Saving requires an explicit request or prior opt-in. It accepts an existing auth
 
 For another public inspiration batch, reuse the original query, returned snapshot ID and next offset. Change the query only for a new creative direction. Snapshot expiry/errors are explicit and never silently restart page one.
 
-## Release gates
+## Availability
 
-- Deploy the reviewed backend and approved database changes before releasing clients: `/api/library/favorites`, `/api/library/boards`, `/api/library/history`, `/api/library/item`, OAuth library permission enforcement, quota enforcement and the matching remote MCP inventory.
-- Verify real ownership, sharing, private-board boundaries, API-key rejection, OAuth read/write consent, idempotent saves, quota failures and Unicode prompt pagination against that deployment.
-- Run type checks, tests, version/pin/frontmatter checks and `pnpm release:dry-run`. Inspect the packed archive: no ComfyUI provider/tool, local prompt data, secrets or tests. A dry run is not a registry publication or a successful real-client test.
-- After explicit release approval, publish npm first, verify the installed artifact, then update the selected plugin/Skill channels and public Web/Docs installation pins. Report each channel separately.
+- [npm 3.0.0](https://www.npmjs.com/package/meigen/v/3.0.0) is published. The installed registry artifact was verified after release.
+- The standard remote MCP account-library routes and database functions are deployed. Live OAuth checks covered favorites, boards, history, prompt pagination and repeated saves of an existing favorite. The temporary verification connection was revoked afterward.
+- The official ChatGPT plugin's new library tools, six-result search and updated cards still depend on OpenAI accepting the new tool definitions. Until then, it retains the previously approved tools and three-result search. Store listing updates are reviewed separately.
+- Optional Claude, OpenClaw and standalone Skill distributions must be updated through their own channels. See the [maintainer release guide](RELEASING.md).
 
 ## 中文迁移要点
 
@@ -42,4 +42,4 @@ For another public inspiration batch, reuse the original query, returned snapsho
 
 资料库仅支持远程 MCP 的 OAuth 账号登录授权，API Key 不支持，也没有可开启的资料库 Key 权限。已有本地 API Key 继续兼容生成、公开搜索和 Skills，但不能访问私人资料库；新连接使用远程 OAuth。列表只返回最多 500 个 Unicode 码点的提示词摘要，完整内容用 `get_library_item` 分页读取，默认每页 8000、最多 16000 码点。返回的 `length` 是完整可读提示词的总长度，`nextOffset=null` 表示结束。达到收藏权益上限会返回 `favorites_limit_reached`，不会自动扣积分或重试。
 
-本次仅准备源码和发布候选；配套后端、数据库、npm 与各插件渠道上线需分别验证。
+npm 3.0.0 与标准远程 MCP 资料库已于 2026-10-10 发布。ChatGPT 官方插件的资料库工具、六条搜索和新版卡片仍需平台接受新版工具定义；其他插件与 Skill 分发渠道独立更新。

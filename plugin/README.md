@@ -1,6 +1,6 @@
 # MeiGen AI Design — Claude Plugin
 
-> 3.0.0 is prepared in this source checkout and has not been published by this change. Installation pins target the upcoming major release; verify registry availability before upgrading. Read the [3.0 migration notes](../RELEASE_NOTES_3.0.0.md) for removed ComfyUI/offline-library support and the remote OAuth account library.
+> npm 3.0.0 is available. Read the [migration notes](../RELEASE_NOTES_3.0.0.md) before upgrading from 2.x. This optional plugin bundles local stdio; use remote OAuth for private-library access.
 
 AI image and video generation with guided ecommerce Skills, creative workflows, parallel general image generation, and live gallery inspiration. See the full guides in [English](../README.md) or [中文](../README.zh-CN.md).
 

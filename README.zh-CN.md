@@ -1,17 +1,15 @@
 <h1 align="center">MeiGen AI Design MCP</h1>
 
-> 当前源码准备发布 3.0.0；本次修改尚未发布 npm 或插件。安装示例指向即将发布的主版本，升级前请核实仓库可用版本。[3.0 迁移说明](RELEASE_NOTES_3.0.0.md)涵盖 ComfyUI／离线库移除及远程 OAuth 账号资料库。
-
 <p align="center">
-  为 AI 助手提供开源视觉工具：搜索灵感，创作图片、视频和商品素材。<br>
-  支持 ChatGPT、Claude、Cursor、OpenClaw 及其他 MCP 客户端。
+  发现灵感，使用最新 AI 模型创建图片和视频。<br>
+  为 ChatGPT、Claude、Cursor、OpenClaw 及其他 AI 助手提供开源 MCP 工具。
 </p>
 
 <p align="center">
   <a href="https://chatgpt.com/plugins/plugin_asdk_app_6ab66d24f56481919361b6c33f7c1928"><img src="https://img.shields.io/badge/ChatGPT-111111?style=for-the-badge" alt="安装 ChatGPT 插件"></a>
-  <a href="#claude-code"><img src="https://img.shields.io/badge/Claude-111111?style=for-the-badge" alt="安装 Claude 插件"></a>
+  <a href="#remote-mcp"><img src="https://img.shields.io/badge/Claude-111111?style=for-the-badge" alt="连接 Claude"></a>
   <a href="#remote-mcp"><img src="https://img.shields.io/badge/Cursor-111111?style=for-the-badge" alt="连接 Cursor"></a>
-  <a href="#openclaw"><img src="https://img.shields.io/badge/OpenClaw-111111?style=for-the-badge" alt="安装 OpenClaw 插件"></a>
+  <a href="#remote-mcp"><img src="https://img.shields.io/badge/OpenClaw-111111?style=for-the-badge" alt="连接 OpenClaw"></a>
   <a href="#other-clients"><img src="https://img.shields.io/badge/Other_MCP-111111?style=for-the-badge" alt="连接其他 MCP 客户端"></a>
 </p>
 
@@ -45,6 +43,8 @@
 
 > 用 MeiGen 搜索极简产品摄影灵感，给我看看参考图和提示词。
 
+想看更多选择？通过远程 MCP，可以让助手按同一方向再找一批，或描述新的创作方向。
+
 搜索灵感、查询模型和 Skill 不消耗生成积分。MeiGen 云端生成使用账号的**购买积分**，不使用每日免费积分；生成前查询当前价格并确认数量等范围。
 
 <a id="features"></a>
@@ -56,6 +56,7 @@
 |---|---|
 | 灵感搜索 | “找一些电影感人像参考，展示图片和提示词。” |
 | 图片与视频生成 | “先生成一张产品图，再把它变成一段短视频。” |
+| 私人资料库 — 远程 OAuth | “找出我收藏的参考图，或以前某张作品用的提示词。” |
 | 抠图 | “去掉这张图的背景，给我透明 PNG。” |
 | 商品详情图 | “为这个商品做一张主图、一张细节图和一张场景图。” |
 | 营销海报 | “为周末咖啡品鉴活动设计一张海报。” |
@@ -63,6 +64,14 @@
 | 图片增强 | “让这张原图更清晰，保留原本的样子。” |
 
 需要原图的任务，请同时提供图片。助手会通过 `list_models` / `list_skills` 查询可用模型、选项和价格，准备素材并返回结果。输入限制与工具调用示例见 [Skill API 指南](SKILLS_API.md)。
+
+### 把 MeiGen 里的收藏带入对话
+
+先在 MeiGen 浏览、收藏灵感，再让助手继续创作。通过[远程 OAuth](#remote-mcp)连接，助手可以查询收藏、浏览画板、查找历史作品并读取选中的原始提示词。涉及喜好或风格时，也可以从相关收藏中寻找参考。
+
+你可以要求收藏某条灵感或自己的生成结果，也可以指定私密画板。保存需要明确要求或事先授权，不会公开发布作品，也不消耗生成积分。读取与保存分别授权；已有连接可能需要补充同意新权限。
+
+**已在远程 OAuth 连接开放。** 本地 npm 和 API Key 不能访问私人资料库；ChatGPT 官方插件暂未开放这些资料库工具。工具名称与提示词分页细节见[资料库参考](RELEASE_NOTES_3.0.0.md#remote-account-library)。
 
 ### 一个商品，四个方向
 
@@ -79,23 +88,7 @@
 
 ## 手动配置 MCP
 
-| 方式 | 适合场景 |
-|---|---|
-| **远程 MCP** | 在 Claude、Cursor 等兼容 HTTP 的客户端使用 MeiGen 云端，无需本地安装。 |
-| **本地 npm（旧版兼容／BYOK）** | 已有 Key 兼容生成、公开搜索和 Skills；本地文件处理或 OpenAI 兼容 API；无私人资料库。 |
-| **客户端插件** | 为 Claude 或 OpenClaw 安装配套连接与创意助手。 |
-
-每个客户端保留一套 MeiGen 连接，避免工具重复。五项视觉 Skills 和视频生成均使用 MeiGen 云端；OpenAI 兼容供应商用于本地普通生图。
-
-### 远程 OAuth 账号资料库（下次后端发布）
-
-通过远程 OAuth 登录 MeiGen 账号后，`search_favorites` 查询收藏灵感，`list_boards` 查找项目画板，`search_history` 查找历史作品与提示词摘要，再用 `get_library_item` 读取选中条目的完整提示词。`save_favorite` 可将已有画廊内容或有权限的生成作品加入收藏，并可放入自己的私密画板、记录用户给出的收藏理由。重复调用不会取消收藏，也不会覆盖旧备注。
-
-涉及喜好或风格的问题时，助手可查询相关收藏作为依据。保存需要用户明确要求或事先开启自动保存；仅表达满意不会自动写入。上述工具不消耗生成积分。这些工具只在远程 OAuth 连接提供；本地 npm、旧版 MeiGen API Key 及 OpenAI 兼容供应商 Key 均不能访问私人资料库。
-
-同方向“再看一批”沿用查询词、返回的快照和下一页偏移；改变创作方向时重新搜索。搜索不再使用内置离线提示词库。
-
-3.0.0 npm 的 `search_gallery` 限制：查询词与可选分类合并后不超过 200 个 UTF-16 码元；`limit` 为 1–20 的整数，默认 3，实际最多返回 3 条；`offset` 为 0–100000 的整数，不接受小数。继续翻页应使用返回的 `nextOffset`，不要自行估算页码。
+新连接使用远程 OAuth，每个客户端保留一套 MeiGen 连接，避免工具重复。下方本地 npm 和可选客户端插件适用于已有 API Key 集成及 OpenAI 兼容生图服务。
 
 <a id="remote-mcp"></a>
 
@@ -129,6 +122,8 @@ OAuth 登录需要客户端支持；不支持时请使用兼容的客户端或 C
 ```
 
 已有本地 API Key 继续兼容生成、公开搜索和 Skills，但不能访问私人资料库；新连接使用远程 OAuth。旧版集成保留私密环境中的原 `MEIGEN_API_TOKEN`；本地 npm 不支持 OAuth。[各客户端配置、生成后端与 CLI →](SETUP.zh-CN.md)
+
+**从 2.x 升级？** [3.0.0 已在 npm 发布](https://www.npmjs.com/package/meigen/v/3.0.0)，移除了 ComfyUI 与内置离线提示词库。请阅读[迁移说明](RELEASE_NOTES_3.0.0.md)，升级时保留已有凭据与配置。OpenAI 兼容供应商仅用于普通生图，视频和五项视觉 Skills 使用 MeiGen 云端。
 
 <a id="claude-code"></a>
 
@@ -198,5 +193,3 @@ MeiGen 账号访问使用远程 HTTP 和 OAuth；仅在需要时保留已有旧�
 项目已被 [Awesome MCP Servers](https://github.com/punkpeye/awesome-mcp-servers) 和 [wshobson/agents](https://github.com/wshobson/agents/tree/main/plugins/meigen-ai-design) 收录。
 
 [MIT](LICENSE)。开源服务可免费使用；云端生成及第三方供应商按各自规则计费。
-
-收藏、画板、历史记录及条目详情仅通过 `https://www.meigen.ai/api/mcp` 的 OAuth 账号登录授权提供，API Key 和本地 npm 不支持这些功能。列表只返回提示词摘要；完整内容通过远程 `get_library_item` 按 Unicode 码点分页读取，默认每页 8000、最大 16000。`prompt.length` 为完整可读提示词总长度，`nextOffset=null` 表示结束；完整数据仅返回在 `structuredContent`，普通文本是简短说明。

@@ -1,6 +1,6 @@
 # MCP client setup
 
-> 3.0.0 is prepared in this source checkout and has not been published by this change. Installation pins target the upcoming major release; verify registry availability before upgrading. Read the [3.0 migration notes](RELEASE_NOTES_3.0.0.md) for removed ComfyUI/offline-library support and the remote OAuth account library.
+> Upgrading from 2.x? Read the [3.0 migration notes](RELEASE_NOTES_3.0.0.md) before updating. ComfyUI and the bundled offline prompt library have been removed; private-library access uses remote OAuth.
 
 [Back to README](README.md) · [中文](SETUP.zh-CN.md)
 
@@ -31,7 +31,7 @@ codex mcp add meigen --url https://www.meigen.ai/api/mcp
 codex mcp login meigen
 ```
 
-When switching an existing entry to OAuth, remove its fixed Authorization header or `bearer_token_env_var`; keep other servers. For longer Skills, set `tool_timeout_sec = 240` in the existing entry. General OAuth requires the server rollout and a compatible client version.
+When switching an existing entry to OAuth, remove its fixed Authorization header or `bearer_token_env_var`; keep other servers. For longer Skills, set `tool_timeout_sec = 240` in the existing entry. OAuth requires a compatible client version.
 
 ### Legacy stdio / API-key compatibility
 
@@ -54,9 +54,9 @@ Restart/reconnect after setup. In Codex CLI, `codex mcp list` checks registratio
 
 ### Cursor / VS Code / Windsurf / Roo Code
 
-For an existing stdio connection, back up the config and edit only its npm package version in `args` to `meigen@3.0.0` once that version is published. Keep its `env`, timeouts, custom options and other servers. Do not replace the whole entry to upgrade. For JSONC, preserve comments and edit the version manually.
+For an existing stdio connection, back up the config and edit only its npm package version in `args` to `meigen@3.0.0`. Keep its `env`, timeouts, custom options and other servers. Do not replace the whole entry to upgrade. For JSONC, preserve comments and edit the version manually.
 
-The upcoming 3.0.0 initializer also supports legacy local setup:
+The 3.0.0 initializer also supports legacy local setup:
 
 ```bash
 npx -y meigen@3.0.0 init cursor      # Cursor
