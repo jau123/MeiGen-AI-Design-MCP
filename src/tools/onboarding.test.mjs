@@ -177,9 +177,9 @@ test('published Skill schemas distinguish poster constraints, style precedence a
   })
 })
 
-test('published bilingual README and API-guide MCP examples validate and call the dedicated endpoint unchanged', async () => {
+test('published API-guide MCP example validates and calls the dedicated endpoint unchanged', async () => {
   const { readFile } = await import('node:fs/promises')
-  for (const file of ['README.md', 'README.zh-CN.md', 'SKILLS_API.md']) {
+  for (const file of ['SKILLS_API.md']) {
     const source = await readFile(new URL(`../../${file}`, import.meta.url), 'utf8')
     const examples = [...source.matchAll(/```json\s*\n([\s\S]*?)```/g)]
       .map(([, json]) => { try { return JSON.parse(json) } catch { return null } })

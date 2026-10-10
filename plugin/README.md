@@ -2,7 +2,7 @@
 
 AI image and video generation with guided ecommerce Skills, creative workflows, parallel general image generation, and a 1,446-entry inspiration library. See the full guides in [English](../README.md) or [中文](../README.zh-CN.md).
 
-Using **Codex or ChatGPT**? See the [Codex setup](../README.md#codex), [ChatGPT web support](../README.md#chatgpt-web), or [copy the AI installation prompt](../README.md#install-with-ai) in the main guide.
+Using **ChatGPT / Codex**? [Install MeiGen from the official ChatGPT store](https://chatgpt.com/plugins/plugin_asdk_app_6ab66d24f56481919361b6c33f7c1928). For optional manual MCP configuration, see the [advanced setup guide](../SETUP.md#codex-manual).
 
 ## Callable tools and optional creative help
 
@@ -66,7 +66,7 @@ API generation uses **purchased credits only**. Daily free credits and Web free 
 
 For a direct user request, the assistant chooses the Skill, prepares images and follows status; an upstream caller receives structured results and controls presentation. It should use the user's specified count or modules without asking for the same confirmation again. If product-detail count is unresolved, clarify it. MCP requires an explicit `modules` selection; only direct HTTP calls default to **three paid images** (hero/detail/scene) when modules are omitted. Use live `list_skills` prices to calculate the batch cost; do not add unrequested images. Ask to preserve exact wording when supplying final copy.
 
-For Upscale, pass the original file/URL directly or use `upload_skill_image` with `purpose: "upscale"`. Originals may be up to 64 MiB / 64 million pixels; local encoding must fit 9,500,000 bytes without resizing (otherwise use a public original URL). Base64 remains limited to 3 MiB decoded. For `upscale_resize_required` or `price_changed`, explain the change and obtain acceptance before using a new requestId and the accepted flags/price. See the [full limits](../README.md#skills).
+For Upscale, pass the original file/URL directly or use `upload_skill_image` with `purpose: "upscale"`. Originals may be up to 64 MiB / 64 million pixels; local encoding must fit 9,500,000 bytes without resizing (otherwise use a public original URL). Base64 remains limited to 3 MiB decoded. For `upscale_resize_required` or `price_changed`, explain the change and obtain acceptance before using a new requestId and the accepted flags/price. See the [full limits](../SKILLS_API.md#upscale).
 
 Local npm accepts real absolute local file paths and public direct HTTPS image URLs. For remote MCP, use `upload_skill_image` with a public direct URL (up to 8 MiB) or actual readable attachment bytes (up to 3 MiB decoded), then pass the returned URL to the Skill. Existing supported MeiGen image URLs can be used directly. Private-network sources, redirects, login-protected links and IPv6-only sources are unsupported. Uploading prepares a reference and does not spend generation credits. If the host cannot read an attachment, use a direct image link or local npm.
 

@@ -12,6 +12,8 @@
     "bin/",
     "dist/",
     "data/",
+    "SETUP.md",
+    "SETUP.zh-CN.md",
     "SKILLS_API.md",
     "COMPOSABLE_WORKFLOWS.md",
     "COMPOSABLE_WORKFLOWS.zh-CN.md",
