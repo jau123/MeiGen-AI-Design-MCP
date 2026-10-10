@@ -118,7 +118,7 @@ export async function runMeiGenGeneration(mediaType: 'image' | 'video', input: G
   const context: Partial<GenerationOutput> = { provider: 'meigen', requestId, mediaType, requestedMediaType: mediaType }
   try {
     if (input.wait === false && !input.requestId) throw new GenerationError('wait=false requires a persistent requestId UUID chosen by the caller.', 'request_id_required')
-    if (!config.meigenApiToken) throw new GenerationError('MEIGEN_API_TOKEN is required. Create a key at https://www.meigen.ai/profile/api-keys and configure it privately. API generation uses purchased credits only.', 'authentication_required', 401)
+    if (!config.meigenApiToken) throw new GenerationError('This local generation path requires an existing legacy MEIGEN_API_TOKEN configured privately. New MeiGen connections should use remote OAuth at https://www.meigen.ai/api/mcp. Generation uses purchased credits only.', 'authentication_required', 401)
     // 提交前阶段(指纹 / 读文件)统一错误边界,见 preSubmitError
     let references: Awaited<ReturnType<typeof fingerprintReferences>>
     let parameters: Omit<GenerationInput, 'requestId' | 'wait' | 'download' | 'referenceImages' | 'referenceVideos' | 'referenceAudios'>

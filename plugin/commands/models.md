@@ -14,7 +14,6 @@ Show available models and let the user switch the default for this session.
 1. Call `mcp__meigen__list_models` to get all available models and providers
 2. Present results in a compact numbered list:
    - For MeiGen models: `[N] Model Name (ID: xxx) — ratios: ...`
-   - For ComfyUI workflows: `[N] workflow-name — checkpoint, steps, sampler`
    - For OpenAI-compatible: `[N] model-name (via custom API)`
    - If the user asks about cost, point them to https://www.meigen.ai/model-comparison (do not quote specific credit numbers)
 3. Show current configuration status (which providers are active)

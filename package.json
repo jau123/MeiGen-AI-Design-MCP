@@ -1,6 +1,6 @@
 {
   "name": "meigen",
-  "version": "2.0.2",
+  "version": "3.0.0",
   "description": "Composable image and video generation tools, reusable visual skills, and optional creative workflows for MCP clients",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -11,16 +11,16 @@
   "files": [
     "bin/",
     "dist/",
-    "data/",
     "SETUP.md",
     "SETUP.zh-CN.md",
     "SKILLS_API.md",
     "COMPOSABLE_WORKFLOWS.md",
     "COMPOSABLE_WORKFLOWS.zh-CN.md",
-    "MCP_AUTH_AND_RESULTS.md"
+    "MCP_AUTH_AND_RESULTS.md",
+    "RELEASE_NOTES_3.0.0.md"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\" && tsc",
     "dev": "tsx src/index.ts",
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test src/lib/*.test.mjs && node --import tsx --test src/tools/*.test.mjs && node --test scripts/ci/release.test.mjs",

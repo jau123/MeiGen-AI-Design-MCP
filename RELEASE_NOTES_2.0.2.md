@@ -1,4 +1,6 @@
-# MeiGen 2.0.2 — prepared, not published
+# MeiGen 2.0.2 — historical release notes
+
+> Historical notes for 2.0.2. Current development has removed ComfyUI and the bundled prompt library; use the current README for supported features.
 
 - Search returns at most three matched-image previews, standard MCP image content and artifact links. Older negotiated protocol versions receive text links instead of unsupported resource_link content.
 - Completed generation and skill results expose reusable artifacts; polling tools disclose settlement writes without being marked destructive. Search and upload disclose quota side effects.

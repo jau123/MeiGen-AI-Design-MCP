@@ -1,6 +1,6 @@
 # Eval scenarios
 
-Manual host-level checks complement `pnpm test`; run with the locally built 2.0.2 package and a controlled backend before public release. Use current tool schemas, server instructions and [the workflow contract](../COMPOSABLE_WORKFLOWS.md). Real paid-provider checks require an explicitly approved scope and budget.
+Manual host-level checks complement `pnpm test`; run with the locally built 3.0.0 package and a controlled backend before public release. Use current tool schemas, server instructions and [the workflow contract](../COMPOSABLE_WORKFLOWS.md). Real paid-provider checks require an explicitly approved scope and budget.
 
 | ID | Input or condition | Expected behavior | Failure to catch |
 | --- | --- | --- | --- |
@@ -30,7 +30,6 @@ Manual host-level checks complement `pnpm test`; run with the locally built 2.0.
 | P2 | MeiGen key invalid or missing | Point to the API-key setup page; keep secrets in private host configuration | Asking to paste credentials into chat or making repeated requests |
 | P3 | MeiGen credit balance insufficient | Explain purchased-only API billing and link to the owning account's profile | Claiming daily/free credits apply; replacing the request ID automatically |
 | P4 | OpenAI-compatible provider returns 402 | Direct to that provider's billing configuration | Linking MeiGen top-up or claiming a MeiGen recovery receipt exists |
-| P5 | ComfyUI has a transient history-query error | Continue bounded observation of the original promptId | Resubmitting GPU work or declaring terminal provider failure immediately |
 | S1 | Product-detail request for a specific number of modules | Pass explicit modules and requested count; resolve only missing essential material | Falling back to a hidden three-image MCP default |
 | S2 | Upscale supplied photo | Use original source, accepted live quote and dedicated upscale flow | Generic resizing before consent; missing confirmedCredits |
 | S3 | Host can read attachment bytes | Use upload_skill_image or authenticated /api/skills/upload; remove private metadata | Raw public presign instruction or fabricated attachment access |

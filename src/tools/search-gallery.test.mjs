@@ -52,15 +52,36 @@ test('a limit written against the old maximum is clamped, not rejected by the sc
   } finally { globalThis.fetch = previous }
 })
 
-test('an oversized limit also clamps the bundled local library path', async () => {
+test('blank and category requests use the live gallery rather than bundled picks', async () => {
   const { run } = searchTool({ meigenBaseUrl: 'https://test.invalid' })
   const previous = globalThis.fetch
-  globalThis.fetch = async () => { throw new Error('the local library path must not call the API') }
+  const queries = []
+  globalThis.fetch = async input => {
+    const url = new URL(input)
+    queries.push(url.searchParams.get('q'))
+    assert.equal(url.searchParams.get('limit'), '3')
+    return Response.json({ success: true, data: [] })
+  }
   try {
-    const random = await run({ limit: 10 })
-    assert.match(random.content[0].text, /Here are 3 random picks/)
-    const filtered = await run({ query: 'portrait', category: 'Photography', limit: 10 })
-    assert.equal((filtered.content[0].text.match(/^\s*\d+\. \*\*#/gm) ?? []).length <= 3, true)
+    await run({ limit: 10 })
+    await run({ query: 'portrait', category: 'Photography', limit: 10 })
+    assert.deepEqual(queries, ['creative image inspiration', 'portrait Photography'])
+  } finally { globalThis.fetch = previous }
+})
+
+test('empty and unavailable live results do not silently fall back to stale local data', async () => {
+  const { run } = searchTool({ meigenBaseUrl: 'https://test.invalid' })
+  const previous = globalThis.fetch
+  try {
+    globalThis.fetch = async () => Response.json({ success: true, data: [] })
+    const empty = await run({ query: 'portrait' })
+    assert.match(empty.content[0].text, /No results/)
+    assert.equal(empty.isError, undefined)
+    globalThis.fetch = async () => { throw new TypeError('network unavailable') }
+    const failed = await run({ query: 'portrait' })
+    assert.equal(failed.isError, true)
+    assert.match(failed.content[0].text, /online gallery is unavailable/)
+    assert.doesNotMatch(failed.content[0].text, /Found \d+ results/)
   } finally { globalThis.fetch = previous }
 })
 
@@ -78,7 +99,7 @@ test('a configured MeiGen key authenticates the search so the quota lands on the
   } finally { globalThis.fetch = previous }
 })
 
-test('an account daily-limit 429 says when it resets and still answers from the bundled library', async () => {
+test('an account daily-limit 429 says when it resets without fabricated fallback results', async () => {
   const { run } = searchTool({ meigenBaseUrl: 'https://test.invalid', meigenApiToken: 'meigen_sk_test' })
   const previous = globalThis.fetch
   globalThis.fetch = async () => Response.json({ success: false, error: 'Daily search limit reached', code: 'DAILY_LIMIT_REACHED' }, { status: 429 })
@@ -86,8 +107,8 @@ test('an account daily-limit 429 says when it resets and still answers from the 
     const result = await run({ query: 'portrait', limit: 3 })
     assert.match(result.content[0].text, /resets at 00:00 UTC/)
     assert.doesNotMatch(result.content[0].text, /retry in about a minute/)
-    // 打包库仍然给结果,而不是把用户晾一天
-    assert.match(result.content[0].text, /Found \d+ results/)
+    assert.equal(result.isError, true)
+    assert.doesNotMatch(result.content[0].text, /Found \d+ results/)
   } finally { globalThis.fetch = previous }
 })
 
@@ -127,3 +148,121 @@ test('caps over-returned API rows and returns a standard image for each selected
     assert.equal(fewer.content.filter(v => v.type === 'image').length, 1)
   } finally { globalThis.fetch = previous }
 })
+
+test('same-direction follow-up uses the returned snapshot and offset rather than repeating page one', async () => {
+  const snapshotId = '11111111-2222-4333-8444-555555555555'
+  const previous = globalThis.fetch
+  const seen = []
+  globalThis.fetch = async input => {
+    const url = new URL(input)
+    seen.push(url)
+    const offset = Number(url.searchParams.get('offset'))
+    return Response.json({ success: true, data: Array.from({ length: 3 }, (_, i) => ({ id: `hit-${offset + i}`, text: 'poster', likes: 0, views: 0, media_urls: [] })), snapshot_id: snapshotId, snapshot_expires_at: 1234567890, next_offset: offset < 3 ? 3 : null })
+  }
+  try {
+    const { run } = searchTool({ meigenBaseUrl: 'https://test.invalid' })
+    const first = await run({ query: 'poster' })
+    assert.equal(first.structuredContent.paginationMode, 'snapshot')
+    assert.equal(first.structuredContent.snapshotExpiresAt, 1234567890)
+    const next = await run({ query: first.structuredContent.query, snapshotId: first.structuredContent.snapshotId, offset: first.structuredContent.nextOffset })
+    assert.equal(seen[0].searchParams.get('pagination'), 'snapshot')
+    assert.equal(seen[1].searchParams.get('snapshot'), snapshotId)
+    assert.equal(seen[1].searchParams.get('offset'), '3')
+    assert.equal(next.structuredContent.hasMore, false)
+    assert.deepEqual([...first.structuredContent.results, ...next.structuredContent.results].map(v => v.id), ['hit-0', 'hit-1', 'hit-2', 'hit-3', 'hit-4', 'hit-5'])
+  } finally { globalThis.fetch = previous }
+})
+
+test('snapshot errors and missing or changed snapshot identities never fall back to page one', async () => {
+  const snapshotId = '11111111-2222-4333-8444-555555555555'
+  const previous = globalThis.fetch
+  try {
+    for (const response of [new Response('{}', { status: 410 }), new Response('{}', { status: 503 }), Response.json({ success: true, data: [] }), Response.json({ success: true, data: [], snapshot_id: '22222222-2222-4333-8444-555555555555', next_offset: null })]) {
+      let calls = 0
+      globalThis.fetch = async () => { calls++; return response }
+      const result = await searchTool({ meigenBaseUrl: 'https://test.invalid' }).run({ query: 'poster', snapshotId, offset: 3 })
+      assert.equal(result.isError, true)
+      assert.equal(result.structuredContent.success, false)
+      assert.equal(calls, 1)
+      assert.doesNotMatch(result.content[0].text, /Found \d+ results/)
+    }
+  } finally { globalThis.fetch = previous }
+})
+
+test('snapshot pages with hidden entries retain a continuation and live-offset fallback discloses its limits', async () => {
+  const snapshotId = '11111111-2222-4333-8444-555555555555'
+  const previous = globalThis.fetch
+  try {
+    globalThis.fetch = async () => Response.json({ success: true, data: [], snapshot_id: snapshotId, next_offset: 6 })
+    const { run } = searchTool({ meigenBaseUrl: 'https://test.invalid' })
+    const empty = await run({ query: 'poster', snapshotId, offset: 3 })
+    assert.equal(empty.structuredContent.hasMore, true)
+    assert.match(empty.content[0].text, /More results/)
+    globalThis.fetch = async () => Response.json({ success: true, data: Array.from({ length: 3 }, (_, i) => ({ id: String(i), text: 'poster', likes: 0, views: 0, media_urls: [] })) })
+    const legacy = await run({ query: 'poster' })
+    assert.equal(legacy.structuredContent.paginationMode, 'offset')
+    assert.equal(legacy.structuredContent.nextOffset, 3)
+    assert.match(legacy.content[0].text, /may shift between calls/)
+  } finally { globalThis.fetch = previous }
+})
+
+test('legacy offset follow-up omits snapshot negotiation and category continuation is idempotent', async () => {
+  const snapshotId = '11111111-2222-4333-8444-555555555555'
+  const previous = globalThis.fetch
+  try {
+    const seen = []
+    globalThis.fetch = async input => {
+      const url = new URL(input)
+      seen.push(url)
+      if (Number(url.searchParams.get('offset')) > 0 && !url.searchParams.get('snapshot')) {
+        assert.equal(url.searchParams.has('pagination'), false, 'the real backend rejects snapshot mode without a snapshot at offset > 0')
+      }
+      return Response.json({ success: true, data: [], ...(url.searchParams.get('snapshot') ? { snapshot_id: snapshotId, next_offset: null } : {}) })
+    }
+    const { run } = searchTool({ meigenBaseUrl: 'https://test.invalid' })
+    await run({ query: 'poster', offset: 3 })
+    await run({ query: 'portrait Photography', category: 'Photography', snapshotId, offset: 3 })
+    assert.equal(seen[1].searchParams.get('q'), 'portrait Photography')
+  } finally { globalThis.fetch = previous }
+})
+
+test('pagination stops at the backend offset ceiling instead of suggesting an invalid next call', async () => {
+  const previous = globalThis.fetch
+  try {
+    globalThis.fetch = async () => Response.json({ success: true, data: Array.from({ length: 3 }, (_, i) => ({ id: String(i), text: 'poster', likes: 0, views: 0, media_urls: [] })) })
+    const { run } = searchTool({ meigenBaseUrl: 'https://test.invalid' })
+    const result = await run({ query: 'poster', offset: 100000 })
+    assert.equal(result.structuredContent.nextOffset, null)
+    assert.equal(result.structuredContent.hasMore, false)
+    assert.throws(() => run({ query: 'poster', offset: 100001 }))
+  } finally { globalThis.fetch = previous }
+})
+
+for (const phase of ['before dispatch', 'during search', 'during preview']) {
+  test(`search cancellation ${phase} returns neutral text without retry advice or stale results`, async t => {
+    const controller = new AbortController()
+    const snapshotId = '11111111-2222-4333-8444-555555555555'
+    let calls = 0
+    t.mock.method(globalThis, 'fetch', async (input, { signal }) => {
+      calls++
+      if (phase === 'during preview' && new URL(input).pathname === '/api/search') {
+        return Response.json({ success: true, data: [{ id: 'hit', text: 'poster', likes: 0, views: 0, media_urls: ['https://images.meigen.ai/preview.png'] }], snapshot_id: snapshotId, next_offset: null })
+      }
+      return new Promise((resolve, reject) => {
+        signal.addEventListener('abort', () => reject(signal.reason), { once: true })
+        controller.abort()
+      })
+    })
+    if (phase === 'before dispatch') controller.abort()
+    const { handler } = searchTool({ meigenBaseUrl: 'https://test.invalid' })
+    const result = await handler({ query: 'poster', limit: 3, snapshotId, offset: 3 }, { signal: controller.signal })
+    assert.equal(calls, phase === 'before dispatch' ? 0 : phase === 'during search' ? 1 : 2)
+    assert.deepEqual(result.content, [{ type: 'text', text: 'Search cancelled.' }])
+    assert.equal(result.structuredContent.error.code, 'cancelled')
+    assert.equal(result.structuredContent.error.retryable, false)
+    assert.equal(result.structuredContent.snapshotId, snapshotId)
+    assert.equal(result.structuredContent.offset, 3)
+    assert.equal(result.structuredContent.results, undefined)
+    assert.doesNotMatch(result.content[0].text, /unavailable|retry|expired/i)
+  })
+}

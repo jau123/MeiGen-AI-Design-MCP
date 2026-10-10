@@ -2,7 +2,7 @@
  * `meigen gen` — one-shot image generation from the terminal.
  *
  * Targets shell scripts / CI pipelines that want to use MeiGen without an MCP
- * host. Calls the MeiGen platform API directly (OpenAI-compatible and ComfyUI
+ * host. Calls the MeiGen platform API directly (OpenAI-compatible
  * paths are intentionally not exposed here — they're MCP host concerns).
  *
  * Usage:
@@ -156,8 +156,8 @@ export async function gen(argv: string[]): Promise<void> {
   if (!config.meigenApiToken) {
     console.error('Error: MEIGEN_API_TOKEN is not set.')
     console.error()
-    console.error('Get a token at https://www.meigen.ai (Settings → API Keys),')
-    console.error('then export it:')
+    console.error('This CLI supports existing legacy keys only. For a new connection, sign in with OAuth at https://www.meigen.ai/api/mcp in your MCP host.')
+    console.error('For an existing legacy integration, configure the key privately as:')
     console.error('  export MEIGEN_API_TOKEN=meigen_sk_...')
     process.exit(1)
   }

@@ -9,7 +9,7 @@ export const generationControls = {
 export const generationOutputSchema = {
   success: z.boolean(),
   status: z.enum(['processing', 'completed', 'failed', 'error', 'unknown']),
-  provider: z.enum(['meigen', 'openai', 'comfyui']).optional(),
+  provider: z.enum(['meigen', 'openai']).optional(),
   requestId: z.string().optional(), generationId: z.string().optional(),
   mediaType: z.enum(['image', 'video']).optional(), requestedMediaType: z.enum(['image', 'video']).optional(), modelId: z.string().optional(),
   creditsUsed: z.number().optional(), creditsStatus: z.string().optional(),

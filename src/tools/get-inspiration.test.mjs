@@ -26,3 +26,33 @@ test('keeps visual control characters escaped and only attaches trusted gallery 
   assert.doesNotMatch(result.content[0].text, /[\u2028\u0085\u202e]/)
   assert.deepEqual(result.content.slice(1), [{ type: 'resource_link', uri: 'https://images.meigen.ai/real.png', name: 'Gallery media 2 (external-review-fixture)' }])
 })
+
+
+test('formerly bundled IDs retrieve current online details and report unavailability honestly', async () => {
+  let handler
+  const seen = []
+  module.registerGetInspiration({ tool: (...args) => { handler = args.at(-1) } }, {
+    getImageDetails: async id => { seen.push(id); throw new Error('offline') },
+  })
+  const result = await handler({ imageId: '2010350361144610992' })
+  assert.deepEqual(seen, ['2010350361144610992'])
+  assert.equal(result.isError, true)
+  assert.match(result.content[0].text, /online gallery is unavailable/)
+  assert.equal(result.content.length, 1)
+})
+
+test('passes the MCP cancellation signal to detail retrieval and reports cancellation without retry advice', async () => {
+  let handler
+  const controller = new AbortController()
+  module.registerGetInspiration({ tool: (...args) => { handler = args.at(-1) } }, {
+    getImageDetails: async (id, signal) => {
+      assert.equal(signal, controller.signal)
+      controller.abort(new DOMException('User cancelled', 'AbortError'))
+      signal.throwIfAborted()
+    },
+  })
+  const result = await handler({ imageId: 'cancelled' }, { signal: controller.signal })
+  assert.equal(result.isError, true)
+  assert.match(result.content[0].text, /cancelled/)
+  assert.doesNotMatch(result.content[0].text, /retry|unavailable/)
+})

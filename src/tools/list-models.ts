@@ -9,12 +9,6 @@ import type { MeiGenApiClient, MeiGenModel } from '../lib/meigen-api.js'
 import { minimumVideoCredits, videoCapabilitiesForModel } from '../lib/video-capabilities.js'
 import type { MeiGenConfig } from '../config.js'
 import { getAvailableProviders } from '../config.js'
-import {
-  listWorkflows,
-  loadWorkflow,
-  getWorkflowSummary,
-  ComfyUIProvider,
-} from '../lib/providers/comfyui.js'
 
 export const listModelsSchema = {
   activeOnly: z.boolean().optional().default(true)
@@ -26,7 +20,7 @@ export function registerListModels(server: McpServer, apiClient: MeiGenApiClient
     'list_models', { description:
     'List available AI image generation models and their capabilities. For up-to-date pricing, see https://www.meigen.ai/model-comparison.',
     inputSchema: listModelsSchema,
-    outputSchema: { success: z.boolean(), models: z.array(z.object({ id: z.string(), name: z.string() }).passthrough()), configuredProviders: z.array(z.enum(['meigen','openai','comfyui'])), executionCapabilities: z.object({ submitOnly: z.boolean(), download: z.boolean(), maxConcurrentSubmissions: z.number(), concurrency: z.string() }), error: z.object({ code: z.string(), message: z.string(), retryable: z.boolean() }).optional() },
+    outputSchema: { success: z.boolean(), models: z.array(z.object({ id: z.string(), name: z.string() }).passthrough()), configuredProviders: z.array(z.enum(['meigen','openai'])), executionCapabilities: z.object({ submitOnly: z.boolean(), download: z.boolean(), maxConcurrentSubmissions: z.number(), concurrency: z.string() }), error: z.object({ code: z.string(), message: z.string(), retryable: z.boolean() }).optional() },
     annotations: { readOnlyHint: true } },
     async ({ activeOnly }, extra) => {
       const providers = getAvailableProviders(config)
@@ -143,7 +137,7 @@ export function registerListModels(server: McpServer, apiClient: MeiGenApiClient
 
         if (imageModels.length > 0) {
           sections.push(
-            `## MeiGen Platform — Image Models${providers.includes('meigen') ? '' : ' (requires MEIGEN_API_TOKEN)'}\n\n` +
+            `## MeiGen Platform — Image Models${providers.includes('meigen') ? '' : ' (legacy local calls require an existing key; new connections use remote OAuth)'}\n\n` +
             `Preserve an explicitly selected model from the caller or workflow; otherwise the server selects its default.\n` +
             `The server uses the platform default automatically.\n` +
             `Pricing varies by model and changes over time — see https://www.meigen.ai/model-comparison\n\n` +
@@ -153,7 +147,7 @@ export function registerListModels(server: McpServer, apiClient: MeiGenApiClient
 
         if (videoModels.length > 0) {
           sections.push(
-            `## MeiGen Platform — Video Models${providers.includes('meigen') ? '' : ' (requires MEIGEN_API_TOKEN)'}\n\n` +
+            `## MeiGen Platform — Video Models${providers.includes('meigen') ? '' : ' (legacy local calls require an existing key; new connections use remote OAuth)'}\n\n` +
             `Use the \`generate_video\` tool to create videos. Pricing varies by model, tier, resolution, and duration, and may be per-second or per-call (see https://www.meigen.ai/model-comparison).\n\n` +
             videoModels.map(renderVideo).join('\n\n')
           )
@@ -165,51 +159,6 @@ export function registerListModels(server: McpServer, apiClient: MeiGenApiClient
       } catch (error) {
         modelError = { code: 'models_unavailable', message: error instanceof Error ? error.message : 'Unable to fetch MeiGen models', retryable: true }
         sections.push('## MeiGen Platform Models\n\nUnable to fetch models from MeiGen API.')
-      }
-
-      // ComfyUI local
-      if (providers.includes('comfyui')) {
-        const workflows = listWorkflows()
-        const defaultName = config.comfyuiDefaultWorkflow || workflows[0]
-        const comfyuiUrl = config.comfyuiUrl || 'http://localhost:8188'
-
-        const workflowLines = workflows.map(name => {
-          try {
-            const wf = loadWorkflow(name)
-            const s = getWorkflowSummary(wf)
-            const isDefault = name === defaultName ? ' (default)' : ''
-            const ckpt = s.checkpoint || 'unknown model'
-            const params = [
-              s.steps != null ? `${s.steps} steps` : null,
-              s.cfg != null ? `CFG ${s.cfg}` : null,
-              s.sampler || null,
-              s.width && s.height ? `${s.width}×${s.height}` : null,
-            ].filter(Boolean).join(', ')
-            return `  - ${name}${isDefault}: ${ckpt} (${params})`
-          } catch {
-            return `  - ${name} (error reading workflow)`
-          }
-        })
-
-        // Try to fetch available checkpoints (non-blocking)
-        let checkpointInfo = ''
-        try {
-          const provider = new ComfyUIProvider(comfyuiUrl)
-          const checkpoints = await provider.listCheckpoints()
-          if (checkpoints.length > 0) {
-            checkpointInfo = `\n   Available checkpoints: ${checkpoints.slice(0, 10).join(', ')}${checkpoints.length > 10 ? ` (+${checkpoints.length - 10} more)` : ''}`
-          }
-        } catch {
-          // ComfyUI may not be running, skip
-        }
-
-        sections.push([
-          '## ComfyUI (Local)',
-          `   URL: ${comfyuiUrl}`,
-          `   Workflows:\n${workflowLines.join('\n')}`,
-          checkpointInfo,
-          '   Use comfyui_workflow tool to view/modify workflow parameters.',
-        ].filter(Boolean).join('\n'))
       }
 
       // User's own API key models
@@ -225,7 +174,7 @@ export function registerListModels(server: McpServer, apiClient: MeiGenApiClient
       // Configuration status
       const configStatus = providers.length > 0
         ? `\nConfigured providers: ${providers.join(', ')}`
-        : '\nNo image generation providers configured. On Claude Code, run /meigen:setup. On other hosts, set MEIGEN_API_TOKEN / OPENAI_API_KEY in your MCP config env block, or import a ComfyUI workflow.'
+        : '\nNo image generation providers configured. On Claude Code, run /meigen:setup. On other hosts, set MEIGEN_API_TOKEN / OPENAI_API_KEY in your MCP config env block.'
 
       const structuredContent = { success: !modelError, models, configuredProviders: providers, executionCapabilities: { submitOnly: true, download: true, maxConcurrentSubmissions: 4, concurrency: 'MeiGen: at most four in-flight submissions per MCP process. Polling and downloads do not occupy submission slots. This is not an account-wide limit or requests-per-minute quota; honor the backend Retry-After.' }, ...(modelError ? { error: modelError } : {}) }
       return {

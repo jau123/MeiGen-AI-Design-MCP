@@ -201,17 +201,17 @@ export class MeiGenApiClient {
   }
 
   /** Get image details by ID (no auth required) */
-  async getImageDetails(imageId: string): Promise<MeiGenSearchResult | null> {
-    const res = await fetch(`${this.baseUrl}/api/images/${encodeURIComponent(imageId)}`)
-    if (!res.ok) {
-      if (res.status === 404) return null
-      throw new Error(`Failed to fetch image: ${res.status} ${res.statusText}`)
-    }
-
-    const json = await res.json() as { success: boolean; data?: MeiGenSearchResult; error?: string }
-    if (!json.success) return null
-
-    return json.data || null
+  async getImageDetails(imageId: string, signal?: AbortSignal): Promise<MeiGenSearchResult | null> {
+    return await withHttpResponse(`${this.baseUrl}/api/images/${encodeURIComponent(imageId)}`, { redirect: 'error' }, 8_000, async (response, requestSignal) => {
+      if (response.status === 404) {
+        void response.body?.cancel().catch(() => {})
+        return null
+      }
+      const json = await boundedJson(response, 2 * 1024 * 1024, requestSignal)
+      if (!response.ok) throw responseError(response, json)
+      if (!json.success || !json.data || typeof json.data !== 'object' || Array.isArray(json.data)) return null
+      return json.data as MeiGenSearchResult
+    }, signal)
   }
 
   /** Generate an image (requires API token) */

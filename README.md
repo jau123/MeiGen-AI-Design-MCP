@@ -1,13 +1,15 @@
 <h1 align="center">MeiGen AI Design MCP</h1>
 
+> 3.0.0 is prepared in this source checkout and has not been published by this change. Installation pins target the upcoming major release; verify registry availability before upgrading. Read the [3.0 migration notes](RELEASE_NOTES_3.0.0.md) for removed ComfyUI/offline-library support and the remote OAuth account library.
+
 <p align="center">
   Open-source visual tools for your AI assistant: inspiration, images, videos and product visuals.<br>
-  Works with ChatGPT (including Codex), Claude Code, Cursor, OpenClaw and other MCP clients.
+  Works with ChatGPT, Claude, Cursor, OpenClaw and other MCP clients.
 </p>
 
 <p align="center">
-  <a href="https://chatgpt.com/plugins/plugin_asdk_app_6ab66d24f56481919361b6c33f7c1928"><img src="https://img.shields.io/badge/ChatGPT_%26_Codex-111111?style=for-the-badge" alt="Install for ChatGPT and Codex"></a>
-  <a href="#claude-code"><img src="https://img.shields.io/badge/Claude_Code-111111?style=for-the-badge" alt="Install for Claude Code"></a>
+  <a href="https://chatgpt.com/plugins/plugin_asdk_app_6ab66d24f56481919361b6c33f7c1928"><img src="https://img.shields.io/badge/ChatGPT-111111?style=for-the-badge" alt="Install for ChatGPT"></a>
+  <a href="#claude-code"><img src="https://img.shields.io/badge/Claude-111111?style=for-the-badge" alt="Install for Claude"></a>
   <a href="#remote-mcp"><img src="https://img.shields.io/badge/Cursor-111111?style=for-the-badge" alt="Connect Cursor"></a>
   <a href="#openclaw"><img src="https://img.shields.io/badge/OpenClaw-111111?style=for-the-badge" alt="Install for OpenClaw"></a>
   <a href="#other-clients"><img src="https://img.shields.io/badge/Other_MCP-111111?style=for-the-badge" alt="Connect other MCP clients"></a>
@@ -33,11 +35,11 @@ Choose the AI tool you use:
 
 | Client | Get started |
 |---|---|
-| **ChatGPT / Codex** | [Install from the official ChatGPT store](https://chatgpt.com/plugins/plugin_asdk_app_6ab66d24f56481919361b6c33f7c1928) → sign in to MeiGen → start a new chat and use MeiGen. No API key needed. |
-| **Claude Code** | [Install the plugin](#claude-code) for commands and creative helpers, or [connect remote MCP](#remote-mcp). |
+| **ChatGPT** | [Install from the official ChatGPT store](https://chatgpt.com/plugins/plugin_asdk_app_6ab66d24f56481919361b6c33f7c1928) → sign in to MeiGen → start a new chat and use MeiGen. No API key needed. |
+| **Claude** | [Connect remote MCP](#remote-mcp) and sign in to MeiGen. Optional [creative helpers](#claude-code) are available separately. |
 | **Cursor** | [Add the remote MCP URL](#remote-mcp), then sign in. |
-| **OpenClaw** | [Install the ClawHub plugin](#openclaw). |
-| **Other MCP clients / CLI** | Use [remote MCP](#remote-mcp) or [local npm](#local-npm). [VS Code, Windsurf, Roo Code and Hermes setup →](SETUP.md) |
+| **OpenClaw** | [Connect remote MCP](#remote-mcp) with an OAuth-capable host; optional [ClawHub instructions](#openclaw). |
+| **Other MCP clients** | [Connect remote MCP](#remote-mcp) with OAuth. [Setup guide →](SETUP.md) |
 
 Try a search first:
 
@@ -79,11 +81,21 @@ Provide a source image when the task needs one. Your assistant checks available 
 
 | Connection | Best for |
 |---|---|
-| **Remote MCP** | MeiGen Cloud in Claude Code, Cursor and compatible HTTP clients. No local install. |
-| **Local npm** | Local file preparation/saving, ComfyUI, OpenAI-compatible image APIs and CLI use. |
-| **Client plugins** | Claude Code or OpenClaw with bundled setup and creative helpers. |
+| **Remote OAuth MCP — recommended** | MeiGen account sign-in for creation, favorites, boards and history. No local install. |
+| **Local npm — legacy compatibility / BYOK** | Existing API keys for generation, public search and Skills; local file preparation/saving and OpenAI-compatible image APIs. No private library. |
+| **Client plugins** | Optional creative helpers; current bundled MCP configuration remains legacy stdio. |
 
-Keep one MeiGen connection per client to avoid duplicate tools. All five visual Skills and video generation use MeiGen Cloud; ComfyUI and OpenAI-compatible providers support local general image generation.
+Keep one MeiGen connection per client to avoid duplicate tools. All five visual Skills and video generation use MeiGen Cloud; OpenAI-compatible providers support local general image generation.
+
+### Account library through remote OAuth (next backend release)
+
+With remote MeiGen OAuth account sign-in, `search_favorites` finds saved inspiration, `list_boards` finds project boards, and `search_history` finds earlier creations with prompt excerpts. Use `get_library_item` to read a selected original user prompt. `save_favorite` saves an existing gallery item or authorized generation, optionally to an owned private board, with the user's stated reason. Repeated saves do not remove the item or overwrite an existing note.
+
+For requests about your taste or preferred style, the assistant can consult relevant favorites instead of guessing. Saving needs an explicit request or prior opt-in; liking a result alone does not automatically save it. These tools do not spend generation credits. Only the remote OAuth connection exposes these tools. Local npm, legacy MeiGen API keys and OpenAI-compatible provider keys cannot access the private library.
+
+“Show another batch” keeps the same gallery query and uses the returned snapshot and next offset. A new creative direction starts a new search. Results no longer come from a bundled offline library.
+
+For the 3.0.0 npm `search_gallery` tool, the combined query and optional category must fit within 200 UTF-16 code units. `limit` accepts integers from 1–20 (default 3), with at most 3 results returned; `offset` accepts integers from 0–100000. Fractional values are rejected. Use the returned `nextOffset`, not a guessed page number.
 
 <a id="remote-mcp"></a>
 
@@ -95,40 +107,40 @@ Add this **Streamable HTTP** URL in your client's MCP settings, then choose **Co
 https://www.meigen.ai/api/mcp
 ```
 
-OAuth requires support in your client. If unavailable, use the [private API-key setup](SETUP.md#authentication). Reconnect and ask “List MeiGen's available Skills and current prices” to verify the connection without generating.
+OAuth requires support in your client. If unavailable, use a compatible host or the official ChatGPT plugin; a new API key is not a substitute for account sign-in. Reconnect and ask “List MeiGen's available Skills and current prices” to verify the connection without generating.
 
 For optional Codex CLI / IDE MCP configuration, see the [advanced setup guide](SETUP.md#codex-manual).
 
-### Local npm
+### Local npm — legacy compatibility and BYOK
 
-Node.js 22+ is recommended. Add this entry to your client's MCP configuration:
+Existing local integrations and BYOK workflows can keep this stdio configuration. New MeiGen users should use remote OAuth above. Node.js 22+ is recommended:
 
 ```json
 {
   "mcpServers": {
     "meigen": {
       "command": "npx",
-      "args": ["-y", "meigen@2.0.2"]
+      "args": ["-y", "meigen@3.0.0"]
     }
   }
 }
 ```
 
-For MeiGen Cloud generation, create a private key at [API Keys](https://www.meigen.ai/profile/api-keys) and pass it as `MEIGEN_API_TOKEN` in the server's launch environment. Keep it out of chat and source control. See [client-specific setup, providers and CLI](SETUP.md).
+Existing local API keys remain compatible with generation, public search and Skills as `MEIGEN_API_TOKEN` in the server launch environment, but cannot access the private library. New connections use remote OAuth. Keep them private. This server has no OAuth login or personal-library tools; use the remote connection for those features. See [client-specific setup, providers and CLI](SETUP.md).
 
 <a id="claude-code"></a>
 
 <details>
-<summary><strong>Claude Code plugin</strong></summary>
+<summary><strong>Claude plugin</strong></summary>
 
-Run inside Claude Code, then restart:
+For new connections, use [remote OAuth](#remote-mcp). The optional plugin below retains its bundled legacy stdio connection; keep one active MeiGen connection per host when switching. To install only within that supported setup, run inside Claude, then restart:
 
 ```text
 /plugin marketplace add jau123/MeiGen-AI-Design-MCP
 /plugin install meigen@meigen-marketplace
 ```
 
-Use `/meigen:setup` to configure a provider. The plugin adds `/meigen:gen`, `/meigen:find`, `/meigen:models` and optional creative agents. [Plugin guide →](plugin/README.md)
+Use `/meigen:setup` for connection guidance or existing legacy/BYOK configuration. The plugin adds `/meigen:gen`, `/meigen:find`, `/meigen:models` and optional creative agents. [Plugin guide →](plugin/README.md)
 
 </details>
 
@@ -137,7 +149,7 @@ Use `/meigen:setup` to configure a provider. The plugin adds `/meigen:gen`, `/me
 <details>
 <summary><strong>OpenClaw</strong></summary>
 
-Install the [full plugin from ClawHub](https://clawhub.ai/plugins/meigen-ai-design):
+For new connections, use [remote OAuth](#remote-mcp). The [full plugin from ClawHub](https://clawhub.ai/plugins/meigen-ai-design) retains a bundled legacy stdio connection:
 
 ```bash
 openclaw plugins install clawhub:meigen-ai-design
@@ -157,8 +169,8 @@ Paste this into an assistant that can configure your MCP client:
 ```text
 Set up MeiGen MCP using https://github.com/jau123/MeiGen-AI-Design-MCP#quick-start.
 Detect this client, preserve other servers and reuse any existing MeiGen entry.
-Prefer remote HTTP with OAuth; use local npm if I need local files or ComfyUI.
-Let me sign in or enter credentials privately, never in chat.
+Use remote HTTP with OAuth for MeiGen account access. Keep existing legacy API-key or BYOK connections only when they are needed; do not create a new MeiGen key.
+Let me sign in through the host, never send credentials in chat.
 Reconnect and verify with list_skills. Do not upload, generate or spend credits.
 If you cannot configure this client, explain the remaining manual steps.
 ```
@@ -172,8 +184,8 @@ If you cannot configure this client, explain the remaining manual steps.
 - [Client setup, configuration, privacy and troubleshooting](SETUP.md) · [Upgrading](SETUP.md#upgrading)
 - [Five Skills HTTP API and MCP examples](SKILLS_API.md)
 - [Compose image/video steps and recover interrupted jobs](COMPOSABLE_WORKFLOWS.md)
-- [Claude Code plugin commands and agents](plugin/README.md)
-- [Release notes](RELEASE_NOTES_2.0.2.md) · [Maintainer release guide](RELEASING.md)
+- [Claude plugin commands and agents](plugin/README.md)
+- [3.0 migration notes](RELEASE_NOTES_3.0.0.md) · [Maintainer release guide](RELEASING.md)
 
 If a generation is interrupted, check the original task with `check_generation` or `check_skill` before starting another paid request. Keep your original assets and download results you need to retain.
 
@@ -181,6 +193,8 @@ If a generation is interrupted, check the original task with `check_generation` 
 
 [Discord](https://discord.gg/uX6rnersUx) · [Issues](https://github.com/jau123/MeiGen-AI-Design-MCP/issues) · [MeiGen](https://www.meigen.ai) · [Privacy policy](https://www.meigen.ai/privacy-policy)
 
-The local prompt library includes 1,446 curated prompts from [nanobanana-trending-prompts](https://github.com/jau123/nanobanana-trending-prompts). Featured in [Awesome MCP Servers](https://github.com/punkpeye/awesome-mcp-servers) and [wshobson/agents](https://github.com/wshobson/agents/tree/main/plugins/meigen-ai-design).
+Featured in [Awesome MCP Servers](https://github.com/punkpeye/awesome-mcp-servers) and [wshobson/agents](https://github.com/wshobson/agents/tree/main/plugins/meigen-ai-design).
 
 [MIT](LICENSE). The open-source server is free to use; cloud generation and third-party providers have their own usage costs.
+
+Account-library tools are available only through the remote OAuth connection at `https://www.meigen.ai/api/mcp`, after MeiGen sign-in and consent. API keys and local npm cannot access favorites, boards, history or item details. Lists return prompt excerpts; use the remote `get_library_item` tool to read a selected full prompt in Unicode code-point pages (default 8000, maximum 16000). `prompt.length` is the total safe prompt length; `nextOffset=null` marks the final part. Full data appears once in `structuredContent`; text is a short summary.

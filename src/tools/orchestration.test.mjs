@@ -151,7 +151,7 @@ test('unsupported provider submit-only and missing requestId reject before any u
  const previous=globalThis.fetch;let calls=0;globalThis.fetch=async()=>{calls++;throw Error('unexpected')}
  try{
   const {run}=tool(imageModule.registerGenerateImage,api(),{openaiApiKey:'test-byok'})
-  for(const provider of ['openai','comfyui']){const out=await run({prompt:'first frame',provider,wait:false,requestId:randomUUID(),referenceImages:['/nonexistent.png']});assert.equal(out.isError,true)}
+  for(const provider of ['openai']){const out=await run({prompt:'first frame',provider,wait:false,requestId:randomUUID(),referenceImages:['/nonexistent.png']});assert.equal(out.isError,true)}
   const video=tool(videoModule.registerGenerateVideo).run;const out=await video({prompt:'motion',model:'video',wait:false});assert.equal(out.structuredContent.error.code,'request_id_required');assert.equal(calls,0)
  }finally{globalThis.fetch=previous}
 })

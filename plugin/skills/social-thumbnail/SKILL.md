@@ -23,7 +23,7 @@ Use this planning workflow only when the caller asks for creative development. A
 
 For an unresolved marketing, event or campaign poster with designed text, call `generate_marketing_poster` directly. Use `brand` for the subject, `content` for supplied copy (`autoCopy: false` when exact wording matters), and `extraNotes` for verified details and layout constraints. Put style/design directions in `extraNotes` or `customStyle`; they are not words to print verbatim in the poster. A poster needs only a subject; images are optional. Do not force a generic image-generation agent or prompt-enhancement step. Preserve an upstream workflow's explicit tool/model/provider selection; a resolved generic illustration or image-only cover can still use `generate_image`.
 
-Use `list_skills` for live styles, output specifications and purchased-credit prices. Choose `styleId` by its ID, not the displayed label; omit `styleId` and `customStyle` for Auto. Nonempty `customStyle` overrides the preset. `styleImage` supplies the primary visual style, with written style only as a compatible supplement; never copy its products, claims or wording. `logo` is an exact identity reference and `productImages` identify the subjects. Use actual accessible files or image URLs only. These dedicated tools require a MeiGen key and purchased credits; OpenAI-compatible/ComfyUI providers do not run them.
+Use `list_skills` for live styles, output specifications and purchased-credit prices. Choose `styleId` by its ID, not the displayed label; omit `styleId` and `customStyle` for Auto. Nonempty `customStyle` overrides the preset. `styleImage` supplies the primary visual style, with written style only as a compatible supplement; never copy its products, claims or wording. `logo` is an exact identity reference and `productImages` identify the subjects. Use actual accessible files or image URLs only. These dedicated tools require a MeiGen key and purchased credits; OpenAI-compatible providers do not run them.
 
 Resolve only missing required information or scope. A supplied count, copy, quality and approved budget do not need another confirmation. Save a UUID `requestId` and exact inputs for each logical poster, then use `check_skill` with `skill: "brand-poster"` and the original ID after interruption. Follow `nextAction`; do not create paid replacements automatically.
 
@@ -49,7 +49,7 @@ Ask only when essential headline or theme information is missing:
 - OR if user already gave a clear theme: skip ask, plan directly.
 
 ### 2. Reference (optional but recommended)
-Call `search_gallery(category="Poster Design")` for style reference; 146 curated entries are available. Show 3-5 thumbnails to the user if they want to pick a direction.
+Call `search_gallery` with the requested poster style or topic for live references. Each page returns at most three entries; use its nextOffset and snapshotId for another batch when requested.
 
 ### 3. Plan the requested count; offer directions only when unresolved
 Distinct directions, not minor tweaks. For each, write a prompt that:

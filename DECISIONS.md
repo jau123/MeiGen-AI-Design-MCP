@@ -103,15 +103,11 @@ When a decision becomes obsolete (the constraint disappears, the data flips), mo
 
 **How to apply**: Keep `MEDIA_REFERENCE_HOST` in `src/lib/generation-references.ts` in sync with the backend probe whitelist (`src/lib/mp4-duration.ts` / `audio-duration.ts` in the Web repo). Never reintroduce a bytes-carrying `MediaReference`; anything that needs the clip's bytes must read them at upload time and verify the fingerprint first.
 
-### Categories are 6 (post-2026-04-29 reorg)
-**Decision**: Gallery categories: Photography (533), Illustration & 3D (370), Product & Brand (239), Food & Drink (156), Poster Design (146), UI & Graphic (52). Old single-word names (`3D`, `Food`, `Photograph`, `Product`, `Poster`, `Design`) map via `CATEGORY_DISPLAY_MAP` for old data. Retired: `App`, `Girl`, `JSON`, `Other`.
-
-**Why**: Database team rebalanced the 1,446-entry prompt corpus to be more discoverable. Old buckets like `Other` and `JSON` had become catch-alls; `Girl` was poorly defined and mostly redundant with `Illustration & 3D`.
-
-**How to apply**: When adding new categories, update three files in lockstep: `src/lib/prompt-library.ts` (type + `CATEGORY_DISPLAY_MAP`), `src/tools/search-gallery.ts` (Zod enum), `plugin/agents/gallery-researcher.md` (category list). CI doesn't catch this drift yet.
 
 ---
 
 ## Retired
 
-(Empty — move entries here when their constraint disappears, with a date and one-line postmortem.)
+### Bundled gallery categories (retired 2026-10-10)
+
+The old six-category snapshot and its local category mapping were removed with the bundled prompt library. Online semantic search is the source of gallery results; the legacy category input is retained only as a search topic, not a strict filter.

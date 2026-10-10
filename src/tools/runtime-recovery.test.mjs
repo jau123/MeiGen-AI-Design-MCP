@@ -11,12 +11,10 @@ import contractModule from '../lib/generation-contract.js'
 import uploadModule from '../lib/upload.js'
 import referencesModule from '../lib/generation-references.js'
 import httpModule from '../lib/generation-http.js'
-import comfyModule from '../lib/providers/comfyui.js'
 const { MeiGenApiClient } = apiModule
 const { runMeiGenGeneration, generationStatusOutput } = operationModule
 const { GenerationError, errorOutput } = contractModule
 const { streamResponseToFile, withHttpResponse } = httpModule
-const { ComfyUIProvider } = comfyModule
 const config = { meigenBaseUrl: 'https://api.example', meigenApiToken: 'fixture-key', uploadGatewayUrl: 'https://upload.example' }
 async function isolated(run) {
   const directory = await mkdtemp(join(tmpdir(), 'meigen-runtime-recovery-'))
@@ -157,52 +155,6 @@ test('streamed video timeouts clean partial files and successful generation reta
     assert.match(output.downloadWarning, mode === 'empty' ? /empty/ : /size limit/); assert.deepEqual(await readdir(process.env.MEIGEN_VIDEO_OUTPUT_DIR), [])
   }
 }))
-
-const workflow = { '1': { class_type: 'CLIPTextEncode', inputs: { text: 'original' } }, '2': { class_type: 'SaveImage', inputs: {} } }
-async function comfyScenario(historyResponse, signal, shortDeadline = false) {
-  const previous = { fetch: globalThis.fetch, timeout: globalThis.setTimeout }
-  let polls = 0; let posts = 0
-  // Preserve HTTP deadline behavior while compressing only the fixed polling delay.
-  globalThis.setTimeout = (callback, delay, ...args) => previous.timeout(callback, delay === 2000 || (shortDeadline && delay === 15000) ? 0 : delay, ...args)
-  globalThis.fetch = async (url, init) => {
-    if (String(url).endsWith('/prompt')) { posts++; return Response.json({ prompt_id: 'queued-job' }) }
-    polls++; return historyResponse(polls, init)
-  }
-  try { return { result: await new ComfyUIProvider('http://localhost:8188').generate(workflow, 'draw', { download: false, signal }), polls, posts } }
-  finally { globalThis.fetch = previous.fetch; globalThis.setTimeout = previous.timeout }
-}
-const readyHistory = () => Response.json({ 'queued-job': { status: { completed: true, status_str: 'success' }, outputs: { '2': { images: [{ filename: 'output.png', subfolder: '', type: 'output' }] } } } })
-
-test('ComfyUI retries transient history failures without resubmitting its workflow', async () => {
-  for (const fail of [() => new Response(null, { status: 502 }), () => { throw new TypeError('fetch failed') }, () => new Response('oversized', { headers: { 'content-length': String(3 * 1024 * 1024) } })]) {
-    const output = await comfyScenario(count => count === 1 ? fail() : readyHistory())
-    assert.equal(output.polls, 2); assert.equal(output.posts, 1); assert.match(output.result.imageUrl, /\/view\?/)
-  }
-})
-
-test('ComfyUI stops after three consecutive query failures and treats actual failure/cancellation as terminal', async () => {
-  let polls = 0
-  await assert.rejects(comfyScenario(() => { polls++; return new Response(null, { status: 502 }) }), /existing job|existing.*workflow/)
-  assert.equal(polls, 3)
-  polls = 0
-  await assert.rejects(comfyScenario(() => { polls++; return Response.json({ 'queued-job': { status: { completed: false, status_str: 'error' } } }) }), /generation failed/)
-  assert.equal(polls, 1)
-  polls = 0
-  const controller = new AbortController()
-  await assert.rejects(comfyScenario((_count, init) => { polls++; controller.abort(); throw init.signal.reason }, controller.signal), error => error.name === 'AbortError')
-  assert.equal(polls, 1)
-})
-
-
-test('ComfyUI tolerates a query timeout, resets consecutive errors after a valid poll, and stops on 403', async () => {
-  const resumed = await comfyScenario((count, init) => count === 1 ? new Promise((_resolve, reject) => init.signal.addEventListener('abort', () => reject(init.signal.reason), { once: true })) : readyHistory(), undefined, true)
-  assert.equal(resumed.polls, 2); assert.equal(resumed.posts, 1)
-  const reset = await comfyScenario(count => [1, 3].includes(count) ? new Response(null, { status: 502 }) : count === 2 ? Response.json({}) : readyHistory())
-  assert.equal(reset.polls, 4); assert.equal(reset.posts, 1)
-  let polls = 0
-  await assert.rejects(comfyScenario(() => { polls++; return new Response(null, { status: 403 }) }), error => error.httpStatus === 403)
-  assert.equal(polls, 1)
-})
 
 test('an upload failure before submission never tells the caller to check a generation', () => {
   const { preSubmitError } = operationModule

@@ -1,6 +1,6 @@
 ---
 description: >-
-  Configure MeiGen MCP credentials privately, or set up a local ComfyUI or
+  Configure MeiGen MCP credentials privately, or set up an
   OpenAI-compatible provider for ordinary image generation. Use for /meigen:setup,
   "configure meigen", "add API key", or connection setup requests.
 ---
@@ -11,28 +11,21 @@ Guide one decision at a time. Never ask the user to paste a token, API key, auth
 
 ## Choose the connection
 
-The self-hosted Claude marketplace plugin already bundles one local MCP server. Do not add a duplicate server. Other marketplace copies may package different components; inspect their own manifest before prescribing setup. `/meigen:setup` is a Claude Code command, not a command for other MCP hosts.
+The self-hosted Claude marketplace plugin already bundles one local MCP server. Do not add a duplicate server. Other marketplace copies may package different components; inspect their own manifest before prescribing setup. `/meigen:setup` is a Claude command, not a command for other MCP hosts.
 
-Public tools such as `search_gallery`, `enhance_prompt`, `get_inspiration`, `list_models`, and `list_skills` work without a key. Five dedicated workflows—Remove Background, Product Detail Images, Marketing Poster, AI Backgrounds, and Upscale—always require MeiGen and purchased credits. ComfyUI and other providers support ordinary `generate_image`; they do not substitute for these five workflows or MeiGen video generation.
+Public tools such as `search_gallery`, `enhance_prompt`, `get_inspiration`, `list_models`, and `list_skills` work without a key. Five dedicated workflows—Remove Background, Product Detail Images, Marketing Poster, AI Backgrounds, and Upscale—always require MeiGen and purchased credits. OpenAI-compatible providers support ordinary `generate_image`; they do not substitute for these five workflows or MeiGen video generation.
 
-For a Skills request, go directly to MeiGen setup. For ordinary image generation, offer MeiGen, the user's ComfyUI installation, or an OpenAI-compatible provider. If a provider is already configured and working, avoid reconfiguration.
+For a new MeiGen request, use OAuth account setup below. Preserve an explicitly selected existing BYOK provider for ordinary image generation. If a provider is already configured and working, avoid reconfiguration.
 
-## MeiGen credentials
+## MeiGen account sign-in
 
-1. Open https://www.meigen.ai/profile/api-keys and create an API key after signing in.
-2. For the local npm/plugin connection, the user sets `MEIGEN_API_TOKEN` in the environment that launches the MCP process or in the host's private server `env` settings. A terminal variable will not necessarily reach an already-running desktop app.
-3. Alternatively, the user privately edits `~/.config/meigen/config.json` (`%USERPROFILE%\.config\meigen\config.json` on Windows) and sets `meigenApiToken`. Merge only that field; preserve other provider settings. The user restricts file access to their account (`chmod 600` on Unix).
-4. Restart or reconnect the local host after changing configuration.
+For new users, add `https://www.meigen.ai/api/mcp` as a remote Streamable HTTP MCP server, choose Connect / Authenticate, and complete the host's OAuth sign-in and consent flow. Remove a fixed Authorization header when switching to OAuth. The bundled local stdio server has no OAuth login or private favorites, boards or history tools; replace/disable that connection through host settings when switching rather than adding a duplicate. If this host cannot authenticate, use a compatible host or the official ChatGPT plugin. Do not direct new users to create API keys.
 
-For a remote connection to `https://www.meigen.ai/api/mcp`, use the host's private HTTP header settings with `Authorization: Bearer <your MeiGen API key>`. Do not add this secret to a shared project file. If the host cannot provide this authentication, use the local npm connection instead.
+### Existing legacy configuration only
+
+Preserve a working existing local API-key/BYOK setup when the user needs it. An existing legacy key may stay in `MEIGEN_API_TOKEN` or the private `meigenApiToken` config field; do not read or print it. Legacy remote fixed-key calls retain previous generation/search compatibility only. These keys cannot enable the private library. Restart/reconnect after changing settings.
 
 Buying credits: https://www.meigen.ai/profile (mobile: https://www.meigen.ai/m/premium). Skills and MeiGen API-token generation use purchased credits only; daily free credits and Web free attempts cannot be used. `list_skills` supplies current Skill prices. The model-comparison page is for pricing, not checkout.
-
-## ComfyUI for ordinary images
-
-Ask only for a non-secret server URL if it differs from `http://localhost:8188`. The user sets `comfyuiUrl` in the private MeiGen config. Confirm reachability using a bounded request to `/system_stats` only when needed; do not print credentials or a large machine inventory.
-
-Ask for an actual exported ComfyUI API-format workflow file path. Import with `comfyui_workflow(action="import", filePath=..., name=...)`; inspect its detected nodes with `action="view"`. The export UI varies by ComfyUI version; use its current API-format export option. Configure `comfyuiDefaultWorkflow` if desired. Preserve other settings.
 
 ## OpenAI-compatible providers for ordinary images
 

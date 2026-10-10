@@ -1,8 +1,7 @@
 /**
- * generate_image Tool — requires authentication, three provider modes:
+ * generate_image Tool — requires authentication, two provider modes:
  * Mode A: MeiGen account -> calls MeiGen platform API
- * Mode B: ComfyUI local -> submits workflow to local ComfyUI
- * Mode C: User's own API key -> calls OpenAI-compatible API
+ * Mode B: User's own API key -> calls OpenAI-compatible API
  */
 
 import { z } from 'zod'
@@ -13,13 +12,7 @@ import type { MeiGenConfig, ProviderType } from '../config.js'
 import { getDefaultProvider, getAvailableProviders } from '../config.js'
 import type { MeiGenApiClient } from '../lib/meigen-api.js'
 import { OpenAIProvider } from '../lib/providers/openai.js'
-import {
-  ComfyUIProvider,
-  loadWorkflow,
-  listWorkflows,
-} from '../lib/providers/comfyui.js'
 import { classifyError } from '../lib/generation-shared.js'
-import { Semaphore } from '../lib/semaphore.js'
 import { saveImageLocally } from '../lib/save-image.js'
 import { addRecentGeneration } from '../lib/preferences.js'
 import { generationControls, generationOutputSchema, generationResult, errorOutput, GenerationError } from '../lib/generation-contract.js'
@@ -30,10 +23,6 @@ import { fingerprintReferences, uploadReferences } from '../lib/generation-refer
 // 用户不传 model 时,MeiGen 后端会按 DB is_default=true 的行决定,
 // 响应里回传实际使用的 modelId,MCP 据此展示给用户。
 // 好处: 后端切默认(比如 gpt-image-2 维护/恢复)不需要发 npm 版本。
-
-// MeiGen submissions share four slots with video; polling and download release them.
-// ComfyUI: serial (local GPU constraint).
-const comfyuiSemaphore = new Semaphore(1)
 
 /** Safe notification — silently ignores if client doesn't support logging */
 async function notify(extra: RequestHandlerExtra<ServerRequest, ServerNotification>, message: string) {
@@ -55,30 +44,28 @@ export const generateImageSchema = {
   model: z.string().trim().min(1).optional()
     .describe('Model name. For OpenAI-compatible providers: any model ID your endpoint supports. For MeiGen: use model IDs from list_models (e.g. "gpt-image-2", "grok-image" = xAI Grok Imagine Quality, 1K/2K, supports image-to-image, "nanobanana-2", "seedream-4.5", "flux2-klein").'),
   size: z.string().optional()
-    .describe('Image size for OpenAI-compatible providers: "1024x1024", "1536x1024", "auto". MeiGen/ComfyUI: use aspectRatio instead.'),
+    .describe('Image size for OpenAI-compatible providers: "1024x1024", "1536x1024", "auto". MeiGen: use aspectRatio instead.'),
   aspectRatio: z.string().optional()
-    .describe('Aspect ratio for MeiGen provider. Use "auto" (recommended, default when omitted) to let MeiGen infer the best ratio from the prompt content. Explicit values: "1:1", "3:4", "4:3", "16:9", "9:16", "21:9", "2:3", "3:2", "4:5", "5:4", etc. (model-dependent). ComfyUI: use comfyui_workflow modify to adjust dimensions before generating.'),
+    .describe('Aspect ratio for MeiGen provider. Use "auto" (recommended, default when omitted) to let MeiGen infer the best ratio from the prompt content. Explicit values: "1:1", "3:4", "4:3", "16:9", "9:16", "21:9", "2:3", "3:2", "4:5", "5:4", etc. (model-dependent).'),
   resolution: z.string().optional()
     .describe('Resolution tier. MeiGen: "1K" / "2K" / "3K" / "4K" — each model supports a subset (list_models reports resolutions when applicable). OpenAI: not used (use size instead).'),
   quality: z.string().optional()
     .describe('Image quality. MeiGen gpt-image-2: "low" / "medium" / "high". OpenAI-compatible providers also accept "high".'),
   referenceImages: z.array(z.string()).optional()
-    .describe('Image references for style/content guidance. Accepts direct public HTTPS URLs without credentials/fragments or accessible absolute local paths. Relative paths are rejected. Local PNG/JPEG/WebP/GIF references up to 32 MiB and 64 million pixels are fully decoded, stripped of metadata and prepared up to 4096px, preserving transparency. For ComfyUI: local files are passed directly to the workflow (requires LoadImage node). Sources: gallery URLs from search_gallery/get_inspiration, URLs from previous generate_image results, or local file paths.'),
-  provider: z.enum(['openai', 'meigen', 'comfyui']).optional()
+    .describe('Image references for style/content guidance. Accepts direct public HTTPS URLs without credentials/fragments or accessible absolute local paths. Relative paths are rejected. Local PNG/JPEG/WebP/GIF references up to 32 MiB and 64 million pixels are fully decoded, stripped of metadata and prepared up to 4096px, preserving transparency. Sources: gallery URLs from search_gallery/get_inspiration, URLs from previous generate_image results, or local file paths.'),
+  provider: z.enum(['openai', 'meigen']).optional()
     .describe('Which provider to use. Auto-detected from configuration if not specified.'),
-  workflow: z.string().optional()
-    .describe('ComfyUI workflow name to use (from comfyui_workflow list). Uses default workflow if not specified.'),
   negativePrompt: z.string().optional()
-    .describe('Negative prompt for OpenAI-compatible providers. ComfyUI: use comfyui_workflow modify to set negative prompt in the workflow before generating.'),
+    .describe('Negative prompt for OpenAI-compatible providers.'),
 }
 
 export function registerGenerateImage(server: McpServer, apiClient: MeiGenApiClient, config: MeiGenConfig) {
   server.registerTool(
     'generate_image', { description:
-    'Generate an image using AI. Supports MeiGen platform, local ComfyUI, or OpenAI-compatible APIs. Tip: get prompts from get_inspiration() or enhance_prompt(), and use gallery image URLs as referenceImages for style guidance. For Midjourney V8.1, an optional style reference can be passed by appending `--sref <code>` at the end of the prompt — only when the user provides a Midjourney style code (numeric or text). Do NOT pass URLs or local paths via --sref; for any image-based reference, use the referenceImages parameter instead.',
+    'Generate an image using AI. Supports MeiGen platform or OpenAI-compatible APIs. Tip: get prompts from get_inspiration() or enhance_prompt(), and use gallery image URLs as referenceImages for style guidance. For Midjourney V8.1, an optional style reference can be passed by appending `--sref <code>` at the end of the prompt — only when the user provides a Midjourney style code (numeric or text). Do NOT pass URLs or local paths via --sref; for any image-based reference, use the referenceImages parameter instead.',
     inputSchema: generateImageSchema, outputSchema: generationOutputSchema,
     annotations: { readOnlyHint: false, destructiveHint: true } },
-    async ({ prompt, model, modelId, modelVariant, size, aspectRatio, resolution, quality, referenceImages, provider: requestedProvider, workflow, negativePrompt, requestId, wait = true, download = true }, extra) => {
+    async ({ prompt, model, modelId, modelVariant, size, aspectRatio, resolution, quality, referenceImages, provider: requestedProvider, negativePrompt, requestId, wait = true, download = true }, extra) => {
       if (model && modelId && model !== modelId) return generationResult(errorOutput(new GenerationError('model and modelId must match when both are provided.', 'model_alias_conflict')))
       model = model ?? modelId
       const availableProviders = getAvailableProviders(config)
@@ -101,13 +88,8 @@ export function registerGenerateImage(server: McpServer, apiClient: MeiGenApiCli
         }
         // These synchronous providers have no MeiGen job identity; reject unsupported orchestration before upload/API I/O.
         if (!wait || requestId) throw new GenerationError('requestId and wait=false are supported only by provider=meigen. This provider has no resumable MeiGen generation ID.', 'unsupported_execution_mode')
-        const resolvedRefs = providerType === 'comfyui' ? referenceImages : await uploadReferences(await fingerprintReferences(referenceImages ?? [], extra.signal), config, extra.signal)
-        if (providerType === 'openai') {
-          return await generateWithOpenAI(config, prompt, model, size, quality, resolvedRefs, download, extra.signal)
-        }
-        await comfyuiSemaphore.acquire(extra.signal)
-        try { return await generateWithComfyUI(config, prompt, workflow, referenceImages, extra, download) }
-        finally { comfyuiSemaphore.release() }
+        const resolvedRefs = await uploadReferences(await fingerprintReferences(referenceImages ?? [], extra.signal), config, extra.signal)
+        return await generateWithOpenAI(config, prompt, model, size, quality, resolvedRefs, download, extra.signal)
       } catch (error) {
         const result = errorOutput(error, { provider: providerType })
         if (result.error) result.error.message += ` ${classifyError(result.error.message, providerType)}`
@@ -142,49 +124,4 @@ async function generateWithOpenAI(
   const response = generationResult({ success: true, status: 'completed', provider: 'openai', mediaType: 'image', modelId: model || config.openaiModel, urls: result.imageUrl ? [result.imageUrl] : [], ...(result.imageUrl ? { imageUrl: result.imageUrl } : {}), ...(savedPath ? { savedPath } : {}) })
   return { ...response, ...(!savedPath && result.imageBase64 ? { content: [...response.content, { type: 'image' as const, data: result.imageBase64, mimeType: result.mimeType }] } : {}) }
 
-}
-
-async function generateWithComfyUI(
-  config: MeiGenConfig,
-  prompt: string,
-  workflow: string | undefined,
-  referenceImages: string[] | undefined,
-  extra: RequestHandlerExtra<ServerRequest, ServerNotification>,
-  download = true,
-) {
-  // Determine workflow
-  const workflows = listWorkflows()
-  if (workflows.length === 0) {
-    throw new Error('No ComfyUI workflows configured. Use comfyui_workflow import to add one (or on Claude Code, run /meigen:setup for guided configuration).')
-  }
-
-  const workflowName = workflow || config.comfyuiDefaultWorkflow || workflows[0]
-  const workflowData = loadWorkflow(workflowName)
-
-  const comfyuiUrl = config.comfyuiUrl || 'http://localhost:8188'
-  const provider = new ComfyUIProvider(comfyuiUrl)
-
-  // Pre-flight: check if ComfyUI is reachable
-  const health = await provider.checkConnection(extra.signal)
-  if (!health.ok) {
-    throw new Error(`ComfyUI is not reachable at ${comfyuiUrl}. Make sure ComfyUI is running.\nDetails: ${health.error}`)
-  }
-
-  // Notify: generation submitted
-  await notify(extra, `Submitting workflow "${workflowName}" to ComfyUI...`)
-  const result = await provider.generate(
-    workflowData,
-    prompt,
-    { referenceImages, signal: extra.signal, download },
-    async (elapsedMs) => {
-      await notify(extra, `Still generating... (${Math.round(elapsedMs / 1000)}s elapsed)`)
-    },
-  )
-
-  const savedPath = download ? saveImageLocally(result.imageBase64, result.mimeType) : undefined
-
-  addRecentGeneration({ prompt, provider: 'comfyui', model: workflowName })
-
-  const response = generationResult({ success: true, status: 'completed', provider: 'comfyui', mediaType: 'image', modelId: workflowName, urls: result.imageUrl ? [result.imageUrl] : [], ...(result.imageUrl ? { imageUrl: result.imageUrl } : {}), ...(savedPath ? { savedPath } : {}), ...(result.referenceImageWarning ? { nextAction: { type: 'use_result', message: result.referenceImageWarning } } : {}) })
-  return { ...response, ...(!savedPath && result.imageBase64 ? { content: [...response.content, { type: 'image' as const, data: result.imageBase64, mimeType: result.mimeType }] } : {}) }
 }

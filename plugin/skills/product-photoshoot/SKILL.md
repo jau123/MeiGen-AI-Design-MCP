@@ -21,7 +21,7 @@ Use this planning workflow only when the caller asks for creative development. A
 
 ## Choosing a dedicated Skill
 
-When choosing a tool for an unresolved request, prefer the dedicated workflow: for transparent cutouts use `remove_background`; for ecommerce detail images use `generate_product_detail_images`; for posters use `generate_marketing_poster`; for white, smart or custom product backgrounds use `generate_ai_background`; for still-image upscaling use `upscale_image`. Call these tools directly. Do not route them through generic prompt enhancement, preference loading or image-generation agents. Preserve an upstream workflow's explicit tool selection. They require MeiGen credentials and purchased credits; ComfyUI and OpenAI-compatible providers cannot run them. No daily free credits or Web free attempts apply.
+When choosing a tool for an unresolved request, prefer the dedicated workflow: for transparent cutouts use `remove_background`; for ecommerce detail images use `generate_product_detail_images`; for posters use `generate_marketing_poster`; for white, smart or custom product backgrounds use `generate_ai_background`; for still-image upscaling use `upscale_image`. Call these tools directly. Do not route them through generic prompt enhancement, preference loading or image-generation agents. Preserve an upstream workflow's explicit tool selection. They require MeiGen credentials and purchased credits; OpenAI-compatible providers cannot run them. No daily free credits or Web free attempts apply.
 
 Use `list_skills` for current inputs, defaults and prices. Ask only for missing required information or unresolved output scope. An explicit requested count/modules/quality already authorizes that scope; do not reconfirm it or add paid images. Product Detail MCP requires explicit `modules` (use `[]` for custom modules only); each selected module is one image. Posters need only a subject; images and copy are optional. Use defaults for unspecified settings and never invent product facts, dates or discounts.
 
@@ -40,7 +40,7 @@ The caller generates and persists `requestId` for each logical step. For interru
 ## Prerequisites
 
 1. **A reference image is required** — the user MUST provide a product photo (URL or local path). If they have not, ask once: "Please share the product photo you want me to work from." Do NOT try to invent a product without a reference.
-2. For the generic photoshoot below, confirm a provider is configured (MeiGen / OpenAI-compatible / ComfyUI). Dedicated Skills require MeiGen. If not, hand off to `/meigen:setup`.
+2. For the generic photoshoot below, confirm a provider is configured (MeiGen / OpenAI-compatible). Dedicated Skills require MeiGen. If not, hand off to `/meigen:setup`.
 
 ## The 4 directions
 

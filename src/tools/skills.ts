@@ -174,12 +174,12 @@ export function registerSkillTools(server: McpServer, config: MeiGenConfig) {
 
   for (const skill of SKILLS) {
     const tool = tools[skill]
-    server.tool(tool.name, `${SKILL_TOOLS[skill].description} Requires a MeiGen API key configured for this local npm server (MEIGEN_API_TOKEN or saved local configuration), and purchased credits only. Local files and external public HTTPS URLs are uploaded automatically. ${SKILL_FLOW}`, tool.schema, { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true },
+    server.tool(tool.name, `${SKILL_TOOLS[skill].description} This legacy local npm path requires an existing MeiGen key (MEIGEN_API_TOKEN or saved local configuration) and purchased credits. New connections use remote OAuth at https://www.meigen.ai/api/mcp. Local files and external public HTTPS URLs are uploaded automatically. ${SKILL_FLOW}`, tool.schema, { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true },
       async (args: Record<string, unknown>, extra?: { signal?: AbortSignal }) => {
         const signal = extra?.signal
         if (signal?.aborted) return cancelledResult(skill, String(args.requestId))
         const headers = auth()
-        if (!headers) return skillToolResult({ success: false, error: 'MEIGEN_API_TOKEN is required. Configure your MeiGen API key to use skills.' }, 401, 'submit', skill, String(args.requestId))
+        if (!headers) return skillToolResult({ success: false, error: 'This legacy local Skill path needs its existing MEIGEN_API_TOKEN. New connections should sign in through remote OAuth at https://www.meigen.ai/api/mcp.' }, 401, 'submit', skill, String(args.requestId))
         let submitted = false
         try {
           const body = await resolveSkillImages(args, config, skill, signal)

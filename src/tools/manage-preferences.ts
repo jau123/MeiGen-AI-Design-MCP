@@ -1,5 +1,5 @@
 /**
- * manage_preferences Tool — read/write user preferences
+ * manage_preferences Tool — read/write machine-local preferences
  *
  * Single tool with action parameter to keep context footprint small (~600 tokens).
  * Storage: ~/.config/meigen/preferences.json (separate from provider config).
@@ -25,7 +25,7 @@ export const managePreferencesSchema = {
     .describe('set: preferred default aspect ratio. Use "auto" (recommended) to let MeiGen infer per-prompt, or pin a value like "16:9", "1:1", "9:16".'),
   model: z.string().optional()
     .describe('set: preferred default model name'),
-  provider: z.enum(['openai', 'meigen', 'comfyui']).optional()
+  provider: z.enum(['openai', 'meigen']).optional()
     .describe('set: preferred default provider'),
   styleNotes: z.string().optional()
     .describe('set: free-text style notes (e.g. "cinematic lighting, shallow DOF, brand colors #1A1A2E")'),
@@ -42,7 +42,7 @@ export const managePreferencesSchema = {
 export function registerManagePreferences(server: McpServer) {
   server.tool(
     'manage_preferences',
-    'Read or update user preferences: default style, aspect ratio, model, style notes, and favorite prompts. Call with action "get" at conversation start to load preferences.',
+    'Read or update machine-local defaults, style notes, and prompt bookmarks in ~/.config/meigen/preferences.json. These are not MeiGen account favorites or boards and do not sync across devices. Use only when the user requests local settings; use search_favorites and save_favorite for their MeiGen collection.',
     managePreferencesSchema,
     { readOnlyHint: false },
     async ({ action, style, aspectRatio, model, provider, styleNotes, prompt, index }) => {
@@ -85,7 +85,7 @@ export function registerManagePreferences(server: McpServer) {
           return {
             content: [{
               type: 'text' as const,
-              text: `Saved to favorites (${prefs.favorites.length} total).`,
+              text: `Saved as a local prompt bookmark (${prefs.favorites.length} total); this does not save it to MeiGen account favorites.`,
             }],
           }
         }
@@ -101,7 +101,7 @@ export function registerManagePreferences(server: McpServer) {
           return {
             content: [{
               type: 'text' as const,
-              text: `Favorite removed (${prefs.favorites.length} remaining).`,
+              text: `Local prompt bookmark removed (${prefs.favorites.length} remaining).`,
             }],
           }
         }

@@ -21,7 +21,6 @@ export function classifyError(message: string, provider?: ProviderType): string 
   if (lower.includes('credit') || lower.includes('balance') || /\b402\b/.test(message) || /insufficient\s+(funds|quota)/.test(lower)) {
     if (provider === 'meigen') return 'Insufficient purchased credits. API calls do not use daily free credits. Top up the same MeiGen account at https://www.meigen.ai/profile (mobile: https://www.meigen.ai/m/premium).'
     if (provider === 'openai') return 'Check the balance, billing and quota of the provider configured by OPENAI_BASE_URL and OPENAI_API_KEY. MeiGen credits do not pay for this OpenAI-compatible provider.'
-    if (provider === 'comfyui') return 'Check the ComfyUI workflow and any paid external service used by its custom nodes.'
     return 'Check the selected generation provider’s account balance, billing and quota.'
   }
 
@@ -39,14 +38,11 @@ export function classifyError(message: string, provider?: ProviderType): string 
 
   if ((lower.includes('token') || lower.includes('api key')) && (lower.includes('invalid') || lower.includes('expired'))) {
     if (provider === 'openai') return 'Update the API key for your configured OpenAI-compatible provider in local credentials settings, then reconnect.'
-    return 'Update the selected provider’s key in local connection settings, then reconnect. For MeiGen, create a key at https://www.meigen.ai/profile/api-keys and set MEIGEN_API_TOKEN. Keep credentials out of chat.'
+    return 'Check the existing legacy MeiGen key in private local connection settings and reconnect, or switch the host to remote OAuth at https://www.meigen.ai/api/mcp. New MeiGen connections use account sign-in. Keep credentials out of chat.'
   }
 
   if (lower.includes('econnrefused') || lower.includes('fetch failed') || lower.includes('network'))
     return 'Network connection issue. Check your internet connection and try again.'
-
-  if (lower.includes('comfyui') || lower.includes('node_errors'))
-    return 'ComfyUI workflow error. Use comfyui_workflow view to inspect the workflow, or try a different one.'
 
   return 'You can try again, or use a different prompt/model.'
 }

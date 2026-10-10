@@ -10,10 +10,10 @@
 
 **Improvements**:
 - [ ] Add real generation result showcase (before/after prompt enhancement)
-- [ ] Add Provider comparison table (MeiGen vs ComfyUI vs OpenAI pros/cons)
+- [ ] Add Provider comparison table (MeiGen vs OpenAI-compatible pros/cons)
 - [ ] Add more usage scenario examples (logo design, product photography, batch generation)
 - [ ] Add ASCII/Mermaid workflow diagrams (generation flow, reference image flow)
-- [ ] Add tool capability overview table with statistics (8 tools, 1,446 gallery entries, 3 providers)
+- [ ] Add tool capability overview table with statistics from the runtime tool inventory
 
 **Reference**: ui-ux-pro-max has 23KB README with feature tables, ASCII diagrams, real output examples, and anti-pattern lists.
 
@@ -23,15 +23,11 @@
 
 ### 2. Search Relevance Optimization
 
-**Current state**: `search_gallery` uses simple string matching on 1,446 prompts in `trending-prompts.json`.
+**Current state**: `search_gallery` uses live semantic search. The bundled offline prompt library has been removed.
 
 **Improvements**:
-- [ ] Implement BM25 or TF-IDF ranking for search results
-- [ ] Add category-based indexing for faster filtered searches
-- [ ] Consider splitting `trending-prompts.json` by category for finer-grained search
-- [ ] Add search result scoring/relevance indicator in tool response
-
-**Reference**: ui-ux-pro-max uses BM25 ranking (core.py, 253 lines) with regex domain detection and autocomplete. Zero external dependencies.
+- [ ] Improve online search relevance using user feedback
+- [ ] Add meaningful search relevance indicators when the API provides them
 
 **Effort**: Medium | **Impact**: High — directly improves gallery discovery experience
 
@@ -48,7 +44,7 @@
 - [x] VS Code / GitHub Copilot — `.vscode/mcp.json` (`servers` format + `type: "stdio"`)
 - [x] Windsurf — `~/.codeium/windsurf/mcp_config.json` (global, `mcpServers` format)
 - [x] Roo Code — `.roo/mcp.json` (`mcpServers` format)
-- [x] Claude Code — `.mcp.json` (`mcpServers` format)
+- [x] Claude — `.mcp.json` (`mcpServers` format)
 
 **Key design decisions**:
 - No separate CLI package — subcommand of existing `meigen` binary (~80 lines)
@@ -57,7 +53,7 @@
 
 **Files**: `src/cli/init.ts`, `bin/meigen-mcp.js`
 
-**Effort**: Small (was estimated Large) | **Impact**: High — expands user base beyond Claude Code
+**Effort**: Small (was estimated Large) | **Impact**: High — expands user base beyond Claude
 
 ---
 
@@ -101,7 +97,7 @@
 |------|--------|
 | Python search engine | Already have TypeScript MCP server, no need for Python |
 | Symlink strategy | npx distribution eliminates duplication problem |
-| CSV data format | JSON is better for our prompt library (nested data, image URLs) |
+| Bundled prompt data | Use the current online gallery instead of a stale package snapshot |
 
 ---
 

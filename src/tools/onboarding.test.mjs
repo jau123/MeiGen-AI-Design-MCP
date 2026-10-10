@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js'
 import serverModule from '../server.js'
+import guidanceModule from '../lib/skill-guidance.js'
 
 const { createServer } = serverModule
 const requestId = '11111111-2222-4333-8444-555555555555'
@@ -31,11 +32,22 @@ async function session(token, fetchResponse, run) {
 }
 const call = (client,name,args) => client.callTool({name,arguments:args})
 
+test('legacy account API-key URL remains compatible while primary setup uses OAuth', () => {
+  const account = guidanceModule.SKILL_ACCOUNT_GUIDE
+  assert.equal(account.apiKeysUrl, 'https://www.meigen.ai/profile/api-keys')
+  assert.equal(account.apiKeysUrlDeprecated, true)
+  assert.equal(account.connection.setupUrl, 'https://www.meigen.ai/mcp')
+  assert.equal(account.connection.authentication, 'OAuth account sign-in')
+  assert.equal(account.legacyCompatibility.existingIntegrationsOnly, true)
+})
+
 test('fresh anonymous MCP client sees scenarios, source materials, version and host setup', async () => {
   await session(undefined,undefined,async client => {
-    assert.equal(client.getServerVersion().version,'2.0.2')
+    assert.equal(client.getServerVersion().version,'3.0.0')
     const {tools}=await client.listTools()
-    assert.equal(tools.length,17)
+    assert.equal(tools.length,16)
+    assert.equal(tools.some(tool => tool.name === 'comfyui_workflow'), false)
+    assert.deepEqual(tools.find(tool => tool.name === 'generate_image').inputSchema.properties.provider.enum, ['openai', 'meigen'])
     const description=name=>tools.find(t=>t.name===name).description
     assert.match(description('remove_background'),/Required: one actual source photo/)
     assert.match(description('generate_product_detail_images'),/one actual product photo.*resolved image count/)
@@ -49,19 +61,19 @@ test('fresh anonymous MCP client sees scenarios, source materials, version and h
   })
 })
 
-test('missing key guides actual key creation and both host credential fields without a network call', async () => {
+test('missing legacy key guides OAuth sign-in without a network call or new-key creation', async () => {
   await session(undefined,undefined,async (client,requests) => {
     const r=await call(client,'generate_marketing_poster',{requestId,brand:'Coffee weekend'})
     assert.equal(r.isError,true)
-    assert.equal(r.structuredContent.nextAction.url,'https://www.meigen.ai/profile/api-keys')
-    assert.match(r.structuredContent.nextAction.message,/desktop browser/)
+    assert.equal(r.structuredContent.nextAction.url,'https://www.meigen.ai/mcp')
+    assert.match(r.structuredContent.nextAction.message,/OAuth sign-in/)
     assert.match(r.structuredContent.nextAction.message,/MEIGEN_API_TOKEN.*Authorization: Bearer/)
     assert.match(r.structuredContent.nextAction.message,/Never request the secret in chat/)
     assert.equal(requests.length,0)
   })
 })
 
-test('invalid key tells a fresh client to replace credentials and stops polling', async () => {
+test('invalid legacy key guides connection recovery and stops polling', async () => {
   await session('meigen_sk_test',()=>Response.json({success:false,error:'Invalid API token'},{status:401}),async client=>{
     const r=await call(client,'generate_marketing_poster',{requestId,brand:'Coffee weekend'})
     assert.equal(r.structuredContent.nextAction.type,'configure_auth')
@@ -76,7 +88,7 @@ test('insufficient balance retains exact required/available and points to purcha
     const body=r.structuredContent
     assert.equal(body.required-body.available,3)
     assert.equal(body.nextAction.url,'https://www.meigen.ai/profile')
-    assert.match(body.nextAction.message,/same MeiGen account.*Top Up/)
+    assert.match(body.nextAction.message,/connected MeiGen account.*Top Up/)
     assert.match(body.nextAction.message,/purchased credits only/)
     assert.match(body.nextAction.message,/new requestId/)
     assert.equal(body.nextAction.tool,undefined)
@@ -196,6 +208,32 @@ test('published API-guide MCP example validates and calls the dedicated endpoint
       assert.equal(example.arguments.styleId, 'minimalist')
       assert.ok(example.arguments.extraNotes)
       assert.equal(result.structuredContent.generationId, 'documented-poster-job')
+    })
+  }
+})
+
+
+test('a removed provider is rejected rather than silently redirected to a paid cloud provider', async () => {
+  await session('meigen_sk_fixture', undefined, async (client, requests) => {
+    const result = await call(client, 'generate_image', { prompt: 'test image', provider: 'comfyui' })
+    assert.equal(result.isError, true)
+    assert.equal(requests.length, 0)
+  })
+})
+
+
+test('stdio never exposes private library tools, even with an existing API key', async () => {
+  for (const token of [undefined, 'meigen_sk_existing_fixture']) {
+    await session(token, undefined, async (client, requests) => {
+      const { tools } = await client.listTools()
+      for (const name of ['search_favorites', 'list_boards', 'search_history', 'get_library_item', 'save_favorite']) {
+        assert.equal(tools.some(tool => tool.name === name), false)
+        const result = await call(client, name, {})
+        assert.equal(result.isError, true)
+      }
+      assert.equal(requests.length, 0)
+      assert.match(client.getInstructions(), /remote OAuth|OAuth sign-in/)
+      assert.match(client.getInstructions(), /legacy API key cannot access private library data/)
     })
   }
 })

@@ -71,31 +71,42 @@ export async function streamResponseToFile(response: Response, path: string, max
   }
 }
 
-export async function boundedBytes(response: Response, maxBytes: number): Promise<Buffer> {
+export async function boundedBytes(response: Response, maxBytes: number, signal?: AbortSignal): Promise<Buffer> {
+  abortReason(signal)
   const length = Number(response.headers.get('content-length'))
-  if (length > maxBytes) { await response.body?.cancel(); throw new GenerationError('Response exceeds the download size limit.', 'download_too_large', 413) }
+  if (length > maxBytes) { void response.body?.cancel().catch(() => {}); throw new GenerationError('Response exceeds the download size limit.', 'download_too_large', 413) }
   if (!response.body) throw new GenerationError('Response body is missing.', 'invalid_response', 502, true)
   const reader = response.body.getReader()
+  const abort = () => { void reader.cancel(signal?.reason).catch(() => {}) }
+  signal?.addEventListener('abort', abort, { once: true })
   const chunks: Uint8Array[] = []
   let total = 0
   try {
     while (true) {
+      abortReason(signal)
       const chunk = await reader.read()
+      abortReason(signal)
       if (chunk.done) break
       total += chunk.value.byteLength
-      if (total > maxBytes) { await reader.cancel(); throw new GenerationError('Response exceeds the download size limit.', 'download_too_large', 413) }
+      if (total > maxBytes) throw new GenerationError('Response exceeds the download size limit.', 'download_too_large', 413)
       chunks.push(chunk.value)
     }
     return Buffer.concat(chunks, total)
-  } finally { reader.releaseLock() }
+  } finally {
+    signal?.removeEventListener('abort', abort)
+    // Cleanup must not wait for a stalled upstream cancellation handler.
+    void reader.cancel().catch(() => {})
+    reader.releaseLock()
+  }
 }
 
-export async function boundedJson(response: Response, maxBytes = 2 * 1024 * 1024): Promise<Record<string, unknown>> {
+export async function boundedJson(response: Response, maxBytes = 2 * 1024 * 1024, signal?: AbortSignal): Promise<Record<string, unknown>> {
   try {
-    const value: unknown = JSON.parse((await boundedBytes(response, maxBytes)).toString('utf8'))
+    const value: unknown = JSON.parse((await boundedBytes(response, maxBytes, signal)).toString('utf8'))
     if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Not an object')
     return value as Record<string, unknown>
   } catch (error) {
+    abortReason(signal)
     if (error instanceof GenerationError) throw error
     throw new GenerationError('API returned an incomplete or invalid response. Keep the same requestId.', 'invalid_response', 502, true)
   }

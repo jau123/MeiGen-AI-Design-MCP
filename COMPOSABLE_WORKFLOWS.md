@@ -4,7 +4,7 @@
 
 Use MeiGen as a callable step inside an existing agent, Skill, script or application. The caller owns the creative plan, prompts, model/provider choices, output count, approved budget, scheduling and presentation. Optional MeiGen creative assistants can help develop a brief; they are not required before calling tools. Discovery can support any workflow. A resolved upstream plan does not need another approval for every frame, clip or batch.
 
-Requires local **`meigen` 2.0.1 or later** (`npx -y meigen@2.0.2`; 2.0.0 lacks `referenceVideos` / `referenceAudios`), or the updated remote endpoint **`https://www.meigen.ai/api/mcp`**. npm 1.4.0 does not implement this contract. Release order is backend deployment, npm publication, then public installation guides; until 2.0.2 is published, validate a locally built package. Reconnect and inspect the installed schemas for `requestId`, `wait` and request lookup. Backend rollbacks must preserve recovery endpoints and the durable POST contract; users do not need to withdraw already installed npm packages.
+Requires local **`meigen` 2.0.1 or later** (`npx -y meigen@3.0.0`; 2.0.0 lacks `referenceVideos` / `referenceAudios`), or the updated remote endpoint **`https://www.meigen.ai/api/mcp`**. npm 1.4.0 does not implement this contract. Release order is backend deployment, npm publication, then public installation guides; until 3.0.0 is published, validate a locally built package. Reconnect and inspect the installed schemas for `requestId`, `wait` and request lookup. Backend rollbacks must preserve recovery endpoints and the durable POST contract; users do not need to withdraw already installed npm packages.
 
 ## Ordinary task contract
 
@@ -17,7 +17,7 @@ Requires local **`meigen` 2.0.1 or later** (`npx -y meigen@2.0.2`; 2.0.0 lacks `
 | `check_generation` | Supply the original `requestId` or returned `generationId`, not both. Pass the returned `nextAction.arguments` unchanged when checking again; it preserves the optional original `requestedMediaType` (`image` or `video`). For manual recovery, include that intent from the saved plan when known. Request lookup can recover a MeiGen attempt across host/process restarts; it is not limited to a local cache. |
 | `firstFrame` | Pass a completed frame URL to a video model that supports it. The caller chooses whether to inspect or show the frame first. |
 
-The recoverable cloud-task contract above is for MeiGen. Optional local OpenAI-compatible/ComfyUI providers may expose different asynchronous support; inspect their tool schema and returned errors rather than assuming a MeiGen receipt exists for those jobs. Preserve explicitly supplied model/provider and generation settings. `list_models` is available whenever a workflow needs current capabilities or prices; video requires a model.
+The recoverable cloud-task contract above is for MeiGen. Optional local OpenAI-compatible providers may expose different asynchronous support; inspect their tool schema and returned errors rather than assuming a MeiGen receipt exists for those jobs. Preserve explicitly supplied model/provider and generation settings. `list_models` is available whenever a workflow needs current capabilities or prices; video requires a model.
 
 Read `structuredContent`, not a human-readable sentence or a local filename, to advance a workflow. Ordinary results share these fields when available:
 
@@ -107,7 +107,7 @@ const video = await client.callTool({
 // Persist video.structuredContent; recover with the same videoRequestId.
 ```
 
-Local npm has **four shared API submission slots**. Polling and downloading do not occupy these slots; this does not cap the number of accepted jobs still running remotely. Its ComfyUI executor runs one job at a time. The caller should bound both submissions and outstanding paid work. Respect actual backend rate limits and `Retry-After`; there is no universal ten-image workflow cap or blanket ban on parallel video jobs.
+Local npm has **four shared API submission slots**. Polling and downloading do not occupy these slots; this does not cap the number of accepted jobs still running remotely. The caller should bound both submissions and outstanding paid work. Respect actual backend rate limits and `Retry-After`; there is no universal ten-image workflow cap or blanket ban on parallel video jobs.
 
 The budget is a caller-managed limit, not an atomic server-enforced batch cap. Estimates can change; stop for a newly required price/resize decision outside existing authorization. Independent steps can partially succeed, and a failure does not roll back completed frames or clips.
 

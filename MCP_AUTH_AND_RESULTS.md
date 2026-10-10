@@ -1,6 +1,6 @@
-# Authentication and result compatibility (2.0.2)
+# Authentication and result compatibility
 
-The local npm MCP keeps API Key authentication, local file preparation/saving, BYOK and ComfyUI. No embedded OAuth client secret, browser login command or forced credential migration is added. Interactive remote clients may use OAuth through the Web `/api/mcp` endpoint once its separately reviewed deployment and registered client configuration are enabled. Existing API Keys remain valid.
+The local npm MCP keeps API Key authentication, local file preparation/saving, BYOK and local preferences. No embedded OAuth client secret, browser login command or forced credential migration is added. Interactive remote clients may use OAuth through the Web `/api/mcp` endpoint once its separately reviewed deployment and registered client configuration are enabled. Existing local API keys remain compatible with generation, public search and Skills, but cannot access the private library. New connections use remote OAuth.
 
 Remote OAuth requires a preregistered client ID, exact callback and resource. The Web authorization server supports confidential clients and explicitly configured public PKCE clients. Registered public loopback callbacks permit ephemeral ports while preserving the host and path; custom callbacks must be explicitly registered. It does not offer dynamic client registration. This change is not a claim that every MCP host can sign in without configuration.
 
@@ -10,6 +10,16 @@ Completed ordinary image/video results now contain standard MCP `resource_link` 
 
 Tests run without production credentials or paid generation. Tests import source through tsx and run before any build, including a clean checkout. Cross-repository guidance can be checked with `node scripts/ci/check-guidance-sync.mjs /path/to/reviewed-web`.
 
-Search is capped at three entries, including over-returned API responses. Each entry selects the matched still image (or the still thumbnail for a video) and provides a standard MCP `image` block when a safe preview can be prepared, plus its named `resource_link` and text fallback. Existing larger limit arguments remain accepted but are clamped. Bundled offline results use the same presentation.
+Search is capped at three entries, including over-returned API responses. Each entry selects the matched still image (or the still thumbnail for a video) and provides a standard MCP `image` block when a safe preview can be prepared, plus its named `resource_link` and text fallback. Existing larger limit arguments remain accepted but are clamped.
 
 Inline previews only fetch direct HTTPS assets on `images.meigen.ai`, with no credentials or redirects. Downloads are limited to 8 MiB, decoded inputs to 16 MP, outputs to a 384px JPEG / 256 KiB, with a four-second download budget and a two-second sharp processing timeout. The sharp timeout excludes time waiting in its queue; these are not a hard end-to-end latency guarantee. Failure leaves the entry and link available; it must not cause another search or a paid generation. Unsupported hosts may render links instead of thumbnails. Actual Claude/ChatGPT acceptance is still required after release.
+
+## Account library (3.0.0; pending release)
+
+`search_favorites`, `list_boards`, `search_history`, `get_library_item` and `save_favorite` require the remote OAuth account connection. They are not registered in local stdio. API keys (including existing legacy MeiGen keys) and BYOK credentials cannot grant this access. Reads and saves do not spend generation credits.
+
+Only existing authorized source IDs can be saved. Save is idempotent and does not toggle or overwrite an existing note; optional board destinations must be owned and private. The backend enforces ownership and visibility and projects only permitted user prompts/metadata, never internal Skill prompts. Local preferences and prompt bookmarks remain separate from the cloud collection.
+
+Public `search_gallery` now uses live results only. First-page requests negotiate a snapshot. Continue with the original query, returned snapshotId and nextOffset; snapshots must not silently fall back after expiry or error. A server without a snapshot uses explicitly labeled live offset pagination instead. ComfyUI and the bundled prompt library are no longer distributed; existing private workflow files are left untouched.
+
+Account-library tools are available only through the remote OAuth connection at `https://www.meigen.ai/api/mcp`, after MeiGen sign-in and consent. API keys and local npm cannot access favorites, boards, history or item details. Lists return prompt excerpts; use the remote `get_library_item` tool to read a selected full prompt in Unicode code-point pages (default 8000, maximum 16000). `prompt.length` is the total safe prompt length; `nextOffset=null` marks the final part. Full data appears once in `structuredContent`; text is a short summary.

@@ -373,7 +373,7 @@ export async function uploadReferenceMedia(
 ): Promise<string> {
   abortReason(signal)
   if (!config.meigenApiToken) {
-    throw new ImageUploadError('MEIGEN_API_TOKEN is required to upload a local reference video or audio file. Create a key at https://www.meigen.ai/profile/api-keys, or pass an https://images.meigen.ai/... URL from an earlier MeiGen generation instead.', 401)
+    throw new ImageUploadError('An existing legacy MEIGEN_API_TOKEN is required for local reference video/audio upload. New MeiGen connections should use remote OAuth at https://www.meigen.ai/api/mcp. For an existing local integration, you can also pass an https://images.meigen.ai/... URL from an earlier generation.', 401)
   }
   const base = config.meigenBaseUrl.replace(/\/$/, '')
   const presign = await withHttpResponse(`${base}/api/upload/reference-video`, {
