@@ -73,17 +73,6 @@
 
 **已在远程 OAuth 连接开放。** 本地 npm 和 API Key 不能访问私人资料库；ChatGPT 官方插件暂未开放这些资料库工具。工具名称与提示词分页细节见[资料库参考](RELEASE_NOTES_3.0.0.md#remote-account-library)。
 
-### 一个商品，四个方向
-
-<p align="center">
-  <img src="assets/sample-luxury.jpg" alt="奢华静物" width="24%">
-  <img src="assets/sample-model.jpg" alt="模特展示" width="24%">
-  <img src="assets/sample-botanicals.jpg" alt="植物场景" width="24%">
-  <img src="assets/sample-minimal.jpg" alt="极简产品摄影" width="24%">
-</p>
-
-[在 YouTube 观看演示](https://youtu.be/JQ3DZ1DXqvs)。
-
 <a id="other-clients"></a>
 
 ## 手动配置 MCP

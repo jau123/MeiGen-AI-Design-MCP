@@ -73,17 +73,6 @@ Ask to save a selected inspiration or your own result, optionally to a private b
 
 **Available through remote OAuth.** Local npm and API keys cannot access the private library. Personal-library tools are not yet available in the official ChatGPT plugin. See the [account-library reference](RELEASE_NOTES_3.0.0.md#remote-account-library) for tool names and prompt pagination.
 
-### One product, four directions
-
-<p align="center">
-  <img src="assets/sample-luxury.jpg" alt="Luxury still life" width="24%">
-  <img src="assets/sample-model.jpg" alt="Model campaign" width="24%">
-  <img src="assets/sample-botanicals.jpg" alt="Botanical product scene" width="24%">
-  <img src="assets/sample-minimal.jpg" alt="Minimalist product photo" width="24%">
-</p>
-
-[Watch the demo on YouTube](https://youtu.be/JQ3DZ1DXqvs).
-
 <a id="other-clients"></a>
 
 ## Manual MCP setup
