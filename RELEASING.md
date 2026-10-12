@@ -15,7 +15,7 @@ A source change is not a publication. Record the source commit, selected version
 | Aggregator listings | Each site's listing | Separate submission/update; do not infer completion from GitHub or npm |
 | Web/remote MCP | Web deployment | Separate API deployment; refresh the host's remote tool list afterward |
 
-npm and the owned distribution manifests are prepared at **3.1.0** for this additive release. Static npm pins follow that version. Each channel still has an independent publication boundary; this review does not claim publication. Read [the migration notes](RELEASE_NOTES_3.0.0.md) before upgrading from 2.x. Before an authorized release, verify the destination's versions and record acceptance separately.
+npm **3.1.0** was published as `latest` on 2026-10-12, with matching owned distribution manifests. ClawHub plugin **4.1.0** and standalone Skill **3.2.0** are also published as `latest`; platform scans are clean and all published files match the reviewed sources. Static npm pins follow the verified npm release. Each channel has an independent publication boundary. Read [the migration notes](RELEASE_NOTES_3.0.0.md) before upgrading from 2.x. Before an authorized release, verify the destination's versions and record acceptance separately.
 
 ## Validate before requesting a release
 
@@ -85,7 +85,7 @@ Official packaging references: [Claude plugin MCP configuration](https://code.cl
 
 Standalone API image preparation requires a positive purchased-credit balance (upload itself does not charge). Upscale run additionally checks the selected live model, accepted initial price and full eligible balance before preprocessing, then rechecks price before dispatch. Session crisp retains daily credits; API calls use purchased credits only. All-channel Upscale preprocessing uses the existing 1,000-per-day ceiling and a per-instance two-operation memory guard. These are not a distributed byte budget or a charge for uploads. Both MCP Upscale schemas require `confirmedCredits` on the first call as well as retries; refresh cached tool schemas. Ship the matching App resize-confirmation UI: older App versions encountering oversized originals are told to update or confirm through the Web, without silently accepting resizing. Unlimited remains disabled; its legacy RPC bypass is tracked separately and is not part of this release.
 
-The 3.1.0 release allowlist also includes `MCP_AUTH_AND_RESULTS.md` and `RELEASE_NOTES_3.0.0.md`. CI uses Node 24 (the project runtime). Keep deployed Web installation guidance on its verified published version until 3.1.0 is verified on npm; update content.ts, McpLanding.tsx, page.tsx softwareVersion and mcp-guidance.ts together in the public-doc release.
+The 3.1.0 release allowlist also includes `MCP_AUTH_AND_RESULTS.md` and `RELEASE_NOTES_3.0.0.md`. CI uses Node 24 (the project runtime). Update deployed installation guidance only after registry verification. For this release, the active Web npm pin is in `src/lib/skills/mcp-guidance.ts`; search current sources rather than assuming older landing-page version fields still exist.
 
 Historical ClawHub branding update (2026-09-27): the standalone Skill and bundle plugin use display name **MeiGen** and distribution version **2.0.3**. Their install identifiers remain `creative-toolkit` and `meigen-ai-design`; the runtime stayed pinned to npm version 2.0.2 at that time. This patch changes presentation only and requires no npm release. Verify each registry publication separately.
 
@@ -110,3 +110,12 @@ Use an **absolute** Inspector output path outside the bundle. The CLI resolves r
 Publication verified on 2026-10-10: ClawHub `meigen-ai-design@4.0.1` and standalone `creative-toolkit@3.1.0` are both published as `latest`. Downloaded artifacts matched the reviewed files byte for byte (12 bundle files, three standalone Skill files). A fresh isolated OpenClaw 2026.9.9 installation using the unversioned `clawhub:meigen-ai-design` command resolved 4.0.1 and reported a Safe audit. Bundle ZIP SHA-256: `97bbf94b7e8ae38feb79c11fe9f112c3750c3e7d9bf8c16e27142f9b1329e193`. npm remains 3.0.0; these registry publications do not deploy the Web or docs changes.
 
 Current candidate gates: [3.1.0 release notes](RELEASE_NOTES_3.1.0.md#release-gates).
+
+
+## 2026-10-12 publication evidence
+
+npm `meigen@3.1.0` SHA-1: `eab19f529e88188fe6f3dcd3a9993b5b041e2ce7`. The actual packed server exposed 17 tools through the SDK; `list_skills` succeeded without credentials. The remote services expose 22 tools. OpenAI Platform rescanning confirmed 22 Live tools and no findings; store 1.1.0 metadata remains In review. Live tool discovery and consent are separate from that store review.
+
+ClawHub bundle 4.1.0 ZIP SHA-256: `60115f69713eac5361ec02fa0a5f14dd0dee573bdf1c8bfd4b5cce479e248645`; downloaded ZIP contents match all 12 local artifact files. Standalone Skill 3.2.0 registry digests match its three source files. OpenClaw structural inspection passed; no fresh authenticated OpenClaw session was tested for this release.
+
+The GitHub README was corrected after publication to reflect current ChatGPT library availability. The immutable 3.1.0 npm tarball retains its earlier README availability note; do not repack or replace a released version for a documentation-only correction. Use the current GitHub README and deployed docs for client availability.
