@@ -8,7 +8,7 @@ This additive release depends on the matching Web APIs. Deploy and verify those 
 - Remote OAuth adds `list_characters` with separate `meigen:characters:read` consent. It reads and reuses saved characters; no creation/editing/deletion. Never combine character tokens with first/last frames.
 - Local image fingerprints stream from disk and retain metadata only. Upload rechecks the exact hash; changed files fail before generation. Local images, video and audio share a **256 MiB request total**; uploads are bounded and serialized per request. Previously accepted oversized local batches now require smaller files or prepared URLs.
 - Existing API keys retain generation, public search, Skills and compatible reference preparation; they cannot access the private library or saved characters. New connections use remote OAuth.
-- Candidate inventory: **17 local tools**, **22 remote OAuth tools** after deployment. Host discovery/refresh and any required consent determine what a user can access.
+- Published inventory: **17 local tools**, **22 remote OAuth tools**. Host discovery/refresh and any required consent determine what a user can access.
 
 ## Release gates
 

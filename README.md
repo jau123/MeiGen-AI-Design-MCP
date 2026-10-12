@@ -57,6 +57,8 @@ Search and model/Skill lookups do not spend generation credits. MeiGen Cloud gen
 |---|---|
 | Inspiration search | “Find cinematic portrait references and show their prompts.” |
 | Image & video generation | “Create one product photo, then animate it into a short video.” |
+| Reference media | “Use this clip or audio as a reference with a compatible video model.” |
+| Saved characters — remote OAuth | “List my MeiGen characters and use this one in the video.” |
 | Personal library — remote OAuth | “Find my saved references, or the prompt from a previous creation.” |
 | Background removal | “Remove this background and give me a transparent PNG.” |
 | Product Detail Images | “Make a hero shot, a close-up and a lifestyle image for this product.” |
@@ -66,13 +68,15 @@ Search and model/Skill lookups do not spend generation credits. MeiGen Cloud gen
 
 Provide a source image when the task needs one. Your assistant checks available models, options and prices with `list_models` / `list_skills`, prepares inputs, and returns results. See the [Skill API guide](SKILLS_API.md) for input limits and tool-call examples.
 
+Video references follow each model’s supported frame, content-image, video and audio inputs. Media preparation does not spend generation credits, requires a positive purchased balance, and creates temporary public URLs cleared after seven days. Saved characters can be read and reused through OAuth; creating characters is not supported. See [3.1 release notes](RELEASE_NOTES_3.1.0.md).
+
 ### Bring your MeiGen library into the conversation
 
 Browse and save ideas in MeiGen, then continue with your assistant. With [remote OAuth](#remote-mcp), it can search your favorites, browse boards, find past creations and read a selected original prompt. For questions about your preferred style, it can use relevant favorites as references.
 
 Ask to save a selected inspiration or your own result, optionally to a private board. Saving requires your request or prior permission, does not publish the work, and does not spend generation credits. Reading and saving use separate account permissions; existing connections may need additional consent.
 
-**Available through remote OAuth.** Local npm and API keys cannot access the private library. Personal-library tools are not yet available in the official ChatGPT plugin. See the [account-library reference](RELEASE_NOTES_3.0.0.md#remote-account-library) for tool names and prompt pagination.
+**Available through remote OAuth and the official ChatGPT plugin.** Local npm and API keys cannot access the private library. Refresh your client’s tool list and complete any requested additional consent. See the [account-library reference](RELEASE_NOTES_3.0.0.md#remote-account-library) for tool names and prompt pagination.
 
 <a id="other-clients"></a>
 
@@ -143,7 +147,7 @@ openclaw mcp add meigen --url https://www.meigen.ai/api/mcp --transport streamab
 openclaw mcp login meigen
 ```
 
-The 4.0 plugin includes creative guides and remote tools, including OAuth-only favorites, boards and history. The standalone `creative-toolkit` Skill is instructions only and is not needed alongside the plugin. [Setup and migration from local 3.x →](SETUP.md#openclaw)
+The 4.1 plugin includes creative guides and remote tools, including OAuth-only favorites, boards and history. The standalone `creative-toolkit` Skill is instructions only and is not needed alongside the plugin. [Setup and migration from local 3.x →](SETUP.md#openclaw)
 
 </details>
 
