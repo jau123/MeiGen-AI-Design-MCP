@@ -16,7 +16,7 @@ const metadataXml = '<x:xmpmeta xmlns:x="adobe:ns:meta/"><synthetic>fixture loca
 
 function registry() {
   const tools = new Map()
-  registerSkillTools({ tool: (name, ...args) => tools.set(name, { schema: args[1], run: args.at(-1) }) }, config)
+  registerSkillTools({ tool: (name, ...args) => tools.set(name, { schema: args[1], run: args.at(-1) }), registerTool: (name, definition, run) => tools.set(name, { schema: definition.inputSchema, run }) }, config)
   return tools
 }
 

@@ -1,5 +1,6 @@
 <h1 align="center">MeiGen AI Design MCP</h1>
 
+
 <p align="center">
   发现灵感，使用最新 AI 模型创建图片和视频。<br>
   为 ChatGPT、Claude、Cursor、OpenClaw 及其他 AI 助手提供开源 MCP 工具。
@@ -104,7 +105,7 @@ OAuth 登录需要客户端支持；不支持时请使用兼容的客户端或 C
   "mcpServers": {
     "meigen": {
       "command": "npx",
-      "args": ["-y", "meigen@3.0.0"]
+      "args": ["-y", "meigen@3.1.0"]
     }
   }
 }

@@ -162,6 +162,18 @@ test('list_models exposes typed structured capabilities and preserves selected w
  const result=await run({activeOnly:true});assert.equal(result.structuredContent.models[0].id,'live-video');assert.equal(result.structuredContent.executionCapabilities.maxConcurrentSubmissions,4);assert.equal(z.object(schema.outputSchema).safeParse(result.structuredContent).success,true)
 })
 
+test('list_models pricing text follows each declared reference-seconds billing mode', async () => {
+ const base={id:'live-video',name:'Video',media_type:'video',supported_ratios:['16:9'],extra_config:{pricingPerSecWithVideo:{'720p':24},minBillableTable:{'5':8}},capabilities:{video:{valid:true,requiresFirstFrame:false,outputDuration:{kind:'enum',values:[5,10],default:5},referenceVideo:{enabled:true,minSeconds:2,maxSeconds:15,maxCount:1,maxTotalSeconds:15,maxUploadBytes:50*1024*1024},billing:{mode:'per_second',requestDefaultSeconds:5}}}}
+ for (const mode of ['output_only','reference_plus_output','reference_plus_output_with_minimum_table',undefined]) {
+  const model={...base,capabilities:{video:{...base.capabilities.video,billing:{...base.capabilities.video.billing,referenceSeconds:mode}}}}
+  const result=await tool(modelsModule.registerListModels,{listModels:async()=>[model]}).run({activeOnly:true})
+  const text=result.content.at(-1).text
+  if(mode==='output_only') {assert.match(text,/Bill output seconds only/);assert.doesNotMatch(text,/Sum .*input video seconds plus output|minimum billable seconds table/)}
+  else if(mode?.startsWith('reference_plus_output')) {assert.match(text,/Sum server-measured input video seconds plus output/);assert.equal(text.includes('minimum billable seconds table'),mode.endsWith('_with_minimum_table'))}
+  else {assert.match(text,/do not infer a seconds formula/);assert.doesNotMatch(text,/Sum .*input video seconds plus output/)}
+ }
+})
+
 test('key rotation revalidates receipt ownership; inaccessible cached job is never returned',()=>isolated(async()=>{
  const requestId=randomUUID();const input={prompt:'rotation',requestId,wait:false};let submits=0
  globalThis.fetch=async(url,init)=>{
@@ -378,4 +390,19 @@ test('the legacy single-clip request keeps its exact body and its pre-existing s
  const store=join(process.env.MEIGEN_REQUEST_STORE_DIR,createHash('sha256').update(config.meigenBaseUrl).digest('hex'),requestId)
  assert.equal(JSON.parse(await readFile(join(store,'identity.json'),'utf8')).fingerprint,historical)
  assert.equal(bodies.length,1)
+}))
+
+test('explicit content roles survive upload/recovery and cannot collide with endpoint-only receipts', () => isolated(async () => {
+ const posts=[]; let accepted=false
+ globalThis.fetch=async(url,init)=>{
+  if(String(url).includes('/requests/')) return accepted ? Response.json({success:true,generationId:'video-job',status:'processing',mediaType:'video'}) : Response.json({success:false,code:'request_not_found'},{status:404})
+  posts.push(JSON.parse(init.body)); accepted=true; return Response.json({success:true,generationId:'video-job',status:'processing',mediaType:'video'})
+ }
+ const run=tool(videoModule.registerGenerateVideo).run; const requestId=randomUUID()
+ const args={prompt:'content guided clip',model:'seedance-2-5',contentReferenceImages:['https://images.meigen.ai/a.png','https://images.meigen.ai/b.png'],requestId,wait:false,download:false}
+ assert.equal((await run(args)).structuredContent.success,true)
+ assert.deepEqual(posts[0].contentReferenceImages,args.contentReferenceImages); assert.deepEqual(posts[0].frameReferenceImages,[]); assert.equal(posts[0].strictReferenceRoles,true); assert.equal(posts[0].referenceImages,undefined)
+ assert.equal((await run(args)).structuredContent.deduped,true); assert.equal(posts.length,1)
+ const changed=await run({...args,contentReferenceImages:[],firstFrame:args.contentReferenceImages[0],lastFrame:args.contentReferenceImages[1]})
+ assert.equal(changed.structuredContent.success,false); assert.equal(posts.length,1)
 }))

@@ -4,7 +4,7 @@ import { homedir } from 'node:os'
 import { fileURLToPath } from 'node:url'
 import type { MeiGenConfig } from '../config.js'
 import { ImageUploadError, processAndUploadSkillImage, processAndUploadUpscaleImage } from '../lib/upload.js'
-import { abortReason, boundedJson, withHttpResponse } from '../lib/generation-http.js'
+import { abortReason, boundedJson, parseRetryAfter, withHttpResponse } from '../lib/generation-http.js'
 import { SKILL_FLOW, SKILL_TOOLS, skillToolResult, skillUploadResult } from '../lib/skill-guidance.js'
 
 const SKILLS = ['remove-bg', 'brand-poster', 'product-detail', 'white-bg', 'upscale'] as const
@@ -142,6 +142,26 @@ function result(body: Record<string, unknown>, isError = false, guidance = '') {
   return { content: [{ type: 'text' as const, text: `${JSON.stringify(body)}${guidance ? `\n${guidance}` : ''}` }], ...(isError ? { isError: true } : {}) }
 }
 
+const mediaUploadSuccess = z.object({
+  success: z.literal(true), kind: z.enum(['video', 'audio']),
+  mediaUrl: z.string().url().refine(value => {
+    const url = new URL(value)
+    return url.origin === 'https://images.meigen.ai' && !url.username && !url.password && !url.search && !url.hash
+  }),
+  mimeType: z.enum(['video/mp4', 'video/quicktime', 'audio/wav', 'audio/mpeg']),
+  durationSeconds: z.number().finite().positive(), bytes: z.number().int().positive(),
+  retentionDays: z.literal(7), publiclyAccessible: z.literal(true),
+  nextAction: z.object({ type: z.string(), message: z.string() }).optional(),
+})
+const mediaUploadOutput = mediaUploadSuccess.partial().extend({
+  success: z.boolean(), code: z.string().optional(), error: z.string().optional(),
+  retryAfterSeconds: z.number().int().nonnegative().finite().optional(),
+})
+function mediaUploadResult(body: Record<string, unknown>) {
+  const structuredContent = body.success === true ? mediaUploadSuccess.parse(body) : mediaUploadOutput.parse(body)
+  return { ...result(structuredContent, !structuredContent.success), structuredContent }
+}
+
 export function registerSkillTools(server: McpServer, config: MeiGenConfig) {
   const site = config.meigenBaseUrl.replace(/\/$/, '')
   const auth = () => config.meigenApiToken ? { Authorization: `Bearer ${config.meigenApiToken}` } : undefined
@@ -170,6 +190,31 @@ export function registerSkillTools(server: McpServer, config: MeiGenConfig) {
     }
     try { return skillUploadResult(await uploadRemote(args, config, extra?.signal), 200) }
     catch (error) { if (extra?.signal?.aborted) return cancelledResult(); return error instanceof ImagePreparationError ? skillUploadResult(error.body, error.status) : skillUploadResult({ success: false, error: 'Image preparation failed.' }, 503) }
+  })
+
+  server.registerTool('upload_reference_media', { description: 'Prepare an external direct HTTPS MP4/MOV or WAV/MP3 reference for generate_video. Select modelId/tier from list_models. Returns mediaUrl and measured duration. Public links are scheduled for cleanup seven days after upload; reuse on retries, not for permanent hosting. Does not generate or spend credits; requires positive purchased credits. This local compatibility path uses an existing API key; new connections use remote OAuth. Local files can be passed directly to generate_video.', inputSchema: {
+    kind: z.enum(['video', 'audio']), modelId: z.string().min(1).max(200), tier: z.string().max(40).optional(), sourceUrl: z.string().url().max(8192),
+  }, outputSchema: mediaUploadOutput.shape, annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true } }, async (args, extra) => {
+    if (extra.signal?.aborted) return cancelledResult()
+    if (!auth()) return mediaUploadResult({ success: false, code: 'authentication_required', error: 'Use remote OAuth for a new connection, or configure the existing legacy key privately.' })
+    try {
+      return await withHttpResponse(`${site}/api/mcp/media-upload`, { method: 'POST', redirect: 'error', headers: { ...auth(), 'Content-Type': 'application/json' }, body: JSON.stringify(args) }, 110_000, async (response, signal) => {
+        const retryAfterSeconds = parseRetryAfter(response.headers.get('Retry-After'))
+        let body: Record<string, unknown>
+        try { body = await boundedJson(response, undefined, signal) }
+        catch (error) {
+          abortReason(signal)
+          if (response.status !== 429) throw error
+          body = { success: false, code: 'rate_limited', error: 'Reference uploads are rate limited. Wait before retrying; no generation has started.' }
+        }
+        if (response.ok && body.success === true) {
+          const prepared = mediaUploadSuccess.parse(body)
+          if (prepared.kind !== args.kind) throw new Error('Unexpected media kind')
+          return mediaUploadResult(prepared)
+        }
+        return mediaUploadResult({ ...body, success: false, ...(retryAfterSeconds !== undefined ? { retryAfterSeconds } : {}) })
+      }, extra.signal)
+    } catch { if (extra.signal?.aborted) return cancelledResult(); return mediaUploadResult({ success: false, code: 'upload_failed', error: 'Reference preparation unavailable. No generation has started.' }) }
   })
 
   for (const skill of SKILLS) {

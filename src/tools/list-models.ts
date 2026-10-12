@@ -113,6 +113,14 @@ export function registerListModels(server: McpServer, apiClient: MeiGenApiClient
           const cost = minimumCost !== null
             ? `minimum ${minimumCost} credits (variable pricing — see model-comparison for the full schedule)`
             : null
+          const referenceBilling = video.billing?.referenceSeconds
+          const referenceBillingNote = referenceBilling === 'output_only'
+            ? 'Bill output seconds only; do not add input video or audio seconds.'
+            : referenceBilling === 'reference_plus_output_with_minimum_table'
+              ? `Sum server-measured input video seconds plus output and apply the minimum billable seconds table: ${JSON.stringify(cfg.minBillableTable ?? {})}; audio seconds are never added.`
+              : referenceBilling === 'reference_plus_output'
+                ? 'Sum server-measured input video seconds plus output; audio seconds are never added.'
+                : 'Reference-video billing is not declared; do not infer a seconds formula. Check current capabilities before quoting.'
           return [
             `${i + 1}. ${m.name}`,
             `   ID: ${m.id}`,
@@ -123,6 +131,11 @@ export function registerListModels(server: McpServer, apiClient: MeiGenApiClient
             durations ? `   Duration: ${durations}${requestDefaultNote}` : '',
             `   Ratios: ${m.supported_ratios.join(', ')}`,
             cost ? `   Cost: ${cost}` : '',
+            m.capabilities?.characters ? `   Saved characters (remote OAuth only): ${JSON.stringify(m.capabilities.characters)}` : '',
+            m.capabilities?.videoInputs ? `   Reference input modes: ${JSON.stringify(m.capabilities.videoInputs)}. Pass contentReferenceImages: [] for endpoint-only input.` : '',
+            cfg.pricingPerSec ? `${cfg.automaticReferencePricing === true ? '   Automatic pricing: text/first-frame uses standard; any content image, saved character, video or audio uses reference. Omit tier; it is selected from inputs.' : '   Without reference video (text/images/audio)'} Credits per output second: ${JSON.stringify(cfg.pricingPerSec)}` : '',
+            cfg.pricingPerSecWithVideo ? `   With reference video, credits per billable second: ${JSON.stringify(cfg.pricingPerSecWithVideo)}. ${referenceBillingNote}` : '',
+            (cfg.pricingPerCall ?? cfg.pricing) ? `   Credits per call: ${JSON.stringify(cfg.pricingPerCall ?? cfg.pricing)}` : '',
             referenceVideo?.enabled
               ? `   Reference video: ${referenceVideo.minSeconds}–${referenceVideo.maxSeconds}s per clip; up to ${clips(referenceVideo.maxCount)}, ${referenceVideo.maxTotalSeconds}s total${referenceVideo.tiers ? `; tiers ${referenceVideo.tiers.join(', ')}` : ''}${referenceResolutionDetail ? `; resolutions ${referenceResolutionDetail}` : ''}${referenceUploadLimit} (server probes duration)`
               : '',

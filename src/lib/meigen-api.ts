@@ -63,6 +63,8 @@ export interface MeiGenModel {
   } | null
   /** Stable public capability contract from /api/models. Do not parse pricing fields for support. */
   capabilities?: {
+    characters?: { enabled: boolean; maxCount: number; referenceMode: 'content' }
+    videoInputs?: Record<string, unknown>
     video?: {
       valid?: boolean
       outputDuration:
@@ -294,6 +296,9 @@ export class MeiGenApiClient {
     duration?: number
     tier?: string
     referenceImages?: string[]
+    frameReferenceImages?: string[]
+    contentReferenceImages?: string[]
+    strictReferenceRoles?: boolean
     referenceVideo?: string           // deprecated single-clip alias; still sent verbatim when it is the only clip
     referenceVideos?: string[]        // Seedance 2.x 参考视频 URL 数组(images.meigen.ai)
     referenceAudios?: string[]        // Seedance 2.x 参考音频 URL 数组(images.meigen.ai;不计费)
@@ -314,6 +319,11 @@ export class MeiGenApiClient {
     if (typeof params.duration === 'number') body.duration = params.duration
     if (params.tier) body.tier = params.tier
     if (params.referenceImages?.length) body.referenceImages = params.referenceImages
+    if (params.contentReferenceImages !== undefined) {
+      body.frameReferenceImages = params.frameReferenceImages ?? []
+      body.contentReferenceImages = params.contentReferenceImages
+      body.strictReferenceRoles = true
+    }
     if (params.referenceVideo) body.referenceVideo = params.referenceVideo
     // Appended AFTER the legacy key so a legacy-shaped request serializes byte-identically
     // and keeps hitting the same server-side idempotency record.

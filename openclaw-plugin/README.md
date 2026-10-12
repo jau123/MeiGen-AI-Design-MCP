@@ -1,5 +1,7 @@
 # MeiGen for OpenClaw
 
+> 4.1.0 adds media preparation and saved-character guidance. The bundled Skill targets the matching remote media/character deployment. Verify runtime tool discovery before use.
+
 Find inspiration, create images and videos with the latest AI models, and continue from your MeiGen favorites, boards and past creations.
 
 ## Install and connect

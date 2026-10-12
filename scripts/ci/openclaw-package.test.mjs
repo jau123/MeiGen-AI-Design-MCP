@@ -28,7 +28,7 @@ test('OpenClaw artifact keeps its installed identity, remote OAuth and shared li
   const metadata = JSON.parse(instructions.match(/^metadata: (.+)$/m)[1])
   assert.ok(metadata.openclaw)
   assert.equal(metadata.openclaw.requires, undefined)
-  for (const keyword of ['snapshotId', 'nextOffset', 'search_favorites', 'list_boards', 'search_history', 'get_library_item', 'save_favorite', 'explicit save request']) assert.ok(instructions.includes(keyword), keyword)
+  for (const keyword of ['snapshotId', 'nextOffset', 'search_favorites', 'list_boards', 'search_history', 'get_library_item', 'save_favorite', 'explicit save request', 'upload_reference_media', 'list_characters', 'referenceMentionSyntax', 'contentReferenceImages', '256 MiB', '**17 local tools**', '**22 tools**']) assert.ok(instructions.includes(keyword), keyword)
   for (const guide of ['visual-creative', 'product-photoshoot', 'social-thumbnail']) assert.ok(existsSync(join(output, 'skills', guide, 'SKILL.md')))
   assert.ok(existsSync(join(output, 'skills/MeiGen/references/troubleshooting.md')))
   assert.ok(existsSync(join(output, 'LICENSE')))

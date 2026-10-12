@@ -14,7 +14,7 @@ Search is capped at three entries, including over-returned API responses. Each e
 
 Inline previews only fetch direct HTTPS assets on `images.meigen.ai`, with no credentials or redirects. Downloads are limited to 8 MiB, decoded inputs to 16 MP, outputs to a 384px JPEG / 256 KiB, with a four-second download budget and a two-second sharp processing timeout. The sharp timeout excludes time waiting in its queue; these are not a hard end-to-end latency guarantee. Failure leaves the entry and link available; it must not cause another search or a paid generation. Unsupported hosts may render links instead of thumbnails. Actual Claude/ChatGPT acceptance is still required after release.
 
-## Account library (3.0.0; pending release)
+## Account library (remote OAuth)
 
 `search_favorites`, `list_boards`, `search_history`, `get_library_item` and `save_favorite` require the remote OAuth account connection. They are not registered in local stdio. API keys (including existing legacy MeiGen keys) and BYOK credentials cannot grant this access. Reads and saves do not spend generation credits.
 

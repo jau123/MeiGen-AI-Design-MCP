@@ -2,7 +2,7 @@
   "id": "meigen-ai-design",
   "name": "MeiGen",
   "description": "Five dedicated MeiGen image workflows plus ordinary image/video generation through MCP. Requires MeiGen purchased credits for dedicated workflows; ordinary images also support configured BYOK.",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "skills": [
     "./skills"
   ],
@@ -17,7 +17,7 @@
       "command": "npx",
       "args": [
         "-y",
-        "meigen@3.0.0"
+        "meigen@3.1.0"
       ]
     }
   }

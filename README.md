@@ -1,5 +1,6 @@
 <h1 align="center">MeiGen AI Design MCP</h1>
 
+
 <p align="center">
   Discover inspiration. Create images and videos with the latest AI models.<br>
   Open-source MCP tools for ChatGPT, Claude, Cursor, OpenClaw and other AI assistants.
@@ -102,7 +103,7 @@ Existing local integrations and BYOK workflows can keep this stdio configuration
   "mcpServers": {
     "meigen": {
       "command": "npx",
-      "args": ["-y", "meigen@3.0.0"]
+      "args": ["-y", "meigen@3.1.0"]
     }
   }
 }

@@ -8,7 +8,7 @@ import { GenerationError, type GenerationOutput, errorOutput, isRequestNotFound 
 import { ImageUploadError } from './upload.js'
 import { withGenerationReceipt } from './generation-request-store.js'
 import {
-  fingerprintReferences, uploadReferences, publicReferenceUrl, localReferencePath,
+  localReferenceBudget, fingerprintReferences, uploadReferences, publicReferenceUrl, localReferencePath,
   fingerprintMediaReferences, uploadMediaReferences, mergeReferenceVideos, mediaReferenceUrl, type MediaReference,
 } from './generation-references.js'
 import { streamResponseToFile, withHttpResponse, abortReason } from './generation-http.js'
@@ -23,6 +23,7 @@ export interface GenerationInput {
   tier?: string
   duration?: number
   referenceImages?: string[]
+  contentReferenceImages?: string[]
   /** Deprecated single-clip alias kept forever; merged into referenceVideos. */
   referenceVideo?: string
   /** Reference video clips: https://images.meigen.ai/... URLs and/or local .mp4/.mov paths (auto-uploaded). */
@@ -121,16 +122,17 @@ export async function runMeiGenGeneration(mediaType: 'image' | 'video', input: G
     if (!config.meigenApiToken) throw new GenerationError('This local generation path requires an existing legacy MEIGEN_API_TOKEN configured privately. New MeiGen connections should use remote OAuth at https://www.meigen.ai/api/mcp. Generation uses purchased credits only.', 'authentication_required', 401)
     // 提交前阶段(指纹 / 读文件)统一错误边界,见 preSubmitError
     let references: Awaited<ReturnType<typeof fingerprintReferences>>
-    let parameters: Omit<GenerationInput, 'requestId' | 'wait' | 'download' | 'referenceImages' | 'referenceVideos' | 'referenceAudios'>
-    let _id: GenerationInput['requestId'], _wait: GenerationInput['wait'], _download: GenerationInput['download'], _references: GenerationInput['referenceImages'], _videos: GenerationInput['referenceVideos'], _audios: GenerationInput['referenceAudios']
+    let parameters: Omit<GenerationInput, 'requestId' | 'wait' | 'download' | 'referenceImages' | 'contentReferenceImages' | 'referenceVideos' | 'referenceAudios'>
+    let _id: GenerationInput['requestId'], _wait: GenerationInput['wait'], _download: GenerationInput['download'], _references: GenerationInput['referenceImages'], _content: GenerationInput['contentReferenceImages'], _videos: GenerationInput['referenceVideos'], _audios: GenerationInput['referenceAudios']
     let videos: string[]
     let audios: string[]
     let videoReferences: MediaReference[] = []
     let audioReferences: MediaReference[] = []
     try {
       abortReason(signal)
-      references = await fingerprintReferences(input.referenceImages ?? [], signal)
-      ;({ requestId: _id, wait: _wait, download: _download, referenceImages: _references, referenceVideos: _videos, referenceAudios: _audios, ...parameters } = input)
+      const budget = localReferenceBudget()
+      references = await fingerprintReferences([...(input.referenceImages ?? []), ...(input.contentReferenceImages ?? [])], signal, budget)
+      ;({ requestId: _id, wait: _wait, download: _download, referenceImages: _references, contentReferenceImages: _content, referenceVideos: _videos, referenceAudios: _audios, ...parameters } = input)
       videos = mergeReferenceVideos(parameters.referenceVideo, input.referenceVideos)
       audios = input.referenceAudios ?? []
       // Identity of an OLD request must not move. A lone images.meigen.ai clip passed through the
@@ -144,14 +146,15 @@ export async function runMeiGenGeneration(mediaType: 'image' | 'video', input: G
         if (parameters.referenceVideo) parameters.referenceVideo = mediaReferenceUrl(parameters.referenceVideo, 'video')
       } else {
         delete parameters.referenceVideo
-        videoReferences = await fingerprintMediaReferences(videos, 'video', signal)
-        audioReferences = await fingerprintMediaReferences(audios, 'audio', signal)
+        videoReferences = await fingerprintMediaReferences(videos, 'video', signal, budget)
+        audioReferences = await fingerprintMediaReferences(audios, 'audio', signal, budget)
       }
     } catch (error) {
       throw preSubmitError(error, signal)
     }
     const canonicalParameters = Object.fromEntries(Object.entries(parameters).filter(([, value]) => value !== undefined).sort(([left], [right]) => left.localeCompare(right)))
     const fingerprint = createHash('sha256').update(JSON.stringify({ mediaType, parameters: canonicalParameters, references: references.map(value => value.identity),
+      ...(input.contentReferenceImages !== undefined ? { strictReferenceRoles: true, frameCount: input.referenceImages?.length ?? 0 } : {}),
       // Absent sub-arrays keep pre-existing fingerprints byte-identical.
       ...(videoReferences.length ? { videoReferences: videoReferences.map(value => value.identity) } : {}),
       ...(audioReferences.length ? { audioReferences: audioReferences.map(value => value.identity) } : {}) })).digest('hex')
@@ -183,7 +186,11 @@ export async function runMeiGenGeneration(mediaType: 'image' | 'video', input: G
         throw preSubmitError(error, signal)
       }
       // Empty stays undefined, never []: the submitted body is this request's paid identity.
-      const params = { ...parameters, requestId, referenceImages: receipt.references,
+      const params = { ...parameters, requestId,
+        ...(input.contentReferenceImages !== undefined ? { strictReferenceRoles: true,
+          frameReferenceImages: receipt.references?.slice(0, input.referenceImages?.length ?? 0) ?? [],
+          contentReferenceImages: receipt.references?.slice(input.referenceImages?.length ?? 0) ?? [] }
+          : { referenceImages: receipt.references }),
         ...(receipt.videoReferences?.length ? { referenceVideos: receipt.videoReferences } : {}),
         ...(receipt.audioReferences?.length ? { referenceAudios: receipt.audioReferences } : {}), signal }
       const result = mediaType === 'video' ? await api.generateVideo({ ...params, modelId: input.modelId! }) : await api.generateImage(params)

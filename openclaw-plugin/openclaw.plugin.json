@@ -1,7 +1,7 @@
 {
   "id": "meigen",
   "name": "MeiGen",
-  "version": "4.0.1",
+  "version": "4.1.0",
   "description": "Visual inspiration, image and video creation, and your MeiGen library through OAuth.",
   "skills": ["./skills"],
   "configSchema": { "type": "object", "properties": {}, "additionalProperties": false },

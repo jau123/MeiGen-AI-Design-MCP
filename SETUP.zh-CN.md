@@ -1,5 +1,6 @@
 # MCP 客户端配置
 
+
 > 从 2.x 升级前，请阅读 [3.0 迁移说明](RELEASE_NOTES_3.0.0.md)。ComfyUI 与内置离线提示词库已移除，私人资料库通过远程 OAuth 访问。
 
 [返回首页](README.zh-CN.md) · [English](SETUP.md)
@@ -18,7 +19,7 @@ ChatGPT 用户可[从 ChatGPT 官方商店安装 MeiGen](https://chatgpt.com/plu
 
 ## 客户端配置
 
-本地示例固定使用 `meigen@3.0.0`，建议 Node.js 22+。修改配置后重连；调用 `list_skills` 验证实际工具连接，不需要付费生成。
+本地示例固定使用 `meigen@3.1.0`，建议 Node.js 22+。修改配置后重连；调用 `list_skills` 验证实际工具连接，不需要付费生成。
 
 <a id="codex-manual"></a>
 
@@ -44,33 +45,33 @@ codex mcp login meigen
 ```toml
 [mcp_servers.meigen]
 command = "npx"
-args = ["-y", "meigen@3.0.0"]
+args = ["-y", "meigen@3.1.0"]
 env_vars = ["MEIGEN_API_TOKEN"]
 startup_timeout_sec = 90
 tool_timeout_sec = 240
 ```
 
-它会把本地配置的 `MEIGEN_API_TOKEN` 传给 npm 进程。也可先执行 `codex mcp add meigen -- npx -y meigen@3.0.0` 注册本地命令，再补上上述环境变量传递和超时设置。`meigen init codex` 尚不支持，请使用 Codex 自身的 MCP 配置方式。
+它会把本地配置的 `MEIGEN_API_TOKEN` 传给 npm 进程。也可先执行 `codex mcp add meigen -- npx -y meigen@3.1.0` 注册本地命令，再补上上述环境变量传递和超时设置。`meigen init codex` 尚不支持，请使用 Codex 自身的 MCP 配置方式。
 
 配置后重启或重新连接。在 Codex CLI 中，`codex mcp list` 可检查注册信息，`/mcp` 可查看连接状态。然后说 **“列出 MeiGen 可用的 Skills 和当前价格”**，验证一次真实工具调用，不生成图片、不扣点。仅保存配置不代表已经连接成功。较长的视频任务可能需要更长的工具超时。
 
 ### Cursor / VS Code / Windsurf / Roo Code
 
-升级已有 stdio 连接时，先备份配置，只把 `args` 中的 npm 包版本改为 `meigen@3.0.0`，保留 `env`、超时、自定义选项与其他服务，不要整段替换。JSONC 配置应保留注释，手动修改版本。
+升级已有 stdio 连接时，先备份配置，只把 `args` 中的 npm 包版本改为 `meigen@3.1.0`，保留 `env`、超时、自定义选项与其他服务，不要整段替换。JSONC 配置应保留注释，手动修改版本。
 
-3.0.0 初始化命令也可用于旧版本地连接：
+3.1.0 初始化命令也可用于旧版本地连接：
 
 ```bash
-npx -y meigen@3.0.0 init cursor      # Cursor
-npx -y meigen@3.0.0 init vscode      # VS Code / GitHub Copilot
-npx -y meigen@3.0.0 init windsurf    # Windsurf
-npx -y meigen@3.0.0 init roo         # Roo Code
-npx -y meigen@3.0.0 init claude      # Claude（项目级）
+npx -y meigen@3.1.0 init cursor      # Cursor
+npx -y meigen@3.1.0 init vscode      # VS Code / GitHub Copilot
+npx -y meigen@3.1.0 init windsurf    # Windsurf
+npx -y meigen@3.1.0 init roo         # Roo Code
+npx -y meigen@3.1.0 init claude      # Claude（项目级）
 ```
 
-3.0.0 的 `init` 只接受标准 JSON；遇到无效 JSON、JSONC、无效服务结构或已有远程连接时会停止，保留原文件。已有条目只在明确使用 `npx` 直接运行 MeiGen 时允许升级：可选一个 `-y` 或 `--yes`，之后仅有 `meigen`、`meigen@latest` 或 `meigen@完整版本号`。原可执行文件路径、环境变量、超时、其他选项和其他服务全部保留。`mcp-remote` 等 OAuth 代理即使标为 `stdio` 也不会修改；shell 包装、自定义命令及其他包管理器需要手动编辑。替换已有文件前，会在同目录生成私密 `.bak` 备份、打印路径，再原子替换文件。备份可能包含凭据，请勿公开。这些保护不适用于旧版已发布的初始化命令。
+3.1.0 的 `init` 只接受标准 JSON；遇到无效 JSON、JSONC、无效服务结构或已有远程连接时会停止，保留原文件。已有条目只在明确使用 `npx` 直接运行 MeiGen 时允许升级：可选一个 `-y` 或 `--yes`，之后仅有 `meigen`、`meigen@latest` 或 `meigen@完整版本号`。原可执行文件路径、环境变量、超时、其他选项和其他服务全部保留。`mcp-remote` 等 OAuth 代理即使标为 `stdio` 也不会修改；shell 包装、自定义命令及其他包管理器需要手动编辑。替换已有文件前，会在同目录生成私密 `.bak` 备份、打印路径，再原子替换文件。备份可能包含凭据，请勿公开。这些保护不适用于旧版已发布的初始化命令。
 
-`init` 生成的配置跟随 npm 默认发布标签自动更新；上面的手写示例则固定在 3.0.0。需要固定版本时，把生成配置中的 `args` 改为 `["-y", "meigen@3.0.0"]`，再重启客户端。
+`init` 生成的配置跟随 npm 默认发布标签自动更新；上面的手写示例则固定在 3.1.0。需要固定版本时，把生成配置中的 `args` 改为 `["-y", "meigen@3.1.0"]`，再重启客户端。
 
 npm `search_gallery` 的查询词与分类合并后不超过 200 个 UTF-16 码元；`limit` 为 1–20 的整数，默认 3，实际最多返回 3 条；`offset` 为 0–100000 的整数。需要下一批时，沿用返回的查询词、快照 ID 与 `nextOffset`。
 
@@ -104,19 +105,19 @@ openclaw mcp login meigen
 export MEIGEN_API_TOKEN=meigen_sk_...
 
 # 生图
-npx -y meigen@3.0.0 gen --prompt "阳光厨房里的三花猫"
+npx -y meigen@3.1.0 gen --prompt "阳光厨房里的三花猫"
 
 # 指定模型 + 比例
-npx -y meigen@3.0.0 gen -p "科技 logo" -m midjourney-v8.1 -r 1:1
+npx -y meigen@3.1.0 gen -p "科技 logo" -m midjourney-v8.1 -r 1:1
 
 # 带参考图(本地路径自动上传)
-npx -y meigen@3.0.0 gen -p "产品 hero shot" --ref ~/Desktop/bottle.jpg
+npx -y meigen@3.1.0 gen -p "产品 hero shot" --ref ~/Desktop/bottle.jpg
 
 # 只提交不等待 — 输出 generationId(适合 CI)
-npx -y meigen@3.0.0 gen -p "..." --no-wait
+npx -y meigen@3.1.0 gen -p "..." --no-wait
 
 # JSON 输出(适合 jq 管道)
-npx -y meigen@3.0.0 gen -p "..." --json | jq -r '.imageUrls[0]'
+npx -y meigen@3.1.0 gen -p "..." --json | jq -r '.imageUrls[0]'
 ```
 
 CLI 生成的图像保存到 `~/Pictures/meigen/`（可用 `MEIGEN_OUTPUT_DIR` 覆盖）。五项 Skills 返回结果链接，由宿主预览或下载。
@@ -132,7 +133,7 @@ CLI 生成的图像保存到 `~/Pictures/meigen/`（可用 `MEIGEN_OUTPUT_DIR` �
   "mcpServers": {
     "meigen": {
       "command": "npx",
-      "args": ["-y", "meigen@3.0.0"],
+      "args": ["-y", "meigen@3.1.0"],
       "env": {
         "MEIGEN_API_TOKEN": "meigen_sk_..."
       }
@@ -151,7 +152,7 @@ CLI 生成的图像保存到 `~/Pictures/meigen/`（可用 `MEIGEN_OUTPUT_DIR` �
 mcp_servers:
   meigen:
     command: "npx"
-    args: ["-y", "meigen@3.0.0"]
+    args: ["-y", "meigen@3.1.0"]
     env:
       MEIGEN_API_TOKEN: "meigen_sk_..."
     timeout: 2700         # generate_video 会等到服务端报终态(长视频可达 15+ 分钟),Hermes 默认 120s 会超时
@@ -225,7 +226,7 @@ Content-Type: application/json
 
 | 问题 | 下一步 |
 |---|---|
-| 看不到新增 Skills | 远程：后端部署后刷新/重连工具列表。本地：确认连接使用 `meigen@3.0.0` 后重启。仅安装 npm 不会部署 API。 |
+| 看不到新增 Skills | 远程：后端部署后刷新/重连工具列表。本地：确认连接使用 `meigen@3.1.0` 后重启。仅安装 npm 不会部署 API。 |
 | 账号未授权 | 通过远程 OAuth 登录；仅已有旧版集成可私密检查原 Key 配置后重连，不创建新 Key，不在聊天发送凭据。 |
 | 网站显示有积分，API 却提示不足 | API **只消耗购买积分**，不使用每日免费积分。使用同一账号在[个人主页 → 充值](https://www.meigen.ai/profile)购买积分后，再让助手继续；被拒绝的请求不应反复查询状态。 |
 | 图片上传失败 | 使用真实本地文件（本地 npm）或公开 HTTPS 图片直链，检查格式和大小，避免需登录或重定向的链接。宿主无法读取附件时改用直链。上传失败尚未开始生成。 |
@@ -241,7 +242,7 @@ Skill 客户端实现说明：在内部生成 `requestId`，保存原始参数�
 ## 从旧版本升级
 
 - **远程 MCP：** 保留服务地址并通过 OAuth 登录；既有固定 Key 请求头仅作旧版兼容，切换 OAuth 时移除。后端发布后重新连接，调用 `list_skills`；以当前连接返回的工具列表为准。仅更新 npm 不会启用远程 API。
-- **本地 npm：** 固定版本配置改为 `meigen@3.0.0` 并重启；全局安装用户执行 `npm install -g meigen@3.0.0`。先确认 npm 上已有该版本。
+- **本地 npm：** 固定版本配置改为 `meigen@3.1.0` 并重启；全局安装用户执行 `npm install -g meigen@3.1.0`。先确认 npm 上已有该版本。
 - **插件用户：** Claude marketplace、OpenClaw 插件与独立 ClawHub Skill 分别更新；仅更新 npm 不会刷新安装时复制的指导文件。保留一套有效服务。OpenClaw OAuth 登录需要同名 `meigen` 条目，覆盖插件默认配置，不重复工具。
 - **工作流调用：** 本地保留 `wait: true`／`download: true` 默认值；新工作流应持久化 UUID `requestId`、用 `wait: false` 并按原 ID 恢复。远程保留旧 `attemptId`，但无法对所有旧回执追溯证明历史参数一致性。服务器和插件指引都需更新，才能使用可选创意流程。
 - **现有配置和任务：** 通用生图仍可使用原来的 MeiGen/OpenAI 配置；五项 Skills 需要已授权的 MeiGen 账号与购买积分（本地 npm/API Key 路径使用 Key）。中断任务保留原 ID 和输入，先恢复，不能为升级重新付费提交。

@@ -112,9 +112,17 @@ export async function boundedJson(response: Response, maxBytes = 2 * 1024 * 1024
   }
 }
 
+/** Retry-After accepts delta seconds or an HTTP date, never NaN/negative delays. */
+export function parseRetryAfter(value: string | null, now = Date.now()): number | undefined {
+  if (!value?.trim()) return undefined
+  const raw = value.trim()
+  const seconds = /^\d+$/.test(raw) ? Number(raw)
+    : /^[A-Za-z]/.test(raw) ? Math.max(0, Math.ceil((Date.parse(raw) - now) / 1000)) : NaN
+  return Number.isSafeInteger(seconds) && seconds >= 0 ? seconds : undefined
+}
+
 export function responseError(response: Response, body: Record<string, unknown>): GenerationError {
-  const raw = response.headers.get('retry-after')
-  const retryAfter = raw ? (/^\d+$/.test(raw) ? Number(raw) : Math.max(0, Math.ceil((Date.parse(raw) - Date.now()) / 1000))) : body.retryAfterSeconds
+  const retryAfter = parseRetryAfter(response.headers.get('retry-after')) ?? body.retryAfterSeconds
   return new GenerationError(typeof body.error === 'string' ? body.error : `API request failed (${response.status})`, typeof body.code === 'string' ? body.code : `http_${response.status}`, response.status,
     typeof body.retryable === 'boolean' ? body.retryable : response.status === 402 || response.status === 408 || response.status === 429 || response.status >= 500,
     { ...(typeof retryAfter === 'number' && Number.isFinite(retryAfter) ? { retryAfterSeconds: retryAfter } : {}), ...(typeof body.required === 'number' ? { required: body.required } : {}), ...(typeof body.available === 'number' ? { available: body.available } : {}) })

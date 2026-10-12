@@ -1,7 +1,7 @@
 ---
 name: "MeiGen"
 description: Compose MeiGen image/video and five dedicated image tools inside an existing workflow, or opt into creative planning. Preserves caller prompts, parameters, approved count and budget; includes discovery and recoverable task handles.
-version: 3.1.0
+version: 3.2.0
 homepage: https://github.com/jau123/MeiGen-AI-Design-MCP
 metadata: {"openclaw":{"emoji":"🎨","homepage":"https://www.meigen.ai/mcp?tab=openclaw"}}
 ---
@@ -34,7 +34,7 @@ Keep an existing local integration if needed. Merge this server into your mcport
   "mcpServers": {
     "creative-toolkit": {
       "command": "npx",
-      "args": ["-y", "meigen@3.0.0"]
+      "args": ["-y", "meigen@3.1.0"]
     }
   }
 }
@@ -66,7 +66,7 @@ The caller generates and persists `requestId` for each logical step. For interru
 
 ## Tool inventory
 
-The published `meigen@3.0.0` local npm server exposes **16 tools**. The remote server exposes **19 tools**, including five private-library tools available only through OAuth, and excluding local `enhance_prompt` and `manage_preferences`. Inspect runtime `listTools` before calling a tool.
+This version targets `meigen@3.1.0` with **17 local tools** and the matching remote deployment with **22 tools**. Check registry availability before changing a local pin. Remote tools include five private-library tools, saved-character reading and balance lookup; local `enhance_prompt` and `manage_preferences` are not remote tools. Always inspect runtime `listTools`; a Skill update alone does not deploy tools.
 
 Upgrading from 2.x removes ComfyUI and the bundled offline prompt library. Back up the existing MCP configuration and update only its npm version, preserving credentials and host settings. User-owned ComfyUI workflows are not deleted, and unsupported providers are never redirected to paid generation. See the [3.0 migration guide](https://github.com/jau123/MeiGen-AI-Design-MCP/blob/main/RELEASE_NOTES_3.0.0.md).
 
@@ -78,6 +78,9 @@ Upgrading from 2.x removes ComfyUI and the bundled offline prompt library. Back 
 | Cloud, five workflows | `remove_background`, `generate_product_detail_images`, `generate_marketing_poster`, `generate_ai_background`, `upscale_image` | MeiGen account authorization and purchased credits; existing local API keys remain compatible |
 | Cloud, workflow status | `check_skill` | Authenticated status/refunds; no new charge |
 | Cloud, image preparation | `upload_skill_image` | Authenticated preparation with a positive purchased-credit balance; use purpose=upscale for enhancement attachments; no generation charge |
+| Cloud, video/audio preparation | `upload_reference_media` | Prepare selected external direct HTTPS clips; return a public temporary URL, model-validated duration and format; no generation charge; positive purchased balance required |
+| Remote OAuth only, saved characters | `list_characters` | Read names, previews and exact reference tokens; separate character read consent; no creating/editing/deleting |
+| Remote OAuth, account balance | `get_credit_balance` | Read credits available to this integration; daily free credits excluded |
 | Local additions | `enhance_prompt`, `manage_preferences` | Prompt enhancement, local preferences |
 
 ## Favorites, boards and preference context
@@ -92,7 +95,11 @@ For another batch of public inspiration in the same direction, call `search_gall
 
 ## Ordinary generation and optional creative help
 
-Call `generate_image` with the supplied prompt and parameters. `generate_video` requires a model; use `list_models` for current capabilities and prices whenever needed, not only when a user asks to browse. For image-to-video, chain a completed frame URL into `firstFrame`. Reference clips go in `referenceVideos` / `referenceAudios` (`images.meigen.ai` URLs; only local npm can also upload local `.mp4`/`.mov`/`.wav`/`.mp3` files — other URL hosts are rejected) and can be named in the prompt as "Video 1" / "Audio 1"; `list_models` holds each model's clip count and second budget, some models need a reference image or video before any audio, and reference audio is never billed. Preserve the caller's selected model/provider and ratio.
+Call `generate_image` with the supplied prompt and parameters. `generate_video` requires a model; use `list_models` for current capabilities and prices whenever needed, not only when a user asks to browse. For image-to-video, chain a completed frame URL into `firstFrame`. Reference clips go in `referenceVideos` / `referenceAudios` (`images.meigen.ai` URLs; only local npm can also upload local `.mp4`/`.mov`/`.wav`/`.mp3` files — other URL hosts are rejected) and must use capabilities.videoInputs.referenceMentionSyntax (including byTier) when declared, e.g. HeyGen [image1]/[video1]/[audio1]; only undeclared models use Image N / Video N / Audio N; `list_models` holds each model's clip count and second budget, some models need a reference image or video before any audio, and reference audio is never billed. Preserve the caller's selected model/provider and ratio.
+
+For every new video request, set `contentReferenceImages`: `[]` for endpoint frames, or the selected content/style/identity references. Respect `capabilities.videoInputs`, its tier overrides, total counts and mutual exclusions; never mix first/last frames with content/video/audio unless explicitly supported. Saved characters are content references and cannot be combined with endpoint frames. For remote OAuth, `list_characters` returns exact `[character:uuid]` tokens after separate consent; do not invent IDs or expose private characters through API keys. There is no character-creation tool.
+
+Prepare external video/audio URLs with `upload_reference_media`; host attachments require a readable direct download URL (never an invented local path). Use the resulting MeiGen URL and measured duration in `generate_video`. Tell users the URL is public and temporary, scheduled for cleanup seven days after the latest upload; reuse it on retries. Local generation can also upload actual local media files. Local files across image/video/audio banks have a combined 256 MiB per-request cap. Model byte, duration and format limits still apply. Read `pricingMode`: content references or saved characters can select the reference tier, even without an input video. Quote the selected model/tier price; add input-video seconds only when the billing capability requires it. HeyGen may still be unavailable; never bypass live model availability.
 
 For composed MeiGen jobs, persist a UUID `requestId` and exact input per step, then use `wait: false`, `download: false`. Local legacy defaults remain `wait: true`, `download: true`; no download occurs with `wait: false`. Remote MCP returns URLs without local downloads. Follow the installed schema for provider/transport support. Recover across restarts using `check_generation` with the original `requestId` or `generationId`; keep IDs and inputs unchanged on transient failure and follow `nextAction`, polling hints and `Retry-After`.
 

@@ -4,7 +4,7 @@
 
 Use MeiGen as a callable step inside an existing agent, Skill, script or application. The caller owns the creative plan, prompts, model/provider choices, output count, approved budget, scheduling and presentation. Optional MeiGen creative assistants can help develop a brief; they are not required before calling tools. Discovery can support any workflow. A resolved upstream plan does not need another approval for every frame, clip or batch.
 
-Requires local **`meigen` 2.0.1 or later** (`npx -y meigen@3.0.0`; 2.0.0 lacks `referenceVideos` / `referenceAudios`), or the updated remote endpoint **`https://www.meigen.ai/api/mcp`**. npm 1.4.0 does not implement this contract. Reconnect and inspect the installed schemas for `requestId`, `wait` and request lookup. Backend rollbacks must preserve recovery endpoints and the durable POST contract; users do not need to withdraw already installed npm packages.
+Requires local **`meigen` 2.0.1 or later** (`npx -y meigen@3.1.0`; 2.0.0 lacks `referenceVideos` / `referenceAudios`), or the updated remote endpoint **`https://www.meigen.ai/api/mcp`**. npm 1.4.0 does not implement this contract. Reconnect and inspect the installed schemas for `requestId`, `wait` and request lookup. Backend rollbacks must preserve recovery endpoints and the durable POST contract; users do not need to withdraw already installed npm packages.
 
 ## Ordinary task contract
 
@@ -87,16 +87,17 @@ const frameStatus = await client.callTool({
 ```
 
 ```js
-// selectedFrameUrl is a completed URL saved in this video's exact input.
-// Reference clips are addressed from the prompt as "Video N" / "Audio N", numbered per kind in
-// the order supplied below. Per-model clip counts and second budgets come from list_models;
-// billing counts the summed input VIDEO seconds, and reference audio is free.
+// Content-reference mode: do not also set firstFrame/lastFrame.
+// plan.videoInputs is the selected live model/tier capability. Use declared mention syntax.
+// Estimate costs from its billing capability; not every model bills input-video seconds.
+const videoLabel = plan.videoInputs.referenceMentionSyntax?.video.replace('N', '1') ?? 'Video 1';
+const audioLabel = plan.videoInputs.referenceMentionSyntax?.audio.replace('N', '1') ?? 'Audio 1';
 const video = await client.callTool({
   name: 'generate_video',
   arguments: {
     ...plan.videoSettings, // Includes the caller-selected live model.
-    prompt: `Extend this footage: ${script.videoPrompt} Keep the camera move of Video 1 and the rhythm of Audio 1.`,
-    firstFrame: script.selectedFrameUrl,
+    prompt: `Extend this footage: ${script.videoPrompt} Keep the camera move of ${videoLabel} and the rhythm of ${audioLabel}.`,
+    contentReferenceImages: [script.selectedFrameUrl],
     referenceVideos: [script.referenceClipUrl, '/Users/me/clips/pan.mp4'], // images.meigen.ai URLs pass through; local file paths work on the local npm server only (remote MCP takes images.meigen.ai URLs).
     referenceAudios: ['/Users/me/audio/theme.mp3'],
     requestId: script.videoRequestId,

@@ -43,9 +43,21 @@ test('legacy account API-key URL remains compatible while primary setup uses OAu
 
 test('fresh anonymous MCP client sees scenarios, source materials, version and host setup', async () => {
   await session(undefined,undefined,async client => {
-    assert.equal(client.getServerVersion().version,'3.0.0')
+    assert.equal(client.getServerVersion().version,'3.1.0')
     const {tools}=await client.listTools()
-    assert.equal(tools.length,16)
+    assert.equal(tools.length,17)
+    const videoFields = tools.find(t => t.name === 'generate_video').inputSchema.properties
+    for (const key of ['contentReferenceImages', 'referenceVideos', 'referenceAudios']) assert.match(videoFields[key].description, /referenceMentionSyntax/)
+    assert.match(client.getInstructions(), /referenceMentionSyntax/)
+    assert.match(client.getInstructions(), /upload_reference_media.*kind, modelId/)
+    assert.match(client.getInstructions(), /contentReferenceImages: \[\]/)
+    assert.match(client.getInstructions(), /Do not mix endpoint frames with content images, saved characters, referenceVideos or referenceAudios/)
+    assert.match(client.getInstructions(), /meigen:characters:read consent/)
+    assert.match(client.getInstructions(), /API key cannot read or use private characters/)
+    assert.match(client.getInstructions(), /not creation, editing or deletion/)
+    assert.match(client.getInstructions(), /output_only bills output seconds alone/)
+    assert.match(client.getInstructions(), /audio may select the reference rate/)
+    assert.equal(tools.some(t => t.name === 'list_characters'), false)
     assert.equal(tools.some(tool => tool.name === 'comfyui_workflow'), false)
     assert.deepEqual(tools.find(tool => tool.name === 'generate_image').inputSchema.properties.provider.enum, ['openai', 'meigen'])
     const description=name=>tools.find(t=>t.name===name).description
@@ -59,6 +71,54 @@ test('fresh anonymous MCP client sees scenarios, source materials, version and h
     assert.match(client.getInstructions(),/https:\/\/www.meigen.ai\/profile/)
     assert.doesNotMatch(client.getInstructions(),/eligible for daily free credits/)
   })
+})
+
+test('media preparation exposes a validated structured result through a real MCP client', async () => {
+  const prepared = { success:true,kind:'video',mediaUrl:'https://images.meigen.ai/reference-pack-sources/mcp/a.mp4',mimeType:'video/mp4',durationSeconds:4,bytes:1024,retentionDays:7,publiclyAccessible:true }
+  await session('meigen_sk_test', () => Response.json(prepared), async client => {
+    const tool = (await client.listTools()).tools.find(t => t.name === 'upload_reference_media')
+    assert.ok(tool.outputSchema.properties.mediaUrl)
+    const result = await call(client, 'upload_reference_media', {kind:'video',modelId:'video-fixture',sourceUrl:'https://public.example/clip.mp4'})
+    assert.deepEqual(result.structuredContent, prepared)
+    assert.deepEqual(JSON.parse(result.content[0].text), prepared)
+  })
+})
+
+test('media preparation returns structured errors for missing credentials and invalid responses', async () => {
+  const input = {kind:'video',modelId:'video-fixture',sourceUrl:'https://public.example/clip.mp4'}
+  await session(undefined, undefined, async (client, requests) => {
+    const result = await call(client, 'upload_reference_media', input)
+    assert.equal(result.structuredContent.code, 'authentication_required')
+    assert.equal(requests.length, 0)
+  })
+  for (const body of [{success:true}, {success:true,kind:'audio',mediaUrl:'https://evil.example/clip.mp4'}]) {
+    await session('meigen_sk_test', () => Response.json(body), async client => {
+      const result = await call(client, 'upload_reference_media', input)
+      assert.equal(result.isError, true)
+      assert.equal(result.structuredContent.code, 'upload_failed')
+      assert.equal(result.structuredContent.mediaUrl, undefined)
+    })
+  }
+})
+
+test('media rate limits preserve delta-seconds and HTTP-date Retry-After in structured output', async () => {
+  const input = {kind:'video',modelId:'video-fixture',sourceUrl:'https://public.example/clip.mp4'}
+  const date = new Date(Date.now() + 60_000).toUTCString()
+  for (const [header, html] of [['45', false], [date, false], [date, true], ['invalid', false], ['-1', false], ['99999999999999999999999', false], ['Mon, 01 Jan 2001 00:00:00 GMT', false]]) {
+    await session('meigen_sk_test', () => html
+      ? new Response('<html>Busy</html>', {status:429,headers:{'Retry-After':header}})
+      : Response.json({success:false,code:'upload_busy',error:'Wait before retrying.'},{status:429,headers:{'Retry-After':header}}), async client => {
+      const result = await call(client, 'upload_reference_media', input)
+      assert.equal(result.isError, true)
+      const delay = result.structuredContent.retryAfterSeconds
+      if (header === date) assert.ok(delay > 0 && delay <= 60)
+      else if (header === '45') assert.equal(delay, 45)
+      else if (header.startsWith('Mon,')) assert.equal(delay, 0)
+      else assert.equal(delay, undefined)
+      assert.notEqual(delay, null)
+      assert.deepEqual(JSON.parse(result.content[0].text), result.structuredContent)
+    })
+  }
 })
 
 test('missing legacy key guides OAuth sign-in without a network call or new-key creation', async () => {

@@ -1,4 +1,4 @@
-import { open, readFile, stat } from 'node:fs/promises'
+import { open, stat } from 'node:fs/promises'
 import { createReadStream } from 'node:fs'
 import { createHash } from 'node:crypto'
 import { fileURLToPath } from 'node:url'
@@ -11,7 +11,16 @@ import { processAndUploadReferenceBuffer, uploadReferenceMedia } from './upload.
 import { abortReason } from './generation-http.js'
 import { Semaphore } from './semaphore.js'
 
-type Reference = { identity: string; url: string } | { identity: string; bytes: Buffer; name: string }
+type Reference = { identity: string; url: string } | { identity: string; path: string; size: number; name: string }
+export const MAX_LOCAL_REFERENCE_BYTES = 256 * 1024 * 1024
+export function localReferenceBudget() {
+  let total = 0
+  return { reserve(size: number) {
+    total += size
+    if (total > MAX_LOCAL_REFERENCE_BYTES) throw new GenerationError('Local references exceed the 256 MiB combined request limit. Use smaller files or already prepared MeiGen URLs.', 'invalid_reference')
+  } }
+}
+type ReferenceBudget = ReturnType<typeof localReferenceBudget>
 export function publicReferenceUrl(value: string): string {
   try {
     const url = new URL(value)
@@ -31,30 +40,68 @@ export function localReferencePath(value: string): string | undefined {
   if (/^https:\/\//i.test(value)) return undefined
   throw new GenerationError('Use an accessible absolute image path, ~/ or file://, or a public HTTPS URL. Relative paths are ambiguous; never invent attachment paths.', 'invalid_reference')
 }
-export async function fingerprintReferences(values: string[], signal?: AbortSignal): Promise<Reference[]> {
-  return await Promise.all(values.map(async value => {
+export async function fingerprintReferences(values: string[], signal?: AbortSignal, budget: ReferenceBudget = localReferenceBudget()): Promise<Reference[]> {
+  const references: Reference[] = []
+  for (const value of values) {
     abortReason(signal)
     const path = localReferencePath(value)
-    if (!path) { const url = publicReferenceUrl(value); return { identity: url, url } }
+    if (!path) { const url = publicReferenceUrl(value); references.push({ identity: url, url }); continue }
     const handle = await open(path, 'r')
     try {
-      const stat = await handle.stat()
-      if (!stat.isFile() || stat.size > 32 * 1024 * 1024) throw new GenerationError('Local references must be regular JPEG, PNG, WebP or GIF images up to 32 MiB.', 'invalid_reference')
-      // Read from this handle once: the exact fingerprinted bytes are also what gets uploaded.
-      const bytes = Buffer.alloc(stat.size + 1)
+      const stats = await handle.stat()
+      if (!stats.isFile() || stats.size === 0 || stats.size > 32 * 1024 * 1024) throw new GenerationError('Local references must be regular JPEG, PNG, WebP or GIF images up to 32 MiB.', 'invalid_reference')
+      budget.reserve(stats.size)
+      const hash = createHash('sha256')
       let size = 0
-      while (size < bytes.length) { const read = await handle.read(bytes, size, bytes.length - size, null); if (!read.bytesRead) break; size += read.bytesRead }
-      if (size !== stat.size) throw new GenerationError('Reference image changed while being read; retry after saving the file.', 'reference_changed')
-      const input = bytes.subarray(0, size)
-      return { identity: createHash('sha256').update(input).digest('hex'), bytes: input, name: basename(path) }
+      const stream = handle.createReadStream({ autoClose: false, highWaterMark: 64 * 1024, signal })
+      try {
+        for await (const chunk of stream as AsyncIterable<Buffer>) {
+          abortReason(signal)
+          size += chunk.length
+          if (size > stats.size) throw new GenerationError('Reference image changed while being read; retry after saving the file.', 'reference_changed')
+          hash.update(chunk)
+        }
+      } finally { stream.destroy() }
+      if (size !== stats.size) throw new GenerationError('Reference image changed while being read; retry after saving the file.', 'reference_changed')
+      references.push({ identity: hash.digest('hex'), path, size, name: basename(path) })
     } finally { await handle.close() }
-  }))
+  }
+  return references
 }
+
+/** Bounded re-read: even a file replaced by a huge file cannot allocate beyond its fingerprinted size. */
+async function readVerifiedReference(reference: { path: string; size: number; identity: string }, signal?: AbortSignal): Promise<Buffer> {
+  const handle = await open(reference.path, 'r')
+  const changed = () => new GenerationError('Reference changed after it was fingerprinted; retry after saving the file.', 'reference_changed')
+  try {
+    abortReason(signal)
+    const stats = await handle.stat()
+    if (!stats.isFile() || stats.size !== reference.size) throw changed()
+    const bytes = Buffer.alloc(reference.size + 1)
+    let size = 0
+    while (size < bytes.length) {
+      abortReason(signal)
+      const chunk = await handle.read(bytes, size, Math.min(64 * 1024, bytes.length - size), null)
+      if (!chunk.bytesRead) break
+      size += chunk.bytesRead
+    }
+    if (size !== reference.size) throw changed()
+    const input = bytes.subarray(0, size)
+    if (createHash('sha256').update(input).digest('hex') !== reference.identity) throw changed()
+    return input
+  } finally { await handle.close() }
+}
+
 export async function uploadReferences(references: Reference[], config: MeiGenConfig, signal?: AbortSignal): Promise<string[]> {
   const urls: string[] = []
   for (const reference of references) {
     abortReason(signal)
-    urls.push('url' in reference ? reference.url : publicReferenceUrl(await processAndUploadReferenceBuffer(reference.bytes, reference.name, config, signal)))
+    if ('url' in reference) { urls.push(reference.url); continue }
+    await mediaUploadSlots.acquire(signal)
+    try {
+      const bytes = await readVerifiedReference(reference, signal)
+      urls.push(publicReferenceUrl(await processAndUploadReferenceBuffer(bytes, reference.name, config, signal)))
+    } finally { mediaUploadSlots.release() }
   }
   return urls
 }
@@ -149,7 +196,7 @@ async function streamMediaFingerprint(path: string, limit: number, kind: Referen
   const head: Buffer[] = []
   let headBytes = 0
   let size = 0
-  const stream = createReadStream(path)
+  const stream = createReadStream(path, { signal })
   try {
     for await (const chunk of stream as AsyncIterable<Buffer>) {
       abortReason(signal)
@@ -171,7 +218,7 @@ async function streamMediaFingerprint(path: string, limit: number, kind: Referen
  * `uploadMediaReferences` re-reads and re-verifies the file when it is actually that clip's turn,
  * so at most one clip is resident at any moment.
  */
-export async function fingerprintMediaReferences(values: string[], kind: ReferenceMediaKind, signal?: AbortSignal): Promise<MediaReference[]> {
+export async function fingerprintMediaReferences(values: string[], kind: ReferenceMediaKind, signal?: AbortSignal, budget: ReferenceBudget = localReferenceBudget()): Promise<MediaReference[]> {
   const references: MediaReference[] = []
   for (const value of values) {
     abortReason(signal)
@@ -182,6 +229,7 @@ export async function fingerprintMediaReferences(values: string[], kind: Referen
     if (!stats.isFile() || stats.size === 0 || stats.size > limit) {
       throw new GenerationError(`Local reference ${kind} files must be regular files up to ${limit / 1024 / 1024} MiB.`, 'invalid_reference')
     }
+    budget.reserve(stats.size)
     const { digest, size, head } = await streamMediaFingerprint(path, limit, kind, signal)
     if (size !== stats.size) throw new GenerationError(`Reference ${kind} changed while being read; retry after saving the file.`, 'reference_changed')
     const detected = detectReferenceMedia(head, path)
@@ -210,10 +258,7 @@ export async function uploadMediaReferences(references: MediaReference[], modelI
       abortReason(signal)
       // Read → verify → upload → drop, per clip. Re-hashing is what makes the deferred read safe:
       // the identity in the paid fingerprint must still describe the bytes we are about to send.
-      const bytes = await readFile(reference.path)
-      if (bytes.byteLength !== reference.size || createHash('sha256').update(bytes).digest('hex') !== reference.identity) {
-        throw new GenerationError(`Reference ${reference.kind} "${reference.name}" changed after it was fingerprinted; retry after saving the file.`, 'reference_changed')
-      }
+      const bytes = await readVerifiedReference(reference, signal)
       urls.push(publicReferenceUrl(await uploadReferenceMedia(bytes, reference.name, reference.contentType, reference.kind, modelId, config, signal)))
     } finally {
       mediaUploadSlots.release()

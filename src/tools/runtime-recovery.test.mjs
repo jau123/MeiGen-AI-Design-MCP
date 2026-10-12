@@ -1,6 +1,6 @@
 import test, { mock } from 'node:test'
 import assert from 'node:assert/strict'
-import { mkdtemp, rm, readFile, readdir, writeFile, stat } from 'node:fs/promises'
+import { mkdtemp, rm, readFile, readdir, writeFile, stat, truncate } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { randomUUID } from 'node:crypto'
@@ -341,4 +341,36 @@ test('cancelling an upload that holds a permit, and a failed PUT, both hand the 
     : Response.json({ success: true, presignedUrl: 'https://upload.example/put', publicUrl: 'https://images.meigen.ai/ref-videos/x.mp4' })
   await assert.rejects(uploadMediaReferences(references, 'seedance-2-5', config), error => error instanceof uploadModule.ImageUploadError && error.status === 500 && error.stage === 'put')
   await assertMediaUploadSlotsFree(directory, config)
+}))
+
+test('30 local image fingerprints retain only metadata, enforce a shared byte budget and preserve hashes', () => isolated(async directory => {
+  const { fingerprintReferences, fingerprintMediaReferences, localReferenceBudget } = referencesModule
+  const files = []
+  for (let i = 0; i < 30; i++) {
+    const path = join(directory, `large-${i}.png`)
+    await writeFile(path, Buffer.from([i])); await truncate(path, 8 * 1024 * 1024); files.push(path)
+  }
+  const budget = localReferenceBudget()
+  const references = await fingerprintReferences(files, undefined, budget)
+  assert.equal(references.length, 30)
+  for (const r of references) {
+    assert.deepEqual(Object.keys(r).sort(), ['identity', 'name', 'path', 'size'])
+    assert.equal(r.size, 8 * 1024 * 1024); assert.match(r.identity, /^[0-9a-f]{64}$/)
+  }
+  const clip = join(directory, 'extra.mp4'); await writeFile(clip, tinyMp4()); await truncate(clip, 20 * 1024 * 1024)
+  await assert.rejects(fingerprintMediaReferences([clip], 'video', undefined, budget), /256 MiB combined/)
+  await assert.rejects(fingerprintReferences([...files, ...files.slice(0, 3)]), /256 MiB combined/)
+}))
+
+test('deferred image uploads detect same-size edits and file growth before upload', () => isolated(async directory => {
+  const { fingerprintReferences, uploadReferences } = referencesModule
+  const image = join(directory, 'ref.png'); await writeFile(image, Buffer.from('original'))
+  const refs = await fingerprintReferences([image])
+  globalThis.fetch = async () => { assert.fail('A changed file must not be uploaded') }
+  await writeFile(image, Buffer.from('modified'))
+  await assert.rejects(uploadReferences(refs, config), e => e.code === 'reference_changed')
+  await truncate(image, 512 * 1024 * 1024)
+  await assert.rejects(uploadReferences(refs, config), e => e.code === 'reference_changed')
+  const controller = new AbortController(); controller.abort()
+  await assert.rejects(fingerprintReferences([image], controller.signal))
 }))

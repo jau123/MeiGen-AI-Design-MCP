@@ -13,12 +13,12 @@ const config = { meigenBaseUrl: 'https://www.meigen.ai', uploadGatewayUrl: 'http
 const requestId = '11111111-2222-4333-8444-555555555555'
 function registry(token = config.meigenApiToken) {
   const registered = new Map()
-  registerSkillTools({ tool: (name, ...args) => registered.set(name, args.at(-1)) }, { ...config, meigenApiToken: token })
+  registerSkillTools({ tool: (name, ...args) => registered.set(name, args.at(-1)), registerTool: (name, _definition, handler) => registered.set(name, handler) }, { ...config, meigenApiToken: token })
   return registered
 }
 
 test('registers five skill tools plus capabilities, upload and recovery', () => {
-  assert.deepEqual([...registry().keys()].sort(), ['check_skill', 'generate_ai_background', 'generate_marketing_poster', 'generate_product_detail_images', 'list_skills', 'remove_background', 'upload_skill_image', 'upscale_image'])
+  assert.deepEqual([...registry().keys()].sort(), ['check_skill', 'generate_ai_background', 'generate_marketing_poster', 'generate_product_detail_images', 'list_skills', 'remove_background', 'upload_reference_media', 'upload_skill_image', 'upscale_image'])
 })
 
 test('external image URL uploads automatically before a paid skill submission', async () => {
@@ -233,4 +233,27 @@ test('cancelling Sharp preprocessing cannot progress into an upload', async () =
     await assert.rejects(pending, error => error.name === 'AbortError')
     assert.equal(calls, 0)
   } finally { globalThis.fetch = previous }
+})
+
+test('media preparation imports a direct URL through the bounded authenticated endpoint without generation', async () => {
+ const previous=globalThis.fetch; const calls=[]
+ const prepared={success:true,kind:'video',mediaUrl:'https://images.meigen.ai/reference-pack-sources/mcp/a.mp4',mimeType:'video/mp4',durationSeconds:4,bytes:1024,retentionDays:7,publiclyAccessible:true}
+ globalThis.fetch=async(url,init)=>{calls.push({url:String(url),init});return Response.json({...prepared,internalSecret:'NOT-PUBLIC'})}
+ try {
+  const input={kind:'video',modelId:'seedance-2-5',sourceUrl:'https://public.example/clip.mp4'}
+  const output=await registry().get('upload_reference_media')(input,{})
+  assert.equal(output.isError,undefined);assert.equal(calls.length,1)
+  assert.deepEqual(output.structuredContent,prepared);assert.deepEqual(JSON.parse(output.content[0].text),prepared)
+  assert.equal(calls[0].url,'https://www.meigen.ai/api/mcp/media-upload');assert.equal(calls[0].init.headers.Authorization,'Bearer meigen_sk_test');assert.deepEqual(JSON.parse(calls[0].init.body),input)
+ } finally {globalThis.fetch=previous}
+})
+
+test('cancelled media preparation never dispatches an upload and returns structured cancellation', async () => {
+ const previous=globalThis.fetch
+ globalThis.fetch=async()=>{throw new Error('Unexpected upload')}
+ try {
+  const controller=new AbortController();controller.abort()
+  const result=await registry().get('upload_reference_media')({kind:'video',modelId:'video',sourceUrl:'https://public.example/clip.mp4'},{signal:controller.signal})
+  assert.equal(result.isError,true);assert.equal(result.structuredContent.code,'cancelled')
+ } finally {globalThis.fetch=previous}
 })

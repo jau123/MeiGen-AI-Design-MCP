@@ -4,7 +4,7 @@
 
 MeiGen 可以作为已有 agent、Skill、脚本或应用中的一个调用步骤。上层负责创意计划、提示词、模型／供应商、数量、已批准预算、调度和展示。MeiGen 创意助手是可选能力，不是调用工具的前置条件；任何工作流都可以使用发现工具。上层已经确定的计划，无需为每张首帧、每段视频或每批结果重复确认。
 
-本地要求 **`meigen` 2.0.1 或更高版本**（`npx -y meigen@3.0.0`；2.0.0 不支持 `referenceVideos` / `referenceAudios`），远程使用已更新的 **`https://www.meigen.ai/api/mcp`**。npm 1.4.0 不支持本页合同。重新连接并检查实际 schema 是否包含 `requestId`、`wait` 和按请求查询。后端回滚时应保留恢复端点及幂等 POST 合同；无需撤回用户已安装的 npm 包。
+本地要求 **`meigen` 2.0.1 或更高版本**（`npx -y meigen@3.1.0`；2.0.0 不支持 `referenceVideos` / `referenceAudios`），远程使用已更新的 **`https://www.meigen.ai/api/mcp`**。npm 1.4.0 不支持本页合同。重新连接并检查实际 schema 是否包含 `requestId`、`wait` 和按请求查询。后端回滚时应保留恢复端点及幂等 POST 合同；无需撤回用户已安装的 npm 包。
 
 ## 普通生成任务合同
 
@@ -87,15 +87,17 @@ const frameStatus = await client.callTool({
 ```
 
 ```js
-// selectedFrameUrl 是已经保存到此视频原始输入中的成图 URL。
-// 提示词里用 "Video N" / "Audio N" 指名引用参考素材，按下面数组内同类素材的顺序从 1 编号。
-// 每个模型的片段数量与秒数上限以 list_models 为准；计费只累计输入视频秒数，参考音频免费。
+// 内容参考模式；不要同时设置 firstFrame/lastFrame。
+// 使用当前模型/tier 的 referenceMentionSyntax；未声明时才回退到 Video N / Audio N。
+// 按实际 billing 能力估价，不能假定所有模型都累计输入视频秒数。
+const videoLabel = plan.videoInputs.referenceMentionSyntax?.video.replace('N', '1') ?? 'Video 1';
+const audioLabel = plan.videoInputs.referenceMentionSyntax?.audio.replace('N', '1') ?? 'Audio 1';
 const video = await client.callTool({
   name: 'generate_video',
   arguments: {
     ...plan.videoSettings, // 包含上层从当前能力中选定的模型。
-    prompt: `延续这段素材：${script.videoPrompt} 保持 Video 1 的运镜和 Audio 1 的节奏。`,
-    firstFrame: script.selectedFrameUrl,
+    prompt: `延续这段素材：${script.videoPrompt} 保持 ${videoLabel} 的运镜和 ${audioLabel} 的节奏。`,
+    contentReferenceImages: [script.selectedFrameUrl],
     referenceVideos: [script.referenceClipUrl, '/Users/me/clips/pan.mp4'], // images.meigen.ai 的 URL 原样透传；本地文件路径仅本地 npm 版会自动上传（远程 MCP 只收 images.meigen.ai 的 URL）。
     referenceAudios: ['/Users/me/audio/theme.mp3'],
     requestId: script.videoRequestId,
