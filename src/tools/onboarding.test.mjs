@@ -1,11 +1,13 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js'
 import serverModule from '../server.js'
 import guidanceModule from '../lib/skill-guidance.js'
 
 const { createServer } = serverModule
+const packageVersion = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8')).version
 const requestId = '11111111-2222-4333-8444-555555555555'
 const config = { meigenBaseUrl:'https://www.meigen.ai', uploadGatewayUrl:'https://gen.meigen.ai', openaiBaseUrl:'https://api.openai.com', openaiModel:'gpt-image-2' }
 
@@ -43,7 +45,7 @@ test('legacy account API-key URL remains compatible while primary setup uses OAu
 
 test('fresh anonymous MCP client sees scenarios, source materials, version and host setup', async () => {
   await session(undefined,undefined,async client => {
-    assert.equal(client.getServerVersion().version,'3.1.0')
+    assert.equal(client.getServerVersion().version,packageVersion)
     const {tools}=await client.listTools()
     assert.equal(tools.length,17)
     const videoFields = tools.find(t => t.name === 'generate_video').inputSchema.properties
