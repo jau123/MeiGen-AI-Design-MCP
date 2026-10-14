@@ -119,7 +119,7 @@ export function registerListModels(server: McpServer, apiClient: MeiGenApiClient
             : referenceBilling === 'reference_plus_output_with_minimum_table'
               ? `Sum server-measured input video seconds plus output and apply the minimum billable seconds table: ${JSON.stringify(cfg.minBillableTable ?? {})}; audio seconds are never added.`
               : referenceBilling === 'reference_plus_output'
-                ? 'Sum server-measured input video seconds plus output; audio seconds are never added.'
+                ? m.id === 'heygen-video-1' ? 'Add output seconds plus each server-measured input video rounded up to whole seconds; no minimum-seconds floor. Audio seconds are never added.' : 'Sum server-measured input video seconds plus output; audio seconds are never added.'
                 : 'Reference-video billing is not declared; do not infer a seconds formula. Check current capabilities before quoting.'
           return [
             `${i + 1}. ${m.name}`,
@@ -140,7 +140,7 @@ export function registerListModels(server: McpServer, apiClient: MeiGenApiClient
               ? `   Reference video: ${referenceVideo.minSeconds}–${referenceVideo.maxSeconds}s per clip; up to ${clips(referenceVideo.maxCount)}, ${referenceVideo.maxTotalSeconds}s total${referenceVideo.tiers ? `; tiers ${referenceVideo.tiers.join(', ')}` : ''}${referenceResolutionDetail ? `; resolutions ${referenceResolutionDetail}` : ''}${referenceUploadLimit} (server probes duration)`
               : '',
             referenceAudio?.enabled
-              ? `   Reference audio: ${referenceAudio.minSeconds}–${referenceAudio.maxSeconds}s per clip; up to ${clips(referenceAudio.maxCount)}, ${referenceAudio.maxTotalSeconds}s total; ${referenceAudio.formats.join('/')}; ≤${Math.floor(referenceAudio.maxUploadBytes / 1024 / 1024)}MB each${referenceAudio.requiresVisualReference ? ' (requires at least one reference image or reference video)' : ''}; audio seconds are not billed`
+              ? `   Reference audio: ${referenceAudio.minSeconds}–${referenceAudio.maxSeconds}s per clip; up to ${clips(referenceAudio.maxCount)}, ${referenceAudio.maxTotalSeconds}s total; ${referenceAudio.formats.join('/')}; ≤${Math.floor(referenceAudio.maxUploadBytes / 1024 / 1024)}MB each${referenceAudio.requiresVisualReference ? referenceAudio.canCombineWithVideo === false ? ' (requires a content reference image)' : ' (requires at least one reference image or reference video)' : ''}${referenceAudio.canCombineWithVideo === false ? '; cannot combine with reference video (embedded video audio is allowed)' : ''}; audio seconds are not billed`
               : '',
             video.valid && video.requiresFirstFrame ? '   First frame: Required' : '',
             !video.valid ? '   Video settings: temporarily unavailable' : '',

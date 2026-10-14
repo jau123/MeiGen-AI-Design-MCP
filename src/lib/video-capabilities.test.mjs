@@ -274,3 +274,27 @@ test('list_models renders the clip budgets and the reference-audio line', async 
   assert.match(listModels, /requires at least one reference image or reference video/);
   assert.match(listModels, /audio seconds are not billed/);
 });
+
+
+test('video/audio combination restriction survives normalization without breaking older catalogs', () => {
+  const audio = { enabled: true, minSeconds: 1, maxSeconds: 15, maxCount: 3, maxTotalSeconds: 45, maxUploadBytes: 16777216, formats: ['wav'], requiresVisualReference: true };
+  for (const flag of [undefined, true, false, 'false', null]) {
+    const contract = { outputDuration: { kind: 'enum', values: [5], default: 5 }, referenceVideo: { enabled: false },
+      referenceAudio: { ...audio, ...(flag === undefined ? {} : { canCombineWithVideo: flag }) }, input: { requiresFirstFrame: false }, billing: { mode: 'per_second', requestDefaultSeconds: 5 } };
+    for (const model of [
+      { ...baseModel, capabilities: { video: { ...contract, valid: true, requiresFirstFrame: false } } },
+    ]) {
+      const caps = videoCapabilitiesForModel(model);
+      assert.equal(caps.valid, flag === undefined || typeof flag === 'boolean');
+      if (caps.valid) assert.equal(caps.referenceAudio.canCombineWithVideo, flag);
+    }
+  }
+});
+
+
+test('HeyGen public per-clip 5s and aggregate 15s remain distinct', () => {
+  const referenceVideo = { enabled: true, minSeconds: 1, maxSeconds: 5, maxCount: 3, maxTotalSeconds: 15, maxUploadBytes: 16777216 };
+  const caps = { ...declaredBase, referenceVideo };
+  assert.equal(videoCapabilitiesForModel({ ...baseModel, capabilities: { video: caps } }).valid, true);
+  assert.equal(videoCapabilitiesForModel({ ...baseModel, capabilities: { video: { ...caps, referenceVideo: { ...referenceVideo, maxTotalSeconds: 16 } } } }).valid, false);
+});

@@ -178,6 +178,9 @@ export async function runMeiGenGeneration(mediaType: 'image' | 'video', input: G
           if (!unsubmitted && !paymentRetry && !expiredLease) throw error
         }
       }
+      if (mediaType === 'video' && input.modelId === 'heygen-video-1' && videos.length > 0 && audios.length > 0) {
+        throw new GenerationError('HeyGen cannot currently combine reference video with separate reference audio. Remove one type; audio embedded in the video is allowed.', 'reference_video_audio_conflict', 400)
+      }
       try {
         if (!receipt.references) { receipt.references = await uploadReferences(references, config, signal); await save() }
         if (videoReferences.length && !receipt.videoReferences) { receipt.videoReferences = await uploadMediaReferences(videoReferences, input.modelId, config, signal); await save() }

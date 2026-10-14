@@ -406,3 +406,26 @@ test('explicit content roles survive upload/recovery and cannot collide with end
  const changed=await run({...args,contentReferenceImages:[],firstFrame:args.contentReferenceImages[0],lastFrame:args.contentReferenceImages[1]})
  assert.equal(changed.structuredContent.success,false); assert.equal(posts.length,1)
 }))
+
+
+test('HeyGen mixed video/audio fails before upload or submission but recovers existing paid receipts', () => isolated(async () => {
+  let existing = false;
+  let posts = 0;
+  globalThis.fetch = async (url, init) => {
+    if (String(url).includes('/requests/')) return existing
+      ? Response.json({ success: true, status: 'processing', generationId: 'already-paid' })
+      : Response.json({ success: false, code: 'request_not_found' }, { status: 404 });
+    posts++;
+    throw new Error('Unexpected upload or paid submission');
+  };
+  const input = { prompt: 'motion', modelId: 'heygen-video-1', requestId: randomUUID(), wait: false,
+    referenceVideos: ['https://images.meigen.ai/ref-videos/clip.mp4'], referenceAudios: ['https://images.meigen.ai/ref-videos/audio.wav'] };
+  const result = await runMeiGenGeneration('video', input, api(), config);
+  assert.equal(result.error.code, 'reference_video_audio_conflict');
+  assert.equal(posts, 0);
+  existing = true;
+  const recovered = await runMeiGenGeneration('video', input, api(), config);
+  assert.equal(recovered.generationId, 'already-paid');
+  assert.equal(recovered.deduped, true);
+  assert.equal(posts, 0);
+}));

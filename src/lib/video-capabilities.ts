@@ -90,12 +90,14 @@ function parseReferenceAudio(value: unknown): McpReferenceAudio | null {
     minSeconds === null || maxSeconds === null || maxCount === null ||
     maxTotalSeconds === null || maxUploadBytes === null || !formats ||
     typeof requiresVisualReference !== 'boolean' ||
+    (raw.canCombineWithVideo !== undefined && typeof raw.canCombineWithVideo !== 'boolean') ||
     minSeconds > maxSeconds || maxTotalSeconds < maxSeconds || maxTotalSeconds > maxCount * maxSeconds
   ) return null
   return {
     enabled: true, minSeconds, maxSeconds, maxCount, maxTotalSeconds, maxUploadBytes,
     formats: formats.map((format) => format.toLowerCase()),
     requiresVisualReference,
+    ...(raw.canCombineWithVideo !== undefined ? { canCombineWithVideo: raw.canCombineWithVideo as boolean } : {}),
   }
 }
 
@@ -171,8 +173,8 @@ function normalizeCandidate(value: unknown): McpVideoCapabilities | null {
   const maxUploadBytes = positiveInteger(reference.maxUploadBytes)
   // Additive fields: absent keeps the historical single-clip contract; present-but-malformed
   // fails closed rather than silently restoring a 1-clip cap on a multi-clip model.
-  // maxTotalSeconds may never exceed maxSeconds — the billing RPC checks the SUM of clip seconds
-  // against maxSeconds, so a larger total would be refused at charge time anyway.
+  // This is the PUBLIC contract: maxSeconds is per clip, maxTotalSeconds is independent.
+  // The legacy DB aggregate ceiling has already been resolved by the server.
   const maxCount = reference.maxCount === undefined ? 1 : positiveInteger(reference.maxCount)
   const maxTotalSeconds = reference.maxTotalSeconds === undefined ? maxSeconds : positiveInteger(reference.maxTotalSeconds)
   const tiers = reference.tiers === undefined ? undefined : strictStrings(reference.tiers)
@@ -193,7 +195,7 @@ function normalizeCandidate(value: unknown): McpVideoCapabilities | null {
   if (
     minSeconds === null || maxSeconds === null || maxUploadBytes === null ||
     maxCount === null || maxTotalSeconds === null ||
-    minSeconds > maxSeconds || maxTotalSeconds < minSeconds || maxTotalSeconds > maxSeconds ||
+    minSeconds > maxSeconds || maxTotalSeconds < minSeconds || maxTotalSeconds > maxCount * maxSeconds ||
     (reference.tiers !== undefined && !tiers) ||
     (reference.resolutions !== undefined && !resolutions) ||
     (reference.resolutionsByTier !== undefined && !rawByTier) ||

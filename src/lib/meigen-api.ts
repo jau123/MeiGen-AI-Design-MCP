@@ -94,6 +94,7 @@ export interface MeiGenModel {
         maxUploadBytes: number
         formats: string[]
         requiresVisualReference: boolean
+        canCombineWithVideo?: boolean
       }
       billing?: {
         mode: 'per_second' | 'per_call'
