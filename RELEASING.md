@@ -119,3 +119,10 @@ npm `meigen@3.1.0` SHA-1: `eab19f529e88188fe6f3dcd3a9993b5b041e2ce7`. The actual
 ClawHub bundle 4.1.0 ZIP SHA-256: `60115f69713eac5361ec02fa0a5f14dd0dee573bdf1c8bfd4b5cce479e248645`; downloaded ZIP contents match all 12 local artifact files. Standalone Skill 3.2.0 registry digests match its three source files. OpenClaw structural inspection passed; no fresh authenticated OpenClaw session was tested for this release.
 
 The GitHub README was corrected after publication to reflect current ChatGPT library availability. The immutable 3.1.0 npm tarball retains its earlier README availability note; do not repack or replace a released version for a documentation-only correction. Use the current GitHub README and deployed docs for client availability.
+
+
+## 2026-10-14 HeyGen reference-video release
+
+npm `meigen@3.1.1` is published as `latest`. Runtime source commit: `093095bd9c658296d4e50974132324ebc38d5a77`; published SHA-1: `a07a5ae0c91ebd87d1de6a993888c28dc85ad52f`. The staged tarball was downloaded and all 148 runtime files matched the local build; SDK discovery reported version 3.1.1, 17 tools, and successful public model discovery. Linux and Windows CI passed.
+
+The patch fixes HeyGen per-clip versus aggregate reference limits and rejects incompatible video/audio inputs before a new paid submission. Existing stdio clients must update their pinned npm version and reconnect. Remote MCP uses the independently deployed Web backend. Distribution versions remain independent; no new ClawHub publication is implied.

@@ -1,6 +1,6 @@
 # MeiGen AI Design — Claude Plugin
 
-> Development candidate: npm **3.1.1** is not published yet. The pins below apply after release; keep your installed version until then. See [release notes](../RELEASE_NOTES_3.1.1.md).
+> npm **3.1.1** is published. Existing local clients using HeyGen should update their pin and reconnect. See [release notes](../RELEASE_NOTES_3.1.1.md).
 
 > npm 3.0.0 is available. Read the [migration notes](../RELEASE_NOTES_3.0.0.md) before upgrading from 2.x. This optional plugin bundles local stdio; use remote OAuth for private-library access.
 
