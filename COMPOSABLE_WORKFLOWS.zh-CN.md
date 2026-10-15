@@ -4,7 +4,7 @@
 
 MeiGen 可以作为已有 agent、Skill、脚本或应用中的一个调用步骤。上层负责创意计划、提示词、模型／供应商、数量、已批准预算、调度和展示。MeiGen 创意助手是可选能力，不是调用工具的前置条件；任何工作流都可以使用发现工具。上层已经确定的计划，无需为每张首帧、每段视频或每批结果重复确认。
 
-本地要求 **`meigen` 2.0.1 或更高版本**（`npx -y meigen@3.1.1`；2.0.0 不支持 `referenceVideos` / `referenceAudios`），远程使用已更新的 **`https://www.meigen.ai/api/mcp`**。npm 1.4.0 不支持本页合同。重新连接并检查实际 schema 是否包含 `requestId`、`wait` 和按请求查询。后端回滚时应保留恢复端点及幂等 POST 合同；无需撤回用户已安装的 npm 包。
+本地要求 **`meigen` 2.0.1 或更高版本**（`npx -y meigen@3.2.0`；2.0.0 不支持 `referenceVideos` / `referenceAudios`），远程使用已更新的 **`https://www.meigen.ai/api/mcp`**。npm 1.4.0 不支持本页合同。重新连接并检查实际 schema 是否包含 `requestId`、`wait` 和按请求查询。后端回滚时应保留恢复端点及幂等 POST 合同；无需撤回用户已安装的 npm 包。
 
 ## 普通生成任务合同
 
@@ -138,4 +138,4 @@ const video = await client.callTool({
 
 先查询 `capabilities.draft.enabled` 和当前 480p 费率。明确授权后，在 `generate_video` 中传 `draft: true` 创建 480p 预览。通过原请求 ID 查询并展示完成的草稿、有效期及 `seedanceDraft.finalCredits`。用户另行确认费用后，才调用 `render_video_draft`，传入独立且持久化的 `requestId`、`sourceDraftGenerationId` 和 `confirmedCredits`。成片收取完整 1080p 费用，并非差价。不传 `draft` 时普通生成保持不变。
 
-保留两笔任务的 ID 和预算预留。通过 `check_generation` 恢复成片，失败后不得自动创建替代任务。用户授权重试失败成片时，另传 `retryFailedGenerationId` 并使用新请求 ID。草稿自上游创建起七天过期。详见[完整草稿指南](https://docs.meigen.ai/zh/mcp/drafts)。本地 npm 3.1.1 尚不包含这些工具，需要后续发包及兼容后端部署。
+保留两笔任务的 ID 和预算预留。通过 `check_generation` 恢复成片，失败后不得自动创建替代任务。用户授权重试失败成片时，另传 `retryFailedGenerationId` 并使用新请求 ID。草稿自上游创建起七天过期。详见[完整草稿指南](https://docs.meigen.ai/zh/mcp/drafts)。本地 npm 需要 3.2.0 或更高版本及兼容后端；更新 npm 版本并重连后发现新工具。

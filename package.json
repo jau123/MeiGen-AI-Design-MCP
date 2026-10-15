@@ -1,6 +1,6 @@
 {
   "name": "meigen",
-  "version": "3.1.1",
+  "version": "3.2.0",
   "description": "Composable image and video generation tools, reusable visual skills, and optional creative workflows for MCP clients",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -19,7 +19,8 @@
     "MCP_AUTH_AND_RESULTS.md",
     "RELEASE_NOTES_3.0.0.md",
     "RELEASE_NOTES_3.1.0.md",
-    "RELEASE_NOTES_3.1.1.md"
+    "RELEASE_NOTES_3.1.1.md",
+    "RELEASE_NOTES_3.2.0.md"
   ],
   "scripts": {
     "build": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\" && tsc",

@@ -17,7 +17,7 @@ Public gallery, model and Skill lookups do not spend generation credits. Cloud g
 
 ## Client configuration
 
-Local examples pin `meigen@3.1.0`; Node.js 22+ is recommended. Reconnect after configuration changes, then call `list_skills` to verify the actual connection without paid generation.
+Local examples pin `meigen@3.2.0`; Node.js 22+ is recommended. Reconnect after configuration changes, then call `list_skills` to verify the actual connection without paid generation.
 
 <a id="codex-manual"></a>
 
@@ -43,33 +43,33 @@ The examples below preserve existing local CLI and API-key integrations. They do
 ```toml
 [mcp_servers.meigen]
 command = "npx"
-args = ["-y", "meigen@3.1.0"]
+args = ["-y", "meigen@3.2.0"]
 env_vars = ["MEIGEN_API_TOKEN"]
 startup_timeout_sec = 90
 tool_timeout_sec = 240
 ```
 
-This forwards your locally configured `MEIGEN_API_TOKEN` to the npm process. To register just the local command with the CLI, use `codex mcp add meigen -- npx -y meigen@3.1.0`, then add the environment forwarding and timeout settings shown above. `meigen init codex` is not supported; use Codex's own MCP configuration.
+This forwards your locally configured `MEIGEN_API_TOKEN` to the npm process. To register just the local command with the CLI, use `codex mcp add meigen -- npx -y meigen@3.2.0`, then add the environment forwarding and timeout settings shown above. `meigen init codex` is not supported; use Codex's own MCP configuration.
 
 Restart/reconnect after setup. In Codex CLI, `codex mcp list` checks registration and `/mcp` shows connection status. Then ask **“List MeiGen's available Skills and current prices”** to verify an actual tool call without generating or spending credits. A saved configuration alone does not prove that the server connected. Longer video jobs may need a longer tool timeout.
 
 ### Cursor / VS Code / Windsurf / Roo Code
 
-For an existing stdio connection, back up the config and edit only its npm package version in `args` to `meigen@3.1.0`. Keep its `env`, timeouts, custom options and other servers. Do not replace the whole entry to upgrade. For JSONC, preserve comments and edit the version manually.
+For an existing stdio connection, back up the config and edit only its npm package version in `args` to `meigen@3.2.0`. Keep its `env`, timeouts, custom options and other servers. Do not replace the whole entry to upgrade. For JSONC, preserve comments and edit the version manually.
 
-The 3.1.0 initializer also supports legacy local setup:
+The 3.2.0 initializer also supports legacy local setup:
 
 ```bash
-npx -y meigen@3.1.0 init cursor      # Cursor
-npx -y meigen@3.1.0 init vscode      # VS Code / GitHub Copilot
-npx -y meigen@3.1.0 init windsurf    # Windsurf
-npx -y meigen@3.1.0 init roo         # Roo Code
-npx -y meigen@3.1.0 init claude      # Claude (project-level)
+npx -y meigen@3.2.0 init cursor      # Cursor
+npx -y meigen@3.2.0 init vscode      # VS Code / GitHub Copilot
+npx -y meigen@3.2.0 init windsurf    # Windsurf
+npx -y meigen@3.2.0 init roo         # Roo Code
+npx -y meigen@3.2.0 init claude      # Claude (project-level)
 ```
 
-The 3.1.0 `init` command requires strict JSON. It rejects invalid JSON, JSONC, invalid server maps and existing remote connections without changing the file. It updates an existing entry only when it recognizes a direct `npx` MeiGen invocation: an optional `-y` or `--yes`, followed by just `meigen`, `meigen@latest` or `meigen@<full-version>`. It preserves the executable path, environment, timeouts, other options and other servers. OAuth proxies such as `mcp-remote` remain untouched even when their type is `stdio`; shell wrappers, custom commands and other package managers require manual edits. Before atomically replacing an existing file, it creates a private `.bak` copy beside it and prints that path. Keep the backup private because it may contain credentials. These safeguards do not apply to older published initializers.
+The 3.2.0 `init` command requires strict JSON. It rejects invalid JSON, JSONC, invalid server maps and existing remote connections without changing the file. It updates an existing entry only when it recognizes a direct `npx` MeiGen invocation: an optional `-y` or `--yes`, followed by just `meigen`, `meigen@latest` or `meigen@<full-version>`. It preserves the executable path, environment, timeouts, other options and other servers. OAuth proxies such as `mcp-remote` remain untouched even when their type is `stdio`; shell wrappers, custom commands and other package managers require manual edits. Before atomically replacing an existing file, it creates a private `.bak` copy beside it and prints that path. Keep the backup private because it may contain credentials. These safeguards do not apply to older published initializers.
 
-`init` writes a configuration that follows the default npm release tag; the manual examples in this guide pin 3.1.0. To pin an initialized connection too, change its `args` to `["-y", "meigen@3.1.0"]` and restart the host.
+`init` writes a configuration that follows the default npm release tag; the manual examples in this guide pin 3.2.0. To pin an initialized connection too, change its `args` to `["-y", "meigen@3.2.0"]` and restart the host.
 
 For npm `search_gallery`, keep the combined query and category within 200 UTF-16 code units. `limit` must be an integer from 1–20 (default 3; actual maximum 3 results) and `offset` an integer from 0–100000. Reuse the returned query, snapshot ID and `nextOffset` to request another batch.
 
@@ -103,19 +103,19 @@ For shell scripts, CI pipelines, or anyone who wants AI image generation without
 export MEIGEN_API_TOKEN=meigen_sk_...
 
 # Generate
-npx -y meigen@3.1.0 gen --prompt "a calico cat in a sunlit kitchen"
+npx -y meigen@3.2.0 gen --prompt "a calico cat in a sunlit kitchen"
 
 # With a specific model + aspect ratio
-npx -y meigen@3.1.0 gen -p "tech logo" -m midjourney-v8.1 -r 1:1
+npx -y meigen@3.2.0 gen -p "tech logo" -m midjourney-v8.1 -r 1:1
 
 # With a reference image (local file auto-uploaded)
-npx -y meigen@3.1.0 gen -p "product hero shot" --ref ~/Desktop/bottle.jpg
+npx -y meigen@3.2.0 gen -p "product hero shot" --ref ~/Desktop/bottle.jpg
 
 # Submit only — print generationId without polling (good for CI)
-npx -y meigen@3.1.0 gen -p "..." --no-wait
+npx -y meigen@3.2.0 gen -p "..." --no-wait
 
 # Machine-readable output (good for jq pipes)
-npx -y meigen@3.1.0 gen -p "..." --json | jq -r '.imageUrls[0]'
+npx -y meigen@3.2.0 gen -p "..." --json | jq -r '.imageUrls[0]'
 ```
 
 CLI image output is saved to `~/Pictures/meigen/` (override with `MEIGEN_OUTPUT_DIR`). The five Skills return result links; your host can preview or download them.
@@ -131,7 +131,7 @@ Add to your MCP config (e.g. `.mcp.json`, `claude_desktop_config.json`):
   "mcpServers": {
     "meigen": {
       "command": "npx",
-      "args": ["-y", "meigen@3.1.0"],
+      "args": ["-y", "meigen@3.2.0"],
       "env": {
         "MEIGEN_API_TOKEN": "meigen_sk_..."
       }
@@ -150,7 +150,7 @@ Add to your MCP config (e.g. `.mcp.json`, `claude_desktop_config.json`):
 mcp_servers:
   meigen:
     command: "npx"
-    args: ["-y", "meigen@3.1.0"]
+    args: ["-y", "meigen@3.2.0"]
     env:
       MEIGEN_API_TOKEN: "meigen_sk_..."
     timeout: 2700         # generate_video polls until the server reports a terminal state (long videos can run 15+ min) — default 120s is not enough
@@ -222,7 +222,7 @@ The `presignedUrl` is used for a `PUT` upload, and `publicUrl` is the publicly a
 
 | Problem | Next step |
 |---|---|
-| New Skills do not appear | Remote: refresh/reconnect the tool list after the backend is deployed. Local: confirm the connection runs `meigen@3.1.0`, then restart. Installing npm alone does not deploy the APIs. |
+| New Skills do not appear | Remote: refresh/reconnect the tool list after the backend is deployed. Local: confirm the connection runs `meigen@3.2.0`, then restart. Installing npm alone does not deploy the APIs. |
 | Missing account authorization | Connect remote MCP with OAuth and sign in. For an existing legacy integration only, privately check its configured key and reconnect; do not send credentials in chat. |
 | Insufficient credits, but the website shows a balance | API calls use **purchased credits only**, never daily free credits. Use [Profile → Top Up](https://www.meigen.ai/profile) on the same account; then ask the assistant to continue. A rejected call should not be polled. |
 | The image cannot be uploaded | Use a real local file (local npm) or a public direct HTTPS image link. Check format/size and remove login or redirect requirements. If the host cannot read attachments, use a direct link. Upload failure has not started a generation. |
@@ -238,7 +238,7 @@ For Skill client implementers: generate `requestId` internally, keep it with the
 ## Upgrade from earlier versions
 
 - **Remote MCP:** keep the endpoint and reconnect with OAuth account sign-in; remove any fixed Authorization header when switching. After backend deployment, reconnect and call `list_skills`; verify the installed tool list. Updating npm alone does not deploy the APIs.
-- **Local npm:** change pinned configurations to `meigen@3.1.0` and restart; global installations can run `npm install -g meigen@3.1.0`. Check that the version is available on npm first.
+- **Local npm:** change pinned configurations to `meigen@3.2.0` and restart; global installations can run `npm install -g meigen@3.2.0`. Check that the version is available on npm first.
 - **Plugin users:** update the Claude marketplace plugin, OpenClaw ClawHub bundle or standalone ClawHub Skill separately. Updating npm alone does not replace installed instruction files. Keep one effective server. OpenClaw OAuth login requires a saved entry with the same `meigen` name, which overrides its bundle default.
 - **Composable calls:** local `wait: true` / `download: true` remain defaults. New workflows should persist UUID `requestId`, use `wait: false` and recover by that ID. Remote legacy `attemptId` remains accepted; older receipts cannot retroactively prove every historical parameter mismatch. Update plugin instructions as well as the server to get the optional creative flow.
 - **Existing configuration and jobs:** general generation keeps its MeiGen/OpenAI configuration; the five Skills need an authorized MeiGen account and purchased credits. Preserve IDs and inputs for interrupted jobs and recover them; an upgrade is not a reason to resubmit a paid request.
