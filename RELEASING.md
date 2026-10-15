@@ -126,3 +126,10 @@ The GitHub README was corrected after publication to reflect current ChatGPT lib
 npm `meigen@3.1.1` is published as `latest`. Runtime source commit: `093095bd9c658296d4e50974132324ebc38d5a77`; published SHA-1: `a07a5ae0c91ebd87d1de6a993888c28dc85ad52f`. The staged tarball was downloaded and all 148 runtime files matched the local build; SDK discovery reported version 3.1.1, 17 tools, and successful public model discovery. Linux and Windows CI passed.
 
 The patch fixes HeyGen per-clip versus aggregate reference limits and rejects incompatible video/audio inputs before a new paid submission. Existing stdio clients must update their pinned npm version and reconnect. Remote MCP uses the independently deployed Web backend. Distribution versions remain independent; no new ClawHub publication is implied.
+
+
+## 2026-10-15 Seedance draft release
+
+npm `meigen@3.2.0` is published as `latest`. Runtime source commit: `81da28d`; published SHA-1: `f529cc3eb0cf3986ddc9e17b38a3990ae9fd16e9`. The public tarball is byte-identical to the reviewed staged artifact; all 163 packaged files were checked. SDK discovery reported version 3.2.0 and 18 local tools, including `render_video_draft`; public model discovery passed without credentials. Private-library and saved-character tools remain remote OAuth only.
+
+Type checking, 246 tests, version/frontmatter checks, lockfile validation and release dry-run passed. Cross-repository guidance matches the published npm version. No paid draft-to-final generation was performed. Existing stdio users must update their package pin and restart/reconnect; hosted MCP deployment and ClawHub publications are independent.
