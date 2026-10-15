@@ -1,8 +1,10 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { MeiGenApiClient } from '../lib/meigen-api.ts'
-import { registerRenderVideoDraft, generateVideoSchema } from './generate-video.ts'
-import { generationStatusOutput } from '../lib/generation-operation.ts'
+import { createRequire } from 'node:module'
+const require = createRequire(import.meta.url)
+const { MeiGenApiClient } = require('../lib/meigen-api.ts')
+const { registerRenderVideoDraft, generateVideoSchema } = require('./generate-video.ts')
+const { generationStatusOutput } = require('../lib/generation-operation.ts')
 const requestId = '11111111-2222-4333-8444-555555555555'
 const config = { meigenBaseUrl: 'https://www.meigen.ai', meigenApiToken: 'meigen_sk_test' }
 
