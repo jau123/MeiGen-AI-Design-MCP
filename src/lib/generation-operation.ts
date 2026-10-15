@@ -4,7 +4,7 @@ import { join } from 'node:path'
 import { homedir } from 'node:os'
 import type { MeiGenConfig } from '../config.js'
 import type { MeiGenApiClient, MeiGenGenerationStatus } from './meigen-api.js'
-import { GenerationError, type GenerationOutput, errorOutput, isRequestNotFound } from './generation-contract.js'
+import { GenerationError, draftResultSchema, type GenerationOutput, errorOutput, isRequestNotFound } from './generation-contract.js'
 import { ImageUploadError } from './upload.js'
 import { withGenerationReceipt } from './generation-request-store.js'
 import {
@@ -21,6 +21,7 @@ export interface GenerationInput {
   modelVariant?: string
   quality?: string
   tier?: string
+  draft?: boolean
   duration?: number
   referenceImages?: string[]
   contentReferenceImages?: string[]
@@ -74,9 +75,11 @@ export function preSubmitError(error: unknown, signal?: AbortSignal): unknown {
 }
 
 export function generationStatusOutput(status: MeiGenGenerationStatus, context: Partial<GenerationOutput>): GenerationOutput {
+  const draft = draftResultSchema.safeParse(status.seedanceDraft)
   const mediaType = status.mediaType ?? context.mediaType ?? 'image'
   const urls = mediaType === 'video' ? (status.videoUrl ? [status.videoUrl] : []) : (status.imageUrls?.length ? status.imageUrls : status.imageUrl ? [status.imageUrl] : [])
   const body: GenerationOutput = { success: status.status !== 'failed', status: status.status, provider: 'meigen', urls, ...context, mediaType,
+    ...(draft.success ? { seedanceDraft: draft.data } : {}),
     ...(status.generationId ? { generationId: status.generationId } : {}), ...(status.modelId ? { modelId: status.modelId } : {}),
     ...(typeof status.creditsUsed === 'number' ? { creditsUsed: status.creditsUsed } : {}), ...(status.creditsStatus ? { creditsStatus: status.creditsStatus } : {}),
     ...(mediaType === 'video' && urls[0] ? { videoUrl: urls[0] } : urls[0] ? { imageUrl: urls[0] } : {}) }

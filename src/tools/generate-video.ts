@@ -8,11 +8,12 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { MeiGenConfig } from '../config.js'
 import type { MeiGenApiClient } from '../lib/meigen-api.js'
 import { generationControls, generationOutputSchema, generationResult, errorOutput, GenerationError } from '../lib/generation-contract.js'
-import { runMeiGenGeneration } from '../lib/generation-operation.js'
+import { runMeiGenGeneration, generationStatusOutput } from '../lib/generation-operation.js'
 import { mergeReferenceVideos } from '../lib/generation-references.js'
 
 export const generateVideoSchema = {
   ...generationControls,
+  draft: z.boolean().optional().describe('Paid 480p preview only when list_models capabilities.draft.enabled is true. Omit for normal generation. Review it and obtain separate authorization at seedanceDraft.finalCredits before render_video_draft.'),
   prompt: z.string().trim().min(1, 'Prompt cannot be empty').describe('The video generation prompt. Describe motion, scene, and style — not just the still image.'),
   modelId: z.string().trim().min(1).optional().describe('Alias of model. Provide at least one; both must match when supplied.'),
   model: z.string().trim().min(1).optional().describe('Video model ID. REQUIRED; call list_models for the live lineup and capabilities.'),
@@ -57,7 +58,7 @@ export function registerGenerateVideo(server: McpServer, apiClient: MeiGenApiCli
     description: 'Generate a MeiGen video using a required live model ID from list_models. Reference videos and reference audio are passed as referenceVideos / referenceAudios arrays (images.meigen.ai URLs, or local files which are uploaded for you — prepare other direct HTTPS URLs first with upload_reference_media); per-model counts and second budgets come from list_models, and audio seconds are never added to billing, though content-reference rates may apply. Preserve the caller’s resolved prompt, parameters and authorized scope. Set requestId, wait=false and download=false for workflow submission; then query check_generation. At most four submissions run concurrently per MCP process; the backend quota and Retry-After remain authoritative. Video generation consumes purchased credits.',
     inputSchema: generateVideoSchema, outputSchema: generationOutputSchema,
     annotations: { readOnlyHint: false, destructiveHint: true },
-  }, async ({ prompt, model, modelId, tier, duration, resolution, aspectRatio, firstFrame, lastFrame, contentReferenceImages, referenceVideo, referenceVideos, referenceAudios, referenceVideoDuration, requestId, wait = true, download = true }, extra) => {
+  }, async ({ prompt, model, modelId, tier, draft, duration, resolution, aspectRatio, firstFrame, lastFrame, contentReferenceImages, referenceVideo, referenceVideos, referenceAudios, referenceVideoDuration, requestId, wait = true, download = true }, extra) => {
     if (!model && !modelId) return generationResult(errorOutput(new GenerationError('A video model or modelId from list_models is required.', 'model_required')))
     if (model && modelId && model !== modelId) return generationResult(errorOutput(new GenerationError('model and modelId must match when both are provided.', 'model_alias_conflict')))
     model = model ?? modelId
@@ -67,6 +68,7 @@ export function registerGenerateVideo(server: McpServer, apiClient: MeiGenApiCli
     try { mergeReferenceVideos(referenceVideo, referenceVideos) }
     catch (error) { return generationResult(errorOutput(error, { requestId, mediaType: 'video', provider: 'meigen' })) }
     return generationResult(await runMeiGenGeneration('video', {
+      ...(draft !== undefined ? { draft } : {}),
       prompt, modelId: model, tier, duration, resolution, aspectRatio,
       referenceImages: [firstFrame, lastFrame].filter((value): value is string => Boolean(value)),
       ...(contentReferenceImages !== undefined ? { contentReferenceImages } : {}),
@@ -79,4 +81,25 @@ export function registerGenerateVideo(server: McpServer, apiClient: MeiGenApiCli
       try { await extra.sendNotification({ method: 'notifications/message', params: { level: 'info', logger: 'generate_video', data: message } }) } catch { /* Hosts may not implement logging. */ }
     }))
   })
+}
+
+export function registerRenderVideoDraft(server: McpServer, apiClient: MeiGenApiClient) {
+  server.registerTool('render_video_draft', {
+    description: 'Render an owned completed draft as a separate paid 1080p final. Show the draft, quote check_generation seedanceDraft.finalCredits and obtain authorization first. This is the full final cost, not a price difference. Drafts expire at expiresAt. Reuse the same requestId/inputs on interruption. Only an explicitly authorized replacement after failure supplies retryFailedGenerationId and a new requestId. No changed prompt/references.',
+    inputSchema: { requestId: z.string().uuid(), sourceDraftGenerationId: z.string().uuid(), confirmedCredits: z.number().nonnegative(), retryFailedGenerationId: z.string().uuid().optional() },
+    outputSchema: generationOutputSchema,
+    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true },
+  }, async (input, extra) => {
+    const context = { requestId: input.requestId.toLowerCase(), mediaType: 'video' as const, requestedMediaType: 'video' as const, provider: 'meigen' as const }
+    let generationId: string | undefined
+    try {
+      extra.signal.throwIfAborted()
+      const accepted = await apiClient.renderVideoDraft(input, extra.signal)
+      generationId = accepted.generationId
+      return generationResult(generationStatusOutput(await apiClient.getGenerationByRequestId(context.requestId, extra.signal), { ...context, generationId }))
+    } catch (error) {
+      return generationResult(errorOutput(error, { ...context, ...(generationId ? { generationId } : {}) }))
+    }
+  })
+
 }

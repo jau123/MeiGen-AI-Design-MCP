@@ -6,7 +6,12 @@ export const generationControls = {
   download: z.boolean().default(true).describe('Save the completed result locally (default true). Set false for URL-only workflows. Ignored when wait=false. Other providers may return inline image content when local saving is disabled.'),
 }
 
+export const draftResultSchema = z.object({
+  stage: z.enum(['draft', 'final']), duration: z.number(), referenceVideoSeconds: z.number(), hasReferenceVideo: z.boolean(),
+  expiresAt: z.string().optional(), sourceGenerationId: z.string().optional(), finalGenerationId: z.string().optional(), finalCredits: z.number().nonnegative().optional(),
+})
 export const generationOutputSchema = {
+  seedanceDraft: draftResultSchema.optional(),
   success: z.boolean(),
   status: z.enum(['processing', 'completed', 'failed', 'error', 'unknown']),
   provider: z.enum(['meigen', 'openai']).optional(),

@@ -133,3 +133,9 @@ const video = await client.callTool({
 远程普通生成保留旧版 `attemptId` 兼容入口；新集成优先使用 UUID `requestId`。旧回执可能没有核验所有历史参数所需的标准化输入，因此不能宣称新保护能够追溯验证每一个旧任务。
 
 **旧请求与换 Key：** 使用旧 `attemptId` 提交但丢失响应时，应先用原 Key 恢复，再撤销该 Key。旧句柄包含 Key，新 Key 无法重建尚未记录的旧身份。已有 `generationId` 时应保存；不要用新 Key 自动重交仍未明确的旧尝试。
+
+## Seedance 草稿步骤（尚未发布的源码）
+
+先查询 `capabilities.draft.enabled` 和当前 480p 费率。明确授权后，在 `generate_video` 中传 `draft: true` 创建 480p 预览。通过原请求 ID 查询并展示完成的草稿、有效期及 `seedanceDraft.finalCredits`。用户另行确认费用后，才调用 `render_video_draft`，传入独立且持久化的 `requestId`、`sourceDraftGenerationId` 和 `confirmedCredits`。成片收取完整 1080p 费用，并非差价。不传 `draft` 时普通生成保持不变。
+
+保留两笔任务的 ID 和预算预留。通过 `check_generation` 恢复成片，失败后不得自动创建替代任务。用户授权重试失败成片时，另传 `retryFailedGenerationId` 并使用新请求 ID。草稿自上游创建起七天过期。详见[完整草稿指南](https://docs.meigen.ai/zh/mcp/drafts)。本地 npm 3.1.1 尚不包含这些工具，需要后续发包及兼容后端部署。

@@ -1,3 +1,4 @@
+import type { GenerationOutput } from './generation-contract.js'
 /**
  * MeiGen API HTTP client
  * Used for MeiGen platform mode — calls the hosted generation API
@@ -63,6 +64,7 @@ export interface MeiGenModel {
   } | null
   /** Stable public capability contract from /api/models. Do not parse pricing fields for support. */
   capabilities?: {
+    draft?: { enabled: boolean; resolution: string; finalResolution: string; lifetimeSeconds: number; finalRequiresConfirmation: boolean }
     characters?: { enabled: boolean; maxCount: number; referenceMode: 'content' }
     videoInputs?: Record<string, unknown>
     video?: {
@@ -138,6 +140,7 @@ export interface MeiGenGenerationResponse {
 export const POLL_SAFETY_VALVE_MS = 45 * 60_000
 
 export interface MeiGenGenerationStatus {
+  seedanceDraft?: GenerationOutput['seedanceDraft']
   // Backend `status/[id]/route.ts:53` maps DB 'pending' → 'processing' before responding,
   // so callers never observe 'pending' over the wire.
   status: 'processing' | 'completed' | 'failed'
@@ -262,11 +265,11 @@ export class MeiGenApiClient {
    * Submit with the caller-owned UUID. The backend persists input identity and task recovery.
    * Omission represents a new interactive attempt; composed workflows always provide their saved UUID.
    */
-  private async submitWithAttemptKey(body: Record<string, unknown>, requestId: string = randomUUID(), signal?: AbortSignal): Promise<MeiGenGenerationResponse> {
+  private async submitWithAttemptKey(body: Record<string, unknown>, requestId: string = randomUUID(), signal?: AbortSignal, path = '/api/generate/v2'): Promise<MeiGenGenerationResponse> {
     // Explicit workflow identity, never inferred from matching prompt parameters.
     await sharedApiSemaphore.acquire(signal)
     try {
-      return await withHttpResponse(`${this.baseUrl}/api/generate/v2`, {
+      return await withHttpResponse(`${this.baseUrl}${path}`, {
         method: 'POST', headers: { Authorization: `Bearer ${this.apiToken}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...body, idempotencyKey: requestId }),
       }, 90_000, async response => {
@@ -294,6 +297,7 @@ export class MeiGenApiClient {
     modelId: string  // 视频模型必须显式传(无后端默认)
     aspectRatio?: string
     resolution?: string
+    draft?: boolean
     duration?: number
     tier?: string
     referenceImages?: string[]
@@ -319,6 +323,7 @@ export class MeiGenApiClient {
     if (params.resolution) body.resolution = params.resolution
     if (typeof params.duration === 'number') body.duration = params.duration
     if (params.tier) body.tier = params.tier
+    if (params.draft !== undefined) body.draft = params.draft
     if (params.referenceImages?.length) body.referenceImages = params.referenceImages
     if (params.contentReferenceImages !== undefined) {
       body.frameReferenceImages = params.frameReferenceImages ?? []
@@ -333,6 +338,12 @@ export class MeiGenApiClient {
     // Never send client-reported clip duration: it must not affect request identity or billing.
 
     return await this.submitWithAttemptKey(body, params.requestId, params.signal)
+  }
+
+  async renderVideoDraft(input: { requestId: string; sourceDraftGenerationId: string; confirmedCredits: number; retryFailedGenerationId?: string }, signal?: AbortSignal) {
+    if (!this.apiToken) throw new GenerationError('Connect through remote OAuth. A configured API key is supported only for an existing legacy integration.', 'unauthorized', 401)
+    const { requestId, ...body } = input
+    return this.submitWithAttemptKey(body, requestId.toLowerCase(), signal, '/api/generate/v2/draft-final')
   }
 
   /** Check generation status by ID (no auth required) */

@@ -131,6 +131,7 @@ export function registerListModels(server: McpServer, apiClient: MeiGenApiClient
             durations ? `   Duration: ${durations}${requestDefaultNote}` : '',
             `   Ratios: ${m.supported_ratios.join(', ')}`,
             cost ? `   Cost: ${cost}` : '',
+            m.capabilities?.draft?.enabled ? `   Draft: ${JSON.stringify(m.capabilities.draft)}. Opt in with draft=true; price at the current 480p rate. Review completed preview and quote seedanceDraft.finalCredits before separately authorizing render_video_draft. Omit draft for normal generation.` : '',
             m.capabilities?.characters ? `   Saved characters (remote OAuth only): ${JSON.stringify(m.capabilities.characters)}` : '',
             m.capabilities?.videoInputs ? `   Reference input modes: ${JSON.stringify(m.capabilities.videoInputs)}. Pass contentReferenceImages: [] for endpoint-only input.` : '',
             cfg.pricingPerSec ? `${cfg.automaticReferencePricing === true ? '   Automatic pricing: text/first-frame uses standard; any content image, saved character, video or audio uses reference. Omit tier; it is selected from inputs.' : '   Without reference video (text/images/audio)'} Credits per output second: ${JSON.stringify(cfg.pricingPerSec)}` : '',

@@ -133,3 +133,9 @@ Local `wait: true` retries transient status-query errors within bounds: stop aft
 For ordinary tasks, remote `attemptId` remains a legacy compatibility handle. Prefer UUID `requestId` in new integrations. Older receipts may lack the normalized input data needed to verify all past parameter mismatches; do not assume the new protection can retroactively validate every old task.
 
 **Legacy key rotation:** when an old `attemptId` submission lost its response, recover it using the original key before revoking that key. The old handle incorporates the key; a new key cannot reconstruct an unrecorded old identity. Keep a returned `generationId` when available, and do not automatically resubmit an unresolved legacy attempt with a new key.
+
+## Seedance draft steps (unreleased source)
+
+Discover `capabilities.draft.enabled` and the current 480p rate first. An explicitly authorized `generate_video` with `draft: true` produces a 480p preview. Query its request ID and show the completed draft, expiry and `seedanceDraft.finalCredits`. Only after separate cost confirmation call `render_video_draft` with a new persistent `requestId`, `sourceDraftGenerationId` and `confirmedCredits`. The final is billed at the full 1080p price, not a price difference. Normal generation remains unchanged when `draft` is omitted.
+
+Keep both task IDs and budget reservations. Recover final rendering with `check_generation`; never automatically replace a failed final. An authorized retry of a failed final also passes `retryFailedGenerationId` and uses a new request ID. Drafts expire seven days after provider creation. See [the full draft guide](https://docs.meigen.ai/en/mcp/drafts). Local npm 3.1.1 does not contain these tools; a subsequent package release and compatible backend deployment are required.

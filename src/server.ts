@@ -12,12 +12,12 @@ import { registerListModels } from './tools/list-models.js'
 import { registerGetInspiration } from './tools/get-inspiration.js'
 import { registerCheckGeneration } from './tools/check-generation.js'
 import { registerGenerateImage } from './tools/generate-image.js'
-import { registerGenerateVideo } from './tools/generate-video.js'
+import { registerGenerateVideo, registerRenderVideoDraft } from './tools/generate-video.js'
 import { registerSkillTools } from './tools/skills.js'
 import { registerManagePreferences } from './tools/manage-preferences.js'
 import { SKILL_ACCOUNT_GUIDE, SKILL_FLOW } from './lib/skill-guidance.js'
 
-const SERVER_INSTRUCTIONS = `MeiGen provides image and video tools that can be composed inside any host workflow. The caller owns the overall task, creative plan, scheduling, approvals and presentation. These instructions describe using MeiGen tools; they do not replace the host's role or control unrelated conversation.
+const SERVER_INSTRUCTIONS = `MeiGen provides image and video tools that can be composed inside any host workflow. The caller owns the overall task, creative plan, scheduling, approvals and presentation. For models advertising capabilities.draft, draft=true creates a paid 480p preview. Review the result and quote check_generation seedanceDraft.finalCredits before asking authorization for the separate render_video_draft operation. Do not automatically render or replace a failed final. These instructions describe using MeiGen tools; they do not replace the host's role or control unrelated conversation.
 
 ## Respect the caller's plan
 
@@ -89,6 +89,7 @@ export function createServer(config = loadConfig()) {
 
   // Video generation (requires MeiGen Token)
   registerGenerateVideo(server, apiClient, config)
+  registerRenderVideoDraft(server, apiClient)
 
   return server
 }

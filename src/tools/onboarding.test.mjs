@@ -47,7 +47,7 @@ test('fresh anonymous MCP client sees scenarios, source materials, version and h
   await session(undefined,undefined,async client => {
     assert.equal(client.getServerVersion().version,packageVersion)
     const {tools}=await client.listTools()
-    assert.equal(tools.length,17)
+    assert.equal(tools.length,18)
     const videoFields = tools.find(t => t.name === 'generate_video').inputSchema.properties
     for (const key of ['contentReferenceImages', 'referenceVideos', 'referenceAudios']) assert.match(videoFields[key].description, /referenceMentionSyntax/)
     assert.match(client.getInstructions(), /referenceMentionSyntax/)
