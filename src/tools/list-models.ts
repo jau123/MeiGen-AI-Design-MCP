@@ -4,6 +4,7 @@
  */
 
 import { z } from 'zod'
+import { formatModelPromotion } from '../lib/model-promotion.js'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { MeiGenApiClient, MeiGenModel } from '../lib/meigen-api.js'
 import { minimumVideoCredits, videoCapabilitiesForModel } from '../lib/video-capabilities.js'
@@ -55,6 +56,7 @@ export function registerListModels(server: McpServer, apiClient: MeiGenApiClient
           return [
             `${i + 1}. ${m.name}`,
             `   ID: ${m.id}`,
+            formatModelPromotion(cfg),
             tags ? `   Status: ${tags}` : '',
             resolutions ? `   Resolutions: ${resolutions}` : `   4K: ${m.supports_4k ? 'Yes' : 'No'}`,
             qualities ? `   Quality tiers: ${qualities}` : '',
@@ -124,6 +126,7 @@ export function registerListModels(server: McpServer, apiClient: MeiGenApiClient
           return [
             `${i + 1}. ${m.name}`,
             `   ID: ${m.id}`,
+            formatModelPromotion(cfg),
             tags ? `   Status: ${tags}` : '',
             tiers ? `   Tiers: ${tiers}` : '',
             resolutions ? `   Resolutions: ${resolutions}` : '',
