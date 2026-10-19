@@ -133,3 +133,10 @@ The patch fixes HeyGen per-clip versus aggregate reference limits and rejects in
 npm `meigen@3.2.0` is published as `latest`. Runtime source commit: `81da28d`; published SHA-1: `f529cc3eb0cf3986ddc9e17b38a3990ae9fd16e9`. The public tarball is byte-identical to the reviewed staged artifact; all 163 packaged files were checked. SDK discovery reported version 3.2.0 and 18 local tools, including `render_video_draft`; public model discovery passed without credentials. Private-library and saved-character tools remain remote OAuth only.
 
 Type checking, 246 tests, version/frontmatter checks, lockfile validation and release dry-run passed. Cross-repository guidance matches the published npm version. No paid draft-to-final generation was performed. Existing stdio users must update their package pin and restart/reconnect; hosted MCP deployment and ClawHub publications are independent.
+
+
+## 2026-10-19 Midjourney controls release
+
+npm `meigen@3.3.0` is published as `latest`. Runtime source commit: `4e35f48de15e1f59e8f7c37830a243935764e661`; published SHA-1: `61f548084bb70ac2d6a91f61ae040e3d948d0d2a`. The public 168-file tarball is byte-identical to the reviewed staged artifact. SDK discovery on that artifact reported version 3.3.0, 18 tools, and Midjourney `referenceType` / `niji7Options`, including the nested quality enum `1` / `4`. No paid generation was used for this package check.
+
+Type checking, tests, clean build, frontmatter/version/pin checks, lockfile dry-run and release dry-run passed; Windows and Ubuntu CI passed. Existing stdio users must update their package pin to 3.3.0 and restart/reconnect. Hosted Web/MCP and the independent ChatGPT adapter were deployed separately; the production Midjourney model retained ID `midjourney-v8.1`, switched to TTAPI, and now charges 12 credits at 1K / 18 at 2K per four-image batch. ChatGPT tool-definition scanning completed with no findings and its published cached schema includes the new controls. Store metadata review and ClawHub publications remain independent. No new paid production generation was performed during this release.
