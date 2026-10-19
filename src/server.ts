@@ -48,7 +48,7 @@ Use the original imageUrl for upscale_image (PNG/JPEG/WebP, at most 64 MiB / 64 
 
 ${SKILL_ACCOUNT_GUIDE.authentication} ${SKILL_ACCOUNT_GUIDE.credits} Top up: ${SKILL_ACCOUNT_GUIDE.topUpUrl}; mobile: ${SKILL_ACCOUNT_GUIDE.mobileTopUpUrl}.
 
-New MeiGen connections should use https://www.meigen.ai/api/mcp with the host's OAuth account sign-in. This local npm server (npx -y meigen@3.3.0) retains existing API-key configurations for legacy generation, public search, Skills and compatible reference preparation: MEIGEN_API_TOKEN in the MCP server environment or the existing private ~/.config/meigen/config.json. It does not implement OAuth, account-library tools or saved-character access. Preserve working legacy configuration; never request or expose credentials in chat. Only the Claude Code plugin adds /meigen:setup.
+New MeiGen connections should use https://www.meigen.ai/api/mcp with the host's OAuth account sign-in. This local npm server (npx -y meigen@3.3.1) retains existing API-key configurations for legacy generation, public search, Skills and compatible reference preparation: MEIGEN_API_TOKEN in the MCP server environment or the existing private ~/.config/meigen/config.json. It does not implement OAuth, account-library tools or saved-character access. Preserve working legacy configuration; never request or expose credentials in chat. Only the Claude Code plugin adds /meigen:setup.
 
 Public discovery does not require a key. Local prompt enhancement and preferences do not require a MeiGen key either. Discovery success verifies connectivity, not paid credentials or balance. For ordinary image generation, use the caller's configured MeiGen or OpenAI-compatible provider.
 
@@ -70,7 +70,7 @@ export function createServer(config = loadConfig()) {
   const apiClient = new MeiGenApiClient(config)
 
   const server = new McpServer(
-    { name: 'meigen', version: '3.3.0' },
+    { name: 'meigen', version: '3.3.1' },
     { instructions: SERVER_INSTRUCTIONS },
   )
 

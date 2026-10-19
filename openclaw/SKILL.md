@@ -34,7 +34,7 @@ Keep an existing local integration if needed. Merge this server into your mcport
   "mcpServers": {
     "creative-toolkit": {
       "command": "npx",
-      "args": ["-y", "meigen@3.3.0"]
+      "args": ["-y", "meigen@3.3.1"]
     }
   }
 }
@@ -66,7 +66,7 @@ The caller generates and persists `requestId` for each logical step. For interru
 
 ## Tool inventory
 
-This version targets `meigen@3.3.0` with **18 local tools** and the matching remote deployment with **23 tools**. Check registry availability before changing a local pin. Remote tools include five private-library tools, saved-character reading and balance lookup; local `enhance_prompt` and `manage_preferences` are not remote tools. Always inspect runtime `listTools`; a Skill update alone does not deploy tools.
+This version targets `meigen@3.3.1` with **18 local tools** and the matching remote deployment with **23 tools**. Check registry availability before changing a local pin. Remote tools include five private-library tools, saved-character reading and balance lookup; local `enhance_prompt` and `manage_preferences` are not remote tools. Always inspect runtime `listTools`; a Skill update alone does not deploy tools.
 
 Upgrading from 2.x removes ComfyUI and the bundled offline prompt library. Back up the existing MCP configuration and update only its npm version, preserving credentials and host settings. User-owned ComfyUI workflows are not deleted, and unsupported providers are never redirected to paid generation. See the [3.0 migration guide](https://github.com/jau123/MeiGen-AI-Design-MCP/blob/main/RELEASE_NOTES_3.0.0.md).
 
