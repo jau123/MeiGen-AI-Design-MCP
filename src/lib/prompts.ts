@@ -5,7 +5,7 @@
 
 /**
  * Realistic/general style enhancement prompt
- * For GPT Image, Nanobanana (Gemini), Seedream, Midjourney V8.1,
+ * For GPT Image, Nanobanana (Gemini), Seedream, Midjourney V8.2,
  * and other photorealistic / general-purpose models
  */
 export const REALISTIC_SYSTEM_PROMPT = `# Role
@@ -57,7 +57,7 @@ To maximize clarity for a reasoning model, output the prompt in two parts: a den
 
 /**
  * Anime/2D style enhancement prompt
- * For anime/illustration intent — works with Midjourney V8.1 (when user wants stylized output),
+ * For anime/illustration intent — works with Midjourney V8.2 (when user wants stylized output),
  * Nanobanana, Seedream and other models that respond to explicit anime trigger words.
  */
 export const ANIME_SYSTEM_PROMPT = `# Role
