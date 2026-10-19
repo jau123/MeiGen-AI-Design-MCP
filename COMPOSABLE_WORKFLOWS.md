@@ -4,7 +4,15 @@
 
 Use MeiGen as a callable step inside an existing agent, Skill, script or application. The caller owns the creative plan, prompts, model/provider choices, output count, approved budget, scheduling and presentation. Optional MeiGen creative assistants can help develop a brief; they are not required before calling tools. Discovery can support any workflow. A resolved upstream plan does not need another approval for every frame, clip or batch.
 
-Requires local **`meigen` 2.0.1 or later** (`npx -y meigen@3.2.0`; 2.0.0 lacks `referenceVideos` / `referenceAudios`), or the updated remote endpoint **`https://www.meigen.ai/api/mcp`**. npm 1.4.0 does not implement this contract. Reconnect and inspect the installed schemas for `requestId`, `wait` and request lookup. Backend rollbacks must preserve recovery endpoints and the durable POST contract; users do not need to withdraw already installed npm packages.
+Requires local **`meigen` 2.0.1 or later** (`npx -y meigen@3.3.0`; 2.0.0 lacks `referenceVideos` / `referenceAudios`), or the updated remote endpoint **`https://www.meigen.ai/api/mcp`**. npm 1.4.0 does not implement this contract. Reconnect and inspect the installed schemas for `requestId`, `wait` and request lookup. Backend rollbacks must preserve recovery endpoints and the durable POST contract; users do not need to withdraw already installed npm packages.
+
+## Midjourney advanced options (3.3.0)
+
+Image tools add optional `referenceType: "content" | "style"` and `niji7Options`, matching Web/App field names. Options include `stylize`, `chaos`, `raw`, `iw`, `sref`, `sw`, `sv`, `profile`, and MJ-specific `quality: "1" | "4"`, separate from top-level image `quality`. V8.2 ignores `weird` and fixes `sv=6`. Prefer structured fields: the backend cleans other prompt flags.
+
+A saved task may include `referenceType: "style", niji7Options: { quality: "1", stylize: 250, sw: 300, profile: "abc def" }`. Put local style files in `referenceImages` for automatic upload; do not put file paths in `sref`. Style images override sref codes; saved characters remain content references.
+
+Omitting new fields preserves legacy behavior. Recover with the original options and request ID; changing the reference role or advanced options represents a new task requiring authorization. These fields need an updated remote deployment or local npm 3.3.0 or later; 3.2.0 does not include them.
 
 ## Ordinary task contract
 

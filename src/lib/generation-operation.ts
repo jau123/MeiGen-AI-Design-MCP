@@ -3,6 +3,7 @@ import { mkdir } from 'node:fs/promises'
 import { join } from 'node:path'
 import { homedir } from 'node:os'
 import type { MeiGenConfig } from '../config.js'
+import type { MidjourneyOptions } from './midjourney-options.js'
 import type { MeiGenApiClient, MeiGenGenerationStatus } from './meigen-api.js'
 import { GenerationError, draftResultSchema, type GenerationOutput, errorOutput, isRequestNotFound } from './generation-contract.js'
 import { ImageUploadError } from './upload.js'
@@ -24,6 +25,8 @@ export interface GenerationInput {
   draft?: boolean
   duration?: number
   referenceImages?: string[]
+  referenceType?: 'content' | 'style'
+  niji7Options?: MidjourneyOptions
   contentReferenceImages?: string[]
   /** Deprecated single-clip alias kept forever; merged into referenceVideos. */
   referenceVideo?: string
@@ -155,7 +158,11 @@ export async function runMeiGenGeneration(mediaType: 'image' | 'video', input: G
     } catch (error) {
       throw preSubmitError(error, signal)
     }
-    const canonicalParameters = Object.fromEntries(Object.entries(parameters).filter(([, value]) => value !== undefined).sort(([left], [right]) => left.localeCompare(right)))
+    const fingerprintParameters = {
+      ...parameters,
+      ...(parameters.niji7Options ? { niji7Options: Object.fromEntries(Object.entries(parameters.niji7Options).sort(([left], [right]) => left.localeCompare(right))) } : {}),
+    }
+    const canonicalParameters = Object.fromEntries(Object.entries(fingerprintParameters).filter(([, value]) => value !== undefined).sort(([left], [right]) => left.localeCompare(right)))
     const fingerprint = createHash('sha256').update(JSON.stringify({ mediaType, parameters: canonicalParameters, references: references.map(value => value.identity),
       ...(input.contentReferenceImages !== undefined ? { strictReferenceRoles: true, frameCount: input.referenceImages?.length ?? 0 } : {}),
       // Absent sub-arrays keep pre-existing fingerprints byte-identical.

@@ -107,7 +107,7 @@ Existing local integrations and BYOK workflows can keep this stdio configuration
   "mcpServers": {
     "meigen": {
       "command": "npx",
-      "args": ["-y", "meigen@3.2.0"]
+      "args": ["-y", "meigen@3.3.0"]
     }
   }
 }

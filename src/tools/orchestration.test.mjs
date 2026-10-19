@@ -40,6 +40,54 @@ function tool(register, client=api(), extraConfig={}) {
  return {run: (args,signal)=>handler(args,{signal,sendNotification:async()=>{}}), schema}
 }
 
+for (const referenceType of ['content', 'style']) {
+ test(`Midjourney ${referenceType} options reach the API and remain stable through request recovery`,()=>isolated(async()=>{
+  const requestId=randomUUID(); const posts=[]
+  const niji7Options={stylize:0,chaos:0,weird:0,raw:false,iw:0.5,sref:'123 456',sw:0,sv:6,quality:'1',profile:'abc def'}
+  globalThis.fetch=async(url,init)=>{
+   if(String(url).includes('/requests/'))return posts.length?Response.json({success:true,status:'processing',generationId:'mj-job',modelId:'midjourney-v8.1',creditsUsed:20}):Response.json({success:false,code:'request_not_found'},{status:404})
+   assert.equal(String(url),'https://api.example/api/generate/v2');assert.equal(init.method,'POST');posts.push(JSON.parse(init.body))
+   return Response.json({success:true,generationId:'mj-job',modelId:'midjourney-v8.1',creditsUsed:20})
+  }
+  const image=tool(imageModule.registerGenerateImage)
+  const input={prompt:'中文场景',model:'midjourney-v8.1',aspectRatio:'2:3',resolution:'2K',referenceImages:['https://images.meigen.ai/source.png'],referenceType,niji7Options,requestId,wait:false,download:false}
+  const parsed=z.object(image.schema.inputSchema).parse(input)
+  assert.deepEqual(parsed.niji7Options,niji7Options)
+  const result=await image.run(parsed);assert.equal(result.structuredContent.generationId,'mj-job')
+  assert.deepEqual(posts,[{prompt:input.prompt,aspectRatio:'2:3',modelId:input.model,resolution:'2K',referenceImages:input.referenceImages,referenceType,niji7Options,idempotencyKey:requestId}])
+  const operation={...input,modelId:input.model};delete operation.model
+  const reordered={...operation,niji7Options:Object.fromEntries(Object.entries(niji7Options).reverse())}
+  assert.equal((await runMeiGenGeneration('image',reordered,api(),config)).generationId,'mj-job')
+  for(const change of [{referenceType:referenceType==='style'?'content':'style'},{niji7Options:{...niji7Options,quality:'4'}}]) {
+   assert.equal((await runMeiGenGeneration('image',{...operation,...change},api(),config)).error.code,'idempotency_conflict')
+  }
+  assert.equal(posts.length,1)
+ }))
+}
+
+test('Midjourney options reject invalid values and are absent from legacy requests',()=>isolated(async()=>{
+ const image=tool(imageModule.registerGenerateImage)
+ for(const niji7Options of [{stylize:1001},{chaos:-1},{iw:4},{raw:'true'},{sw:1001},{sv:7},{quality:'2'},{sref:'123 --raw'},{profile:'abc --raw'},{futureUrl:'https://bad.test/a'}]) {
+  assert.equal(z.object(image.schema.inputSchema).safeParse({prompt:'cat',niji7Options}).success,false)
+ }
+ const parsed=z.object(image.schema.inputSchema).parse({prompt:'cat',wait:false})
+ assert.equal(Object.hasOwn(parsed,'referenceType'),false);assert.equal(Object.hasOwn(parsed,'niji7Options'),false)
+ let body
+ globalThis.fetch=async(_url,init)=>{body=JSON.parse(init.body);return Response.json({success:true,generationId:'legacy'})}
+ await api().generateImage({prompt:'legacy',requestId:'11111111-2222-4333-8444-555555555555'})
+ assert.deepEqual(body,{prompt:'legacy',aspectRatio:'auto',idempotencyKey:'11111111-2222-4333-8444-555555555555'})
+}))
+
+test('Midjourney-only options cannot silently reach a BYOK provider',async()=>{
+ const image=tool(imageModule.registerGenerateImage,api(),{openaiApiKey:'fixture-not-a-real-key'})
+ let calls=0;const previous=globalThis.fetch
+ globalThis.fetch=async()=>{calls++;throw new Error('must not send')}
+ try {
+  const result=await image.run({prompt:'cat',provider:'openai',referenceType:'style',niji7Options:{quality:'1'},download:false})
+  assert.equal(result.structuredContent.error.code,'unsupported_execution_mode');assert.equal(calls,0)
+ } finally {globalThis.fetch=previous}
+})
+
 test('submit-only returns structured accepted identity without polling/download; same ID is stable after a separate process',()=>isolated(async()=>{
  const requestId=randomUUID(); let posts=0
  globalThis.fetch=async (url,init)=>{if(String(url).includes('/requests/'))return Response.json({success:false,code:'request_not_found'},{status:404});assert.equal(String(url),'https://api.example/api/generate/v2');posts++;assert.equal(JSON.parse(init.body).idempotencyKey,requestId);return Response.json({success:true,generationId:'image-job',modelId:'chosen',creditsUsed:4})}

@@ -1,4 +1,5 @@
 import type { GenerationOutput } from './generation-contract.js'
+import type { MidjourneyOptions } from './midjourney-options.js'
 /**
  * MeiGen API HTTP client
  * Used for MeiGen platform mode — calls the hosted generation API
@@ -229,6 +230,8 @@ export class MeiGenApiClient {
     resolution?: string
     quality?: string
     referenceImages?: string[]
+    referenceType?: 'content' | 'style'
+    niji7Options?: MidjourneyOptions
     requestId?: string
     signal?: AbortSignal
   }): Promise<MeiGenGenerationResponse> {
@@ -257,6 +260,8 @@ export class MeiGenApiClient {
     if (params.referenceImages && params.referenceImages.length > 0) {
       body.referenceImages = params.referenceImages
     }
+    if (params.referenceType !== undefined) body.referenceType = params.referenceType
+    if (params.niji7Options !== undefined) body.niji7Options = params.niji7Options
 
     return await this.submitWithAttemptKey(body, params.requestId, params.signal)
   }

@@ -5,6 +5,7 @@
  */
 
 import { z } from 'zod'
+import { midjourneyOptionsSchema } from '../lib/midjourney-options.js'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { RequestHandlerExtra } from '@modelcontextprotocol/sdk/shared/protocol.js'
 import type { ServerRequest, ServerNotification } from '@modelcontextprotocol/sdk/types.js'
@@ -53,6 +54,8 @@ export const generateImageSchema = {
     .describe('Image quality. MeiGen gpt-image-2: "low" / "medium" / "high". OpenAI-compatible providers also accept "high".'),
   referenceImages: z.array(z.string()).optional()
     .describe('Image references for style/content guidance. Accepts direct public HTTPS URLs without credentials/fragments or accessible absolute local paths. Relative paths are rejected. Local PNG/JPEG/WebP/GIF references up to 32 MiB and 64 million pixels are fully decoded, stripped of metadata and prepared up to 4096px, preserving transparency. Sources: gallery URLs from search_gallery/get_inspiration, URLs from previous generate_image results, or local file paths.'),
+  referenceType: z.enum(['content', 'style']).optional().describe('MeiGen Midjourney uploaded-image role; default content. Style images override niji7Options.sref; saved characters remain content references.'),
+  niji7Options: midjourneyOptionsSchema.optional().describe('MeiGen Midjourney advanced options, matching Web/App. Prefer these over prompt flags; V8.2 ignores weird and fixes sv=6. Preserve identical options on recovery.'),
   provider: z.enum(['openai', 'meigen']).optional()
     .describe('Which provider to use. Auto-detected from configuration if not specified.'),
   negativePrompt: z.string().optional()
@@ -62,10 +65,10 @@ export const generateImageSchema = {
 export function registerGenerateImage(server: McpServer, apiClient: MeiGenApiClient, config: MeiGenConfig) {
   server.registerTool(
     'generate_image', { description:
-    'Generate an image using AI. Supports MeiGen platform or OpenAI-compatible APIs. Tip: get prompts from get_inspiration() or enhance_prompt(), and use gallery image URLs as referenceImages for style guidance. For Midjourney V8.1, an optional style reference can be passed by appending `--sref <code>` at the end of the prompt — only when the user provides a Midjourney style code (numeric or text). Do NOT pass URLs or local paths via --sref; for any image-based reference, use the referenceImages parameter instead.',
+    'Generate an image using AI. Supports MeiGen platform or OpenAI-compatible APIs. Tip: get prompts from get_inspiration() or enhance_prompt(). For MeiGen Midjourney, use referenceType for content/style images and niji7Options for stylize, chaos, raw, image/style weights, sref, profile and MJ quality. Inline --sref/--profile codes remain compatible; other prompt flags are cleaned by the backend. Use referenceImages for local files.',
     inputSchema: generateImageSchema, outputSchema: generationOutputSchema,
     annotations: { readOnlyHint: false, destructiveHint: true } },
-    async ({ prompt, model, modelId, modelVariant, size, aspectRatio, resolution, quality, referenceImages, provider: requestedProvider, negativePrompt, requestId, wait = true, download = true }, extra) => {
+    async ({ prompt, model, modelId, modelVariant, size, aspectRatio, resolution, quality, referenceImages, referenceType, niji7Options, provider: requestedProvider, negativePrompt, requestId, wait = true, download = true }, extra) => {
       if (model && modelId && model !== modelId) return generationResult(errorOutput(new GenerationError('model and modelId must match when both are provided.', 'model_alias_conflict')))
       model = model ?? modelId
       const availableProviders = getAvailableProviders(config)
@@ -84,9 +87,10 @@ export function registerGenerateImage(server: McpServer, apiClient: MeiGenApiCli
 
       try {
         if (providerType === 'meigen') {
-          return generationResult(await runMeiGenGeneration('image', { prompt, modelId: model, modelVariant, aspectRatio, resolution, quality, referenceImages, requestId, wait, download }, apiClient, config, extra.signal, message => notify(extra, message)))
+          return generationResult(await runMeiGenGeneration('image', { prompt, modelId: model, modelVariant, aspectRatio, resolution, quality, referenceImages, ...(referenceType !== undefined ? { referenceType } : {}), ...(niji7Options !== undefined ? { niji7Options } : {}), requestId, wait, download }, apiClient, config, extra.signal, message => notify(extra, message)))
         }
         // These synchronous providers have no MeiGen job identity; reject unsupported orchestration before upload/API I/O.
+        if (referenceType !== undefined || niji7Options !== undefined) throw new GenerationError('referenceType and niji7Options require provider=meigen.', 'unsupported_execution_mode')
         if (!wait || requestId) throw new GenerationError('requestId and wait=false are supported only by provider=meigen. This provider has no resumable MeiGen generation ID.', 'unsupported_execution_mode')
         const resolvedRefs = await uploadReferences(await fingerprintReferences(referenceImages ?? [], extra.signal), config, extra.signal)
         return await generateWithOpenAI(config, prompt, model, size, quality, resolvedRefs, download, extra.signal)

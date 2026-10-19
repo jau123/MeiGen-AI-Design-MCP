@@ -4,7 +4,15 @@
 
 MeiGen 可以作为已有 agent、Skill、脚本或应用中的一个调用步骤。上层负责创意计划、提示词、模型／供应商、数量、已批准预算、调度和展示。MeiGen 创意助手是可选能力，不是调用工具的前置条件；任何工作流都可以使用发现工具。上层已经确定的计划，无需为每张首帧、每段视频或每批结果重复确认。
 
-本地要求 **`meigen` 2.0.1 或更高版本**（`npx -y meigen@3.2.0`；2.0.0 不支持 `referenceVideos` / `referenceAudios`），远程使用已更新的 **`https://www.meigen.ai/api/mcp`**。npm 1.4.0 不支持本页合同。重新连接并检查实际 schema 是否包含 `requestId`、`wait` 和按请求查询。后端回滚时应保留恢复端点及幂等 POST 合同；无需撤回用户已安装的 npm 包。
+本地要求 **`meigen` 2.0.1 或更高版本**（`npx -y meigen@3.3.0`；2.0.0 不支持 `referenceVideos` / `referenceAudios`），远程使用已更新的 **`https://www.meigen.ai/api/mcp`**。npm 1.4.0 不支持本页合同。重新连接并检查实际 schema 是否包含 `requestId`、`wait` 和按请求查询。后端回滚时应保留恢复端点及幂等 POST 合同；无需撤回用户已安装的 npm 包。
+
+## Midjourney 高级参数（3.3.0）
+
+图片工具新增可选的 `referenceType: "content" | "style"` 和 `niji7Options`，字段名与 Web/App 相同。后者包含 `stylize`、`chaos`、`raw`、`iw`、`sref`、`sw`、`sv`、`profile` 和 MJ 专用的 `quality: "1" | "4"`；不要与顶层通用图片 `quality` 混用。V8.2 忽略 `weird`，`sv` 固定为 6。其他提示词参数会被服务端清理，优先使用结构化字段。
+
+已保存的任务参数可包含 `referenceType: "style", niji7Options: { quality: "1", stylize: 250, sw: 300, profile: "abc def" }`。本地风格图片放入 `referenceImages` 自动上传，不要把文件路径放入 `sref`。风格图片优先于 sref 码，角色仍按内容参考处理。
+
+省略新字段保持旧请求行为。恢复时保留原参数与 `requestId`；修改参考类型或高级参数需要新任务并重新获得相应生成授权。这些字段需更新远程部署或安装 npm 3.3.0 及以上版本；3.2.0 不含这些字段。
 
 ## 普通生成任务合同
 
