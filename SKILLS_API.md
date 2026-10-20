@@ -103,7 +103,7 @@ jq -n --arg requestId "$REQUEST_ID" --arg productImage "$IMAGE_URL" \
     -H "Authorization: Bearer $MEIGEN_API_TOKEN" -H 'Content-Type: application/json' --data-binary @-
 ```
 
-Optional inputs: `productName` (≤200), `sellingPoints` (≤2000), `extraRequirements` (≤500), `autoCopy`, `platform`, `language`, `uiLocale`, `quality`, `aspectRatio`, `modelImage`, `logo`, `extraProductImages` (≤2). `quality: low` means Fast/default, `medium` means Pro. `autoCopy` defaults to true; false uses supplied wording faithfully, subject to selected-language translation. Do not invent product facts. See the catalog for current language, platform and ratio enums.
+Optional inputs: `productName` (≤200), `sellingPoints` (≤2000), `extraRequirements` (≤500), `autoCopy`, `platform`, `language`, `uiLocale`, `quality`, `aspectRatio`, `modelImage`, `logo`, `extraProductImages` (≤2). `quality: low` means Fast/default, `medium` means Pro. `autoCopy` defaults to true; false uses supplied wording faithfully, subject to selected-language translation. Do not invent product facts. `aspectRatio: auto` resolves one ratio for the entire set and returns the concrete ratio. See the catalog for current language, platform and ratio enums.
 
 ### Marketing Poster
 
@@ -117,7 +117,7 @@ jq -n --arg requestId "$REQUEST_ID" \
     -H "Authorization: Bearer $MEIGEN_API_TOKEN" -H 'Content-Type: application/json' --data-binary @-
 ```
 
-Optional inputs: `content`, `autoCopy` (true/default), `extraNotes`, `ratio` (4:5/default), `language`, `uiLocale`, `quality` (`low`/`medium`), `logo`, `productImages` (≤3), `styleImage`, `styleId`, `customStyle`. Length limits and style/ratio enums are in the catalog. Poster `stylePresets` pairs each accepted `id` with a human-readable `label`; `styleSelection` documents Auto and precedence. Use the `id` in calls. The catalog `output` metadata describes current generation specifications, separate from input-upload limits.
+Optional inputs: `content`, `autoCopy` (true/default), `extraNotes`, `ratio` (`4:5`/default; `auto` resolves once for the poster), `language`, `uiLocale`, `quality` (`low`/`medium`), `logo`, `productImages` (≤3), `styleImage`, `styleId`, `customStyle`. Length limits and style/ratio enums are in the catalog. Poster `stylePresets` pairs each accepted `id` with a human-readable `label`; `styleSelection` documents Auto and precedence. Use the `id` in calls. The catalog `output` metadata describes current generation specifications, separate from input-upload limits.
 
 #### Poster fields and reference roles
 
