@@ -17,7 +17,7 @@
       "command": "npx",
       "args": [
         "-y",
-        "meigen@3.3.2"
+        "meigen@3.3.3"
       ]
     }
   }

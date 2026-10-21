@@ -35,7 +35,7 @@ Node.js 22 or newer is recommended. Add this server to your project's `.mcp.json
   "mcpServers": {
     "meigen": {
       "command": "npx",
-      "args": ["-y", "meigen@3.3.2"]
+      "args": ["-y", "meigen@3.3.3"]
     }
   }
 }
@@ -105,7 +105,7 @@ These commands belong to the Claude plugin; a bare MCP connection does not insta
 
 | Problem | Next step |
 |---|---|
-| Tools not available | Restart/reconnect. Local: confirm `meigen@3.3.2`. Remote: refresh after backend deployment. npm installation alone does not deploy the APIs. |
+| Tools not available | Restart/reconnect. Local: confirm `meigen@3.3.3`. Remote: refresh after backend deployment. npm installation alone does not deploy the APIs. |
 | New connection asks for a MeiGen key | Use the remote OAuth connection above and sign in through the host. Do not create a new key. |
 | Existing legacy configuration has an invalid/missing key | Restore the existing `MEIGEN_API_TOKEN` in private connection settings, then restart/reconnect. If that key is no longer available, switch to remote OAuth. Keep credentials out of chat. |
 | Insufficient credits | API calls only use purchased credits. Top up the same account through [Profile](https://www.meigen.ai/profile) or [mobile Premium](https://www.meigen.ai/m/premium), then ask to continue. Do not poll a rejected request. |

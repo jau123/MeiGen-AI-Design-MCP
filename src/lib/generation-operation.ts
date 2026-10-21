@@ -89,7 +89,9 @@ export function generationStatusOutput(status: MeiGenGenerationStatus, context: 
   delete body.pollAfterSeconds
   delete body.observationEnded
   const checkArguments = { ...(body.generationId ? { generationId: body.generationId } : { requestId: body.requestId }), ...(body.requestedMediaType ? { requestedMediaType: body.requestedMediaType } : {}) }
-  if (status.status === 'failed') return { ...body, error: { code: status.failureCode || 'generation_failed', message: status.error ?? 'Generation failed', retryable: false }, nextAction: { type: 'review_failure', message: 'Review this job and its reported creditsStatus. An intentionally new generation requires a new requestId.' } }
+  if (status.status === 'failed') return { ...body,
+    ...(status.failureCode === 'invalid_request' && ['video_edit_duration', 'reference_video_frame_rate'].includes(status.failureDetail ?? '') ? { failureDetail: status.failureDetail } : {}),
+    error: { code: status.failureCode || 'generation_failed', message: status.error ?? 'Generation failed', retryable: false }, nextAction: { type: 'review_failure', message: 'Review this job and its reported creditsStatus. An intentionally new generation requires a new requestId.' } }
   if (status.status === 'completed' && !urls.length) return { ...body, status: 'unknown', success: false, error: { code: 'result_pending', message: 'Generation completed but the result URL is missing. Do NOT re-submit with a new UUID.', retryable: true }, nextAction: { type: 'check_generation', tool: 'check_generation', arguments: checkArguments, afterSeconds: 30 } }
   if (status.status === 'processing') {
     const ended = typeof status.pollHintSeconds === 'number' && status.pollHintSeconds <= 0

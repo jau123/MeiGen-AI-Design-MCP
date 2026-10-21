@@ -109,7 +109,7 @@ OAuth 登录需要客户端支持；不支持时请使用兼容的客户端或 C
   "mcpServers": {
     "meigen": {
       "command": "npx",
-      "args": ["-y", "meigen@3.3.2"]
+      "args": ["-y", "meigen@3.3.3"]
     }
   }
 }

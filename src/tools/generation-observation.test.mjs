@@ -15,6 +15,19 @@ const { MeiGenApiClient } = apiModule
 const { runMeiGenGeneration, generationStatusOutput } = operationModule
 const { GenerationError, generationResult } = contractModule
 const config = { meigenBaseUrl: 'https://mock.example', meigenApiToken: 'test-only-key' }
+
+test('video failures preserve finite corrective details and confirmed refund state', () => {
+  for (const failureDetail of ['video_edit_duration', 'reference_video_frame_rate']) {
+    const output = generationStatusOutput({ status: 'failed', mediaType: 'video', failureCode: 'invalid_request', failureDetail,
+      creditsStatus: 'refunded', error: 'Safe corrective guidance' }, { requestId: 'same-request' })
+    assert.equal(output.failureDetail, failureDetail)
+    assert.equal(output.creditsStatus, 'refunded')
+    assert.equal(output.nextAction.type, 'review_failure')
+    assert.equal(output.error.retryable, false)
+  }
+  const unknown = generationStatusOutput({ status: 'failed', failureCode: 'invalid_request', failureDetail: 'unrecognized-private-text' }, {})
+  assert.equal(unknown.failureDetail, undefined)
+})
 const client = () => new MeiGenApiClient(config)
 const ready = { success: true, status: 'completed', generationId: 'accepted-job', mediaType: 'image', imageUrl: 'https://images.meigen.ai/result.png' }
 const missing = () => Response.json({ success: false, code: 'request_not_found' }, { status: 404 })

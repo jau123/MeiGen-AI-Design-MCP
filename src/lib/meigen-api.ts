@@ -141,6 +141,7 @@ export interface MeiGenGenerationResponse {
 export const POLL_SAFETY_VALVE_MS = 45 * 60_000
 
 export interface MeiGenGenerationStatus {
+  failureDetail?: 'video_edit_duration' | 'reference_video_frame_rate'
   seedanceDraft?: GenerationOutput['seedanceDraft']
   // Backend `status/[id]/route.ts:53` maps DB 'pending' → 'processing' before responding,
   // so callers never observe 'pending' over the wire.

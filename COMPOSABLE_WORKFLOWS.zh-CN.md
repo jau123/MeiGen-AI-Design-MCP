@@ -4,7 +4,7 @@
 
 MeiGen 可以作为已有 agent、Skill、脚本或应用中的一个调用步骤。上层负责创意计划、提示词、模型／供应商、数量、已批准预算、调度和展示。MeiGen 创意助手是可选能力，不是调用工具的前置条件；任何工作流都可以使用发现工具。上层已经确定的计划，无需为每张首帧、每段视频或每批结果重复确认。
 
-本地要求 **`meigen` 2.0.1 或更高版本**（`npx -y meigen@3.3.2`；2.0.0 不支持 `referenceVideos` / `referenceAudios`），远程使用已更新的 **`https://www.meigen.ai/api/mcp`**。npm 1.4.0 不支持本页合同。重新连接并检查实际 schema 是否包含 `requestId`、`wait` 和按请求查询。后端回滚时应保留恢复端点及幂等 POST 合同；无需撤回用户已安装的 npm 包。
+本地要求 **`meigen` 2.0.1 或更高版本**（`npx -y meigen@3.3.3`；2.0.0 不支持 `referenceVideos` / `referenceAudios`），远程使用已更新的 **`https://www.meigen.ai/api/mcp`**。npm 1.4.0 不支持本页合同。重新连接并检查实际 schema 是否包含 `requestId`、`wait` 和按请求查询。后端回滚时应保留恢复端点及幂等 POST 合同；无需撤回用户已安装的 npm 包。
 
 ## Midjourney 高级参数（3.3.0）
 

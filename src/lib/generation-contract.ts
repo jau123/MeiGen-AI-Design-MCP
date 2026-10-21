@@ -18,6 +18,7 @@ export const generationOutputSchema = {
   requestId: z.string().optional(), generationId: z.string().optional(),
   mediaType: z.enum(['image', 'video']).optional(), requestedMediaType: z.enum(['image', 'video']).optional(), modelId: z.string().optional(),
   creditsUsed: z.number().optional(), creditsStatus: z.string().optional(),
+  failureDetail: z.enum(['video_edit_duration', 'reference_video_frame_rate']).optional(),
   urls: z.array(z.string()), imageUrl: z.string().optional(), videoUrl: z.string().optional(),
   savedPath: z.string().optional(), downloadWarning: z.string().optional(), receiptWarning: z.string().optional(),
   pollAfterSeconds: z.number().optional(), observationEnded: z.boolean().optional(), deduped: z.boolean().optional(),

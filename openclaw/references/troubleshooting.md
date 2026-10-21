@@ -12,11 +12,11 @@
 | Attachment cannot be read | Ask for a public direct HTTPS image URL or an accessible file for a local npm connection. Never guess paths or base64. For Upscale use the original PNG/JPEG/WebP URL, or an actual local file through the npm Upscale tool, at most 64 MiB/64 MP. |
 | Interrupted ordinary image/video generation | Use `check_generation` with the original `requestId` or returned `generationId`; request-ID lookup works across restarts. Keep exact inputs and IDs on transient failure. A new ID starts a new paid attempt. |
 | BYOK billing error | Check the configured provider's account and billing; topping up MeiGen does not repair another provider's balance. |
-| New tools missing | For an existing local connection, update the MCP pin to `meigen@3.3.2` while preserving other settings, then reconnect. For favorites, boards and history, use remote OAuth and approve any missing library permissions; local npm cannot provide these tools. Refresh the host's tool list. |
+| New tools missing | For an existing local connection, update the MCP pin to `meigen@3.3.3` while preserving other settings, then reconnect. For favorites, boards and history, use remote OAuth and approve any missing library permissions; local npm cannot provide these tools. Refresh the host's tool list. |
 
 ## Data handling
 
-The standalone Skill supplies connection and usage instructions. Remote OAuth calls MeiGen's hosted MCP service; the legacy local setup starts the pinned `meigen@3.3.2` package. Source is available at https://github.com/jau123/MeiGen-AI-Design-MCP. A version pin does not itself establish an installed release's behavior; inspect the package you run.
+The standalone Skill supplies connection and usage instructions. Remote OAuth calls MeiGen's hosted MCP service; the legacy local setup starts the pinned `meigen@3.3.3` package. Source is available at https://github.com/jau123/MeiGen-AI-Design-MCP. A version pin does not itself establish an installed release's behavior; inspect the package you run.
 
 **Reference data leaves the machine on cloud routes.** MeiGen generation and Skills send prompts, references and job metadata to MeiGen and its selected generation providers. Preparing a reference can upload it to the configured upload service/CDN and return a publicly accessible URL. Treat these as shareable links, not private attachments. Do not promise a retention period or a deletion guarantee. Upscale uses the original source URL and its own backend preparation; it must not use the standard compressed-reference path.
 
