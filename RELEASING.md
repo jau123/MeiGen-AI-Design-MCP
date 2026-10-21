@@ -146,3 +146,10 @@ Type checking, tests, clean build, frontmatter/version/pin checks, lockfile dry-
 npm `meigen@3.3.1` is published as `latest`. Release source commit: `f4e92f7`; published SHA-1: `4cf13e5fe1dae05f45d83c5e235a292c00faa0c2`. The public 169-file tarball is byte-identical to the reviewed staged artifact. SDK inspection verified runtime version 3.3.1, 18 local tools, the corrected Midjourney V8.2 description, preserved advanced options, and rejection without configured credentials with zero network calls.
 
 Type checking, 250 tests, frontmatter/version/pin checks, lockfile dry-run, cross-repository guidance checks and release dry-run passed. The patch updates prompt guidance and installation pins; the compatible API model ID remains `midjourney-v8.1`. Existing pinned stdio users must update to 3.3.1 and restart/reconnect. Web, ChatGPT, marketplace and ClawHub publications remain independent; no paid generation was performed for this release.
+
+
+## 2026-10-21 video failure guidance release
+
+npm `meigen@3.3.3` is published as `latest`. Runtime source commit: `8082f6bff7b137a854ca6bb7bd398f7b89bb5b02`; published SHA-1: `f135a9c718780ad816a95124628116f3e1d7ec53`. The reviewed staged artifact matches all 175 source/build files. Its SDK discovery reported version 3.3.3, 18 tools, successful no-key public model discovery and both finite video failure details. The public tarball is byte-identical to that stage. Ubuntu and Windows validation passed. No paid generation was used.
+
+The matching Web API/remote MCP was deployed from `7ed050a6bab83e16a26921c9fd3731f6d4bd06ec`; the independent ChatGPT adapter was deployed from `5d33ba5a5e4c6d664b8c7dfd404e7537fbff98fe`. Both live endpoints expose 23 tools and the new optional failure details/editing guidance. Eight bilingual video/API documentation pages were deployed separately from `1185a866af549502acb04505f926c20fba7efdb2` and read back from production. Store review, cached tool discovery, installed stdio clients and independently published plugin bundles remain separate states; existing stdio users must update their pin and restart/reconnect.
