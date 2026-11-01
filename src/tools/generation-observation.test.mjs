@@ -17,7 +17,7 @@ const { GenerationError, generationResult } = contractModule
 const config = { meigenBaseUrl: 'https://mock.example', meigenApiToken: 'test-only-key' }
 
 test('video failures preserve finite corrective details and confirmed refund state', () => {
-  for (const failureDetail of ['video_edit_duration', 'reference_video_frame_rate']) {
+  for (const failureDetail of ['video_edit_duration', 'reference_video_frame_rate', 'midjourney_profile_not_found', 'midjourney_sref_invalid']) {
     const output = generationStatusOutput({ status: 'failed', mediaType: 'video', failureCode: 'invalid_request', failureDetail,
       creditsStatus: 'refunded', error: 'Safe corrective guidance' }, { requestId: 'same-request' })
     assert.equal(output.failureDetail, failureDetail)
