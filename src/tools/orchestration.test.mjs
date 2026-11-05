@@ -40,6 +40,26 @@ function tool(register, client=api(), extraConfig={}) {
  return {run: (args,signal)=>handler(args,{signal,sendNotification:async()=>{}}), schema}
 }
 
+test('uses the GIF billing row, preserves timing, and refuses a changed retry', () => isolated(async () => {
+ const image = tool(imageModule.registerGenerateImage)
+ assert.match(image.schema.description, /vectorOutput.url.*动图/)
+ const requestId = randomUUID(), posts = []
+ const gifOptions = { frameSize: '384x384', frameCount: 8, frameDurationMs: 250 }
+ globalThis.fetch = async (url, init) => {
+   if (String(url).includes('/requests/')) return Response.json({ success: false, code: 'request_not_found' }, { status: 404 })
+   posts.push(JSON.parse(init.body))
+   return Response.json({ success: true, generationId: 'gif-job', modelId: 'gpt-image-2.6-gif' })
+ }
+ const input = { prompt: '生成循环动图', modelId: 'gpt-image-2.6-gif', outputFormat: 'gif', gifOptions, requestId, wait: false }
+ const result = await image.run(z.object(image.schema.inputSchema).parse(input))
+ assert.equal(result.structuredContent.generationId, 'gif-job', JSON.stringify(result.structuredContent))
+ assert.deepEqual(posts[0].gifOptions, gifOptions)
+ assert.equal(posts[0].outputFormat, 'gif')
+ const changed = await image.run(z.object(image.schema.inputSchema).parse({ ...input, gifOptions: { ...gifOptions, frameCount: 9 } }))
+ assert.equal(changed.structuredContent.error.code, 'idempotency_conflict')
+ assert.equal(posts.length, 1)
+}))
+
 for (const referenceType of ['content', 'style']) {
  test(`Midjourney ${referenceType} options reach the API and remain stable through request recovery`,()=>isolated(async()=>{
   const requestId=randomUUID(); const posts=[]
@@ -477,3 +497,39 @@ test('HeyGen mixed video/audio fails before upload or submission but recovers ex
   assert.equal(recovered.deduped, true);
   assert.equal(posts, 0);
 }));
+
+for (const format of ['gif', 'svg']) {
+ test(`downloads the ${format} original using its own extension`, () => isolated(async () => {
+   const original = `https://images.meigen.ai/generations/demo.${format}`
+   const preview = format === 'svg' ? original.replace(/\.svg$/, '.png') : original
+   const bytes = format === 'svg' ? Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"/>')
+     : await sharp({ create: { width: 4, height: 4, channels: 3, background: '#fff' } }).gif().toBuffer()
+   globalThis.fetch = async (url, init) => {
+     assert.equal(String(url), original)
+     assert.equal(new Headers(init.headers).has('authorization'), false)
+     return new Response(bytes, { headers: { 'Content-Type': format === 'svg' ? 'image/svg+xml' : 'image/gif' } })
+   }
+   const job = { ...complete, generationId: 'job', imageUrl: preview, imageUrls: [preview],
+     ...(format === 'svg' ? { vectorOutput: { url: original, width: 128, height: 128 } } : {}) }
+   const result = await runMeiGenGeneration('image', { prompt: 'make an icon', requestId: randomUUID() },
+     { getGenerationByRequestId: async () => job }, config)
+   assert.equal(result.success, true)
+   assert.ok(result.savedPath?.endsWith('.' + format), JSON.stringify(result))
+   assert.deepEqual(await readFile(result.savedPath), bytes)
+ }))
+}
+
+test('sets low moderation only for GPT Image on the official BYOK endpoint', () => isolated(async () => {
+ const { OpenAIProvider } = require('../lib/providers/openai.ts')
+ const bodies = []
+ globalThis.fetch = async (_url, init) => {
+   bodies.push(JSON.parse(init.body))
+   return Response.json({ data: [{ b64_json: 'AAAA' }] })
+ }
+ for (const [base, model] of [
+   ['https://api.openai.com', 'gpt-image-2.6-flare'],
+   ['https://compatible.example', 'gpt-image-2.6-flare'],
+   ['https://api.openai.com', 'dall-e-3'],
+ ]) await new OpenAIProvider('local-fixture', base, model).generate({ prompt: 'a tree' })
+ assert.deepEqual(bodies.map(body => body.moderation), ['low', undefined, undefined])
+}))

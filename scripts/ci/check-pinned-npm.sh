@@ -10,7 +10,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT"
 
-PKG_VER=$(node -p "require('./package.json').version")
+PKG_VER=$(node -p "require('./package.json').config.distributionNpmVersion")
 EXPECTED="meigen@${PKG_VER}"
 
 # Files that MUST pin the current version. Edit when adding new distribution docs.

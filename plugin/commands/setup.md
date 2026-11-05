@@ -25,7 +25,7 @@ For new users, add `https://www.meigen.ai/api/mcp` as a remote Streamable HTTP M
 
 Preserve a working existing local API-key/BYOK setup when the user needs it. An existing legacy key may stay in `MEIGEN_API_TOKEN` or the private `meigenApiToken` config field; do not read or print it. Legacy remote fixed-key calls retain previous generation/search compatibility only. These keys cannot enable the private library. Restart/reconnect after changing settings.
 
-Buying credits: https://www.meigen.ai/profile (mobile: https://www.meigen.ai/m/premium). Skills and MeiGen API-token generation use purchased credits only; daily free credits and Web free attempts cannot be used. `list_skills` supplies current Skill prices. The model-comparison page is for pricing, not checkout.
+Buying credits: https://www.meigen.ai/profile/billing (mobile: https://www.meigen.ai/m/premium). Skills and MeiGen API-token generation use purchased credits only; daily free credits and Web free attempts cannot be used. `list_skills` supplies current Skill prices. The model-comparison page is for pricing, not checkout.
 
 ## OpenAI-compatible providers for ordinary images
 

@@ -18,7 +18,7 @@ Base URL: `https://www.meigen.ai`.
 
 New MCP users should connect `https://www.meigen.ai/api/mcp` with OAuth account sign-in. The direct HTTP and local npm examples below are for existing legacy integrations only: keep the existing `MEIGEN_API_TOKEN` privately in the application environment; their upload, run and status calls use `Authorization: Bearer <key>`. Keep credentials out of chat, URLs, source control and logs.
 
-All five Skills use **purchased credits only**, including the first cutout. Web daily free credits and free attempts do not apply. Buy credits on the same account through [Profile → Top Up](https://www.meigen.ai/profile), or [mobile Premium](https://www.meigen.ai/m/premium). OpenAI-compatible keys cannot run these workflows.
+All five Skills use **purchased credits only**, including the first cutout. Web daily free credits and free attempts do not apply. Buy credits on the same account through [Billing & credits → Top Up](https://www.meigen.ai/profile/billing), or [mobile Premium](https://www.meigen.ai/m/premium). OpenAI-compatible keys cannot run these workflows.
 
 Prices come from the public catalog below. Product Detail Images charge per dispatched module, not once per batch. Failed generation charges follow the existing billing ledger; report a refund only when its returned `creditsStatus` confirms it.
 

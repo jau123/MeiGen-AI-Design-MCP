@@ -65,6 +65,7 @@ export interface MeiGenModel {
   } | null
   /** Stable public capability contract from /api/models. Do not parse pricing fields for support. */
   capabilities?: {
+    imageOutput?: Record<string, unknown>
     draft?: { enabled: boolean; resolution: string; finalResolution: string; lifetimeSeconds: number; finalRequiresConfirmation: boolean }
     characters?: { enabled: boolean; maxCount: number; referenceMode: 'content' }
     videoInputs?: Record<string, unknown>
@@ -142,6 +143,7 @@ export const POLL_SAFETY_VALVE_MS = 45 * 60_000
 
 export interface MeiGenGenerationStatus {
   failureDetail?: 'video_edit_duration' | 'reference_video_frame_rate' | 'midjourney_profile_not_found' | 'midjourney_sref_invalid'
+  vectorOutput?: GenerationOutput['vectorOutput']
   seedanceDraft?: GenerationOutput['seedanceDraft']
   // Backend `status/[id]/route.ts:53` maps DB 'pending' → 'processing' before responding,
   // so callers never observe 'pending' over the wire.
@@ -226,6 +228,10 @@ export class MeiGenApiClient {
   async generateImage(params: {
     prompt: string
     modelId?: string
+    outputFormat?: 'png' | 'jpeg' | 'webp' | 'gif' | 'svg'
+    imageBackground?: 'auto' | 'opaque' | 'transparent'
+    imageComplexity?: 'low' | 'medium' | 'high'
+    gifOptions?: { frameSize: string; frameCount: number; frameDurationMs: number }
     modelVariant?: string
     aspectRatio?: string
     resolution?: string
@@ -250,6 +256,9 @@ export class MeiGenApiClient {
     }
     if (params.modelId) {
       body.modelId = params.modelId
+    }
+    for (const key of ['outputFormat', 'imageBackground', 'imageComplexity', 'gifOptions'] as const) {
+      if (params[key] !== undefined) body[key] = params[key]
     }
     if (params.modelVariant) body.modelVariant = params.modelVariant
     if (params.resolution) {

@@ -19,7 +19,7 @@ export function classifyError(message: string, provider?: ProviderType): string 
     return 'The prompt may have triggered a content safety filter. Try rephrasing the prompt to avoid sensitive content.'
 
   if (lower.includes('credit') || lower.includes('balance') || /\b402\b/.test(message) || /insufficient\s+(funds|quota)/.test(lower)) {
-    if (provider === 'meigen') return 'Insufficient purchased credits. API calls do not use daily free credits. Top up the same MeiGen account at https://www.meigen.ai/profile (mobile: https://www.meigen.ai/m/premium).'
+    if (provider === 'meigen') return 'Insufficient purchased credits. API calls do not use daily free credits. Top up the same MeiGen account at https://www.meigen.ai/profile/billing (mobile: https://www.meigen.ai/m/premium).'
     if (provider === 'openai') return 'Check the balance, billing and quota of the provider configured by OPENAI_BASE_URL and OPENAI_API_KEY. MeiGen credits do not pay for this OpenAI-compatible provider.'
     return 'Check the selected generation provider’s account balance, billing and quota.'
   }

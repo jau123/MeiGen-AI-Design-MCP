@@ -20,13 +20,13 @@ const fail = message => { console.error(`::error::${message}`); process.exitCode
 if (lock.version !== pkg.version || lock.packages?.['']?.version !== pkg.version) fail('npm lockfile version must match package.json')
 if (server !== pkg.version) fail(`MCP runtime ${server} differs from npm ${pkg.version}`)
 if (!entry || entry.version !== plugin.version) fail('Self-owned Claude marketplace entry must match its plugin manifest version')
-for (const [name, version] of [['npm', pkg.version], ['Claude plugin', plugin.version], ['OpenClaw plugin', openclaw.version], ['ClawHub standalone Skill', skill]]) {
+for (const [name, version] of [['npm', pkg.version], ['installed npm', pkg.config.distributionNpmVersion], ['Claude plugin', plugin.version], ['OpenClaw plugin', openclaw.version], ['ClawHub standalone Skill', skill]]) {
   if (!version || !semver.test(version)) fail(`${name} has an invalid or missing version`)
   console.log(`${name}: ${version}`)
 }
 for (const [path, servers] of [['plugin/.mcp.json', json('plugin/.mcp.json').mcpServers], ['plugin/openclaw.plugin.json', json('plugin/openclaw.plugin.json').mcpServers]]) {
   const server = servers?.meigen
-  if (server?.command !== 'npx' || !server.args?.includes(`meigen@${pkg.version}`)) fail(`${path} must declare the pinned meigen npm server`)
+  if (server?.command !== 'npx' || !server.args?.includes(`meigen@${pkg.config.distributionNpmVersion}`)) fail(`${path} must declare the pinned meigen npm server`)
 }
 if (!process.exitCode) console.log('Runtime pins and independently versioned distribution manifests are coherent.')
 NODE

@@ -10,7 +10,13 @@ export const draftResultSchema = z.object({
   stage: z.enum(['draft', 'final']), duration: z.number(), referenceVideoSeconds: z.number(), hasReferenceVideo: z.boolean(),
   expiresAt: z.string().optional(), sourceGenerationId: z.string().optional(), finalGenerationId: z.string().optional(), finalCredits: z.number().nonnegative().optional(),
 })
+export const vectorOutputSchema = z.object({
+  url: z.string().url().regex(/^https:\/\/images\.meigen\.(?:ai|art)\/[A-Za-z0-9_./-]+\.svg$/),
+  width: z.number().int().min(1).max(4096), height: z.number().int().min(1).max(4096),
+})
+
 export const generationOutputSchema = {
+  vectorOutput: vectorOutputSchema.optional(),
   seedanceDraft: draftResultSchema.optional(),
   success: z.boolean(),
   status: z.enum(['processing', 'completed', 'failed', 'error', 'unknown']),
@@ -30,14 +36,14 @@ export type GenerationOutput = z.infer<z.ZodObject<typeof generationOutputSchema
 /** Completed remote artifacts remain usable even when a host cannot render a preview. */
 export function generationResources(body: GenerationOutput) {
   if (!body.success || body.status !== 'completed') return []
-  return [...new Set([...body.urls, body.imageUrl, body.videoUrl].filter((v): v is string => !!v))].flatMap((uri, index) => {
+  return [...new Set([...body.urls, body.imageUrl, body.videoUrl, body.vectorOutput?.url].filter((v): v is string => !!v))].flatMap((uri, index) => {
     let url: URL
     try { url = new URL(uri) } catch { return [] }
     if (url.protocol !== 'https:' || url.username || url.password) return []
     const extension = url.pathname.split('.').pop()?.toLowerCase() ?? ''
     const mimeType = ({ png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp',
-      avif: 'image/avif', gif: 'image/gif', mp4: 'video/mp4', webm: 'video/webm' } as Record<string, string>)[extension]
-    return [{ type: 'resource_link' as const, uri, name: `MeiGen ${body.mediaType ?? 'media'} ${index + 1}`,
+      avif: 'image/avif', gif: 'image/gif', svg: 'image/svg+xml', mp4: 'video/mp4', webm: 'video/webm' } as Record<string, string>)[extension]
+    return [{ type: 'resource_link' as const, uri, name: uri === body.vectorOutput?.url ? 'SVG original' : `MeiGen ${body.mediaType ?? 'media'} ${index + 1}`,
       ...(mimeType ? { mimeType } : {}) }]
   })
 }
@@ -71,7 +77,7 @@ export function errorOutput(error: unknown, context: Partial<GenerationOutput> =
       ? { type: 'check_generation', tool: 'check_generation', arguments: { ...(context.requestId ? { requestId: context.requestId } : { generationId: context.generationId }), ...(context.requestedMediaType ? { requestedMediaType: context.requestedMediaType } : {}) }, afterSeconds: error.details.retryAfterSeconds ?? 5, message: 'Another submission is still active; wait before checking again.' }
     : known && error.httpStatus === 402
     ? context.provider === 'meigen'
-      ? { type: 'top_up', message: 'Top up purchased credits on the same MeiGen account at https://www.meigen.ai/profile. Then resubmit the exact original inputs with the same requestId; polling cannot retry payment.' }
+      ? { type: 'top_up', message: 'Top up purchased credits on the same MeiGen account at https://www.meigen.ai/profile/billing. Then resubmit the exact original inputs with the same requestId; polling cannot retry payment.' }
       : { type: 'configure_provider_billing', message: 'Check billing or quota with the selected provider. MeiGen credits do not pay for this provider. Verify any existing provider job before deliberately trying again; MeiGen requestId recovery does not apply.' }
     : known && (error.code === 'upload_failed' || error.code === 'pre_submit_failed')
     ? { type: 'retry_request', message: 'Reference preparation or upload failed before submission; nothing was submitted or charged. Retry the exact same inputs with this same requestId once the service recovers.' }

@@ -149,7 +149,7 @@ test('insufficient balance retains exact required/available and points to purcha
     const r=await call(client,'generate_marketing_poster',{requestId,brand:'Coffee weekend'})
     const body=r.structuredContent
     assert.equal(body.required-body.available,3)
-    assert.equal(body.nextAction.url,'https://www.meigen.ai/profile')
+    assert.equal(body.nextAction.url,'https://www.meigen.ai/profile/billing')
     assert.match(body.nextAction.message,/connected MeiGen account.*Top Up/)
     assert.match(body.nextAction.message,/purchased credits only/)
     assert.match(body.nextAction.message,/new requestId/)

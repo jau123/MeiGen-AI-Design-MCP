@@ -41,7 +41,7 @@ export const generateImageSchema = {
   ...generationControls,
   prompt: z.string().trim().min(1, 'Prompt cannot be empty').describe('The image generation prompt'),
   modelId: z.string().trim().min(1).optional().describe('Alias of model for portable workflow calls. If both are present they must match.'),
-  modelVariant: z.string().optional().describe('Optional model variant from live list_models, such as a supported GPT Image 2.5 variant. Forwarded unchanged to MeiGen.'),
+  modelVariant: z.string().optional().describe('Optional model variant from live list_models, such as a supported GPT Image variant. Forwarded unchanged to MeiGen.'),
   model: z.string().trim().min(1).optional()
     .describe('Model name. For OpenAI-compatible providers: any model ID your endpoint supports. For MeiGen: use model IDs from list_models (e.g. "gpt-image-2", "grok-image" = xAI Grok Imagine Quality, 1K/2K, supports image-to-image, "nanobanana-2", "seedream-4.5", "flux2-klein").'),
   size: z.string().optional()
@@ -54,6 +54,13 @@ export const generateImageSchema = {
     .describe('Image quality. MeiGen gpt-image-2: "low" / "medium" / "high". OpenAI-compatible providers also accept "high".'),
   referenceImages: z.array(z.string()).optional()
     .describe('Image references for style/content guidance. Accepts direct public HTTPS URLs without credentials/fragments or accessible absolute local paths. Relative paths are rejected. Local PNG/JPEG/WebP/GIF references up to 32 MiB and 64 million pixels are fully decoded, stripped of metadata and prepared up to 4096px, preserving transparency. Sources: gallery URLs from search_gallery/get_inspiration, URLs from previous generate_image results, or local file paths.'),
+  outputFormat: z.enum(['png', 'jpeg', 'webp', 'gif', 'svg']).optional().describe('Select the model ID for this format from list_models. GIF and SVG each have their own priced model.'),
+  imageBackground: z.enum(['auto', 'opaque', 'transparent']).optional().describe('Transparent is available on PNG and WebP; GIF/SVG accept only auto.'),
+  imageComplexity: z.enum(['low', 'medium', 'high']).optional().describe('Choose a supported complexity from the model catalog.'),
+  gifOptions: z.object({
+    frameSize: z.string().max(20).describe('Exact widthxheight from the GIF model capability.'),
+    frameCount: z.number().int().positive(), frameDurationMs: z.number().int().positive(),
+  }).strict().optional().describe('GIF only. Use the frame range for this size and the frame delay range in list_models.'),
   referenceType: z.enum(['content', 'style']).optional().describe('MeiGen Midjourney uploaded-image role; default content. Style images override niji7Options.sref; saved characters remain content references.'),
   niji7Options: midjourneyOptionsSchema.optional().describe('MeiGen Midjourney advanced options, matching Web/App. Prefer these over prompt flags; V8.2 ignores weird and fixes sv=6. Preserve identical options on recovery.'),
   provider: z.enum(['openai', 'meigen']).optional()
@@ -65,10 +72,10 @@ export const generateImageSchema = {
 export function registerGenerateImage(server: McpServer, apiClient: MeiGenApiClient, config: MeiGenConfig) {
   server.registerTool(
     'generate_image', { description:
-    'Generate an image using AI. Supports MeiGen platform or OpenAI-compatible APIs. Tip: get prompts from get_inspiration() or enhance_prompt(). For MeiGen Midjourney, use referenceType for content/style images and niji7Options for stylize, chaos, raw, image/style weights, sref, profile and MJ quality. Inline --sref/--profile codes remain compatible; other prompt flags are cleaned by the backend. Use referenceImages for local files.',
+    'Generate an image using AI. Supports MeiGen platform or OpenAI-compatible APIs. Tip: get prompts from get_inspiration() or enhance_prompt(). For MeiGen Midjourney, use referenceType for content/style images and niji7Options for stylize, chaos, raw, image/style weights, sref, profile and MJ quality. Inline --sref/--profile codes remain compatible; other prompt flags are cleaned by the backend. Use referenceImages for local files. On the MeiGen provider: For a vector illustration, scalable logo or SVG (矢量图), use generate_image with the SVG model ID from list_models and outputFormat=svg. Return the SVG original from vectorOutput.url; imageUrl or urls contains its PNG preview. For an animated image or looping GIF (动图), use the GIF model ID and outputFormat=gif, not generate_video. Optional gifOptions sets frameSize, frameCount and frameDurationMs; loop length is frameCount × frameDurationMs. Set GIF dimensions through frameSize; omit aspectRatio and resolution. Omit gifOptions for defaults. Keep explicit video requests on generate_video. GIF/SVG creation via MCP takes a text prompt without referenceImages; do not substitute a new generation for editing an existing file. For a transparent still, choose PNG or WebP and imageBackground=transparent.',
     inputSchema: generateImageSchema, outputSchema: generationOutputSchema,
     annotations: { readOnlyHint: false, destructiveHint: true } },
-    async ({ prompt, model, modelId, modelVariant, size, aspectRatio, resolution, quality, referenceImages, referenceType, niji7Options, provider: requestedProvider, negativePrompt, requestId, wait = true, download = true }, extra) => {
+    async ({ prompt, model, modelId, modelVariant, size, aspectRatio, resolution, quality, outputFormat, imageBackground, imageComplexity, gifOptions, referenceImages, referenceType, niji7Options, provider: requestedProvider, negativePrompt, requestId, wait = true, download = true }, extra) => {
       if (model && modelId && model !== modelId) return generationResult(errorOutput(new GenerationError('model and modelId must match when both are provided.', 'model_alias_conflict')))
       model = model ?? modelId
       const availableProviders = getAvailableProviders(config)
@@ -87,9 +94,10 @@ export function registerGenerateImage(server: McpServer, apiClient: MeiGenApiCli
 
       try {
         if (providerType === 'meigen') {
-          return generationResult(await runMeiGenGeneration('image', { prompt, modelId: model, modelVariant, aspectRatio, resolution, quality, referenceImages, ...(referenceType !== undefined ? { referenceType } : {}), ...(niji7Options !== undefined ? { niji7Options } : {}), requestId, wait, download }, apiClient, config, extra.signal, message => notify(extra, message)))
+          return generationResult(await runMeiGenGeneration('image', { prompt, modelId: model, modelVariant, aspectRatio, resolution, quality, outputFormat, imageBackground, imageComplexity, gifOptions, referenceImages, ...(referenceType !== undefined ? { referenceType } : {}), ...(niji7Options !== undefined ? { niji7Options } : {}), requestId, wait, download }, apiClient, config, extra.signal, message => notify(extra, message)))
         }
         // These synchronous providers have no MeiGen job identity; reject unsupported orchestration before upload/API I/O.
+        if (outputFormat || imageBackground || imageComplexity || gifOptions) throw new GenerationError('Image output options require provider=meigen. Use the matching model from list_models.', 'unsupported_execution_mode')
         if (referenceType !== undefined || niji7Options !== undefined) throw new GenerationError('referenceType and niji7Options require provider=meigen.', 'unsupported_execution_mode')
         if (!wait || requestId) throw new GenerationError('requestId and wait=false are supported only by provider=meigen. This provider has no resumable MeiGen generation ID.', 'unsupported_execution_mode')
         const resolvedRefs = await uploadReferences(await fingerprintReferences(referenceImages ?? [], extra.signal), config, extra.signal)

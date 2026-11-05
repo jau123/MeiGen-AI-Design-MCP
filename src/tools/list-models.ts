@@ -19,7 +19,7 @@ export const listModelsSchema = {
 export function registerListModels(server: McpServer, apiClient: MeiGenApiClient, config: MeiGenConfig) {
   server.registerTool(
     'list_models', { description:
-    'List available AI image generation models and their capabilities. For up-to-date pricing, see https://www.meigen.ai/model-comparison.',
+    'List available AI image generation models and their capabilities. For a vector or SVG request, find the image model listing SVG; for an animated or looping GIF, find the image model listing GIF and read its per-size frame limits. Then use generate_image with that model ID and output format. For up-to-date pricing, see https://www.meigen.ai/model-comparison.',
     inputSchema: listModelsSchema,
     outputSchema: { success: z.boolean(), models: z.array(z.object({ id: z.string(), name: z.string() }).passthrough()), configuredProviders: z.array(z.enum(['meigen','openai'])), executionCapabilities: z.object({ submitOnly: z.boolean(), download: z.boolean(), maxConcurrentSubmissions: z.number(), concurrency: z.string() }), error: z.object({ code: z.string(), message: z.string(), retryable: z.boolean() }).optional() },
     annotations: { readOnlyHint: true } },
@@ -59,6 +59,7 @@ export function registerListModels(server: McpServer, apiClient: MeiGenApiClient
             formatModelPromotion(cfg),
             tags ? `   Status: ${tags}` : '',
             resolutions ? `   Resolutions: ${resolutions}` : `   4K: ${m.supports_4k ? 'Yes' : 'No'}`,
+            m.capabilities?.imageOutput ? `   Image output: ${JSON.stringify(m.capabilities.imageOutput)}` : '',
             qualities ? `   Quality tiers: ${qualities}` : '',
             `   Ratios: ${m.supported_ratios.join(', ')}`,
             cost ? `   Cost: ${cost} (typical — see model-comparison for full schedule)` : '',

@@ -45,6 +45,9 @@ export class OpenAIProvider implements ImageProvider {
       body.response_format = 'b64_json'
     }
 
+    if (this.baseUrl === 'https://api.openai.com' && /^gpt-image-2(?:$|[.-])/.test(model)) {
+      body.moderation = 'low'
+    }
     if (request.quality) {
       body.quality = request.quality
     }

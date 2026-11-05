@@ -6,7 +6,7 @@ A source change is not a publication. Record the source commit, selected version
 
 | Channel | Source and version | Release boundary |
 |---|---|---|
-| npm `meigen` | `package.json`, lockfile, runtime server version | Registry package; MCP configuration pins refer to this version |
+| npm `meigen` | `package.json`, lockfile, runtime server version | Registry package; Install commands follow the published config.distributionNpmVersion |
 | Self-owned Claude marketplace | `.claude-plugin/marketplace.json` entry and `plugin/.claude-plugin/plugin.json` | Keep these two versions equal; they may differ from npm |
 | ClawHub standalone Skill `creative-toolkit` | `openclaw/SKILL.md` and `openclaw/references/` | Independent Skill version **3.2.0**; verify publication status |
 | ClawHub plugin `meigen-ai-design` | `openclaw-plugin/` + shared Skill sources via `scripts/build-openclaw-plugin.mjs` | Independent plugin version **4.1.0**; remote OAuth, no npm pin |
@@ -15,7 +15,7 @@ A source change is not a publication. Record the source commit, selected version
 | Aggregator listings | Each site's listing | Separate submission/update; do not infer completion from GitHub or npm |
 | Web/remote MCP | Web deployment | Separate API deployment; refresh the host's remote tool list afterward |
 
-npm **3.1.0** was published as `latest` on 2026-10-12, with matching owned distribution manifests. ClawHub plugin **4.1.0** and standalone Skill **3.2.0** are also published as `latest`; platform scans are clean and all published files match the reviewed sources. Static npm pins follow the verified npm release. Each channel has an independent publication boundary. Read [the migration notes](RELEASE_NOTES_3.0.0.md) before upgrading from 2.x. Before an authorized release, verify the destination's versions and record acceptance separately.
+npm **3.1.0** was published as `latest` on 2026-10-12, with matching owned distribution manifests. ClawHub plugin **4.1.0** and standalone Skill **3.2.0** are also published as `latest`; platform scans are clean and all published files match the reviewed sources. Advance `config.distributionNpmVersion` and static install commands together after verifying the new version in the registry. Each channel has an independent publication boundary. Read [the migration notes](RELEASE_NOTES_3.0.0.md) before upgrading from 2.x. Before an authorized release, verify the destination's versions and record acceptance separately.
 
 ## Validate before requesting a release
 

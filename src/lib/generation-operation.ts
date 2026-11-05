@@ -5,7 +5,7 @@ import { homedir } from 'node:os'
 import type { MeiGenConfig } from '../config.js'
 import type { MidjourneyOptions } from './midjourney-options.js'
 import type { MeiGenApiClient, MeiGenGenerationStatus } from './meigen-api.js'
-import { GenerationError, draftResultSchema, type GenerationOutput, errorOutput, isRequestNotFound } from './generation-contract.js'
+import { GenerationError, draftResultSchema, vectorOutputSchema, type GenerationOutput, errorOutput, isRequestNotFound } from './generation-contract.js'
 import { ImageUploadError } from './upload.js'
 import { withGenerationReceipt } from './generation-request-store.js'
 import {
@@ -19,6 +19,10 @@ export interface GenerationInput {
   modelId?: string
   aspectRatio?: string
   resolution?: string
+  outputFormat?: 'png' | 'jpeg' | 'webp' | 'gif' | 'svg'
+  imageBackground?: 'auto' | 'opaque' | 'transparent'
+  imageComplexity?: 'low' | 'medium' | 'high'
+  gifOptions?: { frameSize: string; frameCount: number; frameDurationMs: number }
   modelVariant?: string
   quality?: string
   tier?: string
@@ -78,10 +82,11 @@ export function preSubmitError(error: unknown, signal?: AbortSignal): unknown {
 }
 
 export function generationStatusOutput(status: MeiGenGenerationStatus, context: Partial<GenerationOutput>): GenerationOutput {
+  const vector = vectorOutputSchema.safeParse(status.vectorOutput)
   const draft = draftResultSchema.safeParse(status.seedanceDraft)
   const mediaType = status.mediaType ?? context.mediaType ?? 'image'
   const urls = mediaType === 'video' ? (status.videoUrl ? [status.videoUrl] : []) : (status.imageUrls?.length ? status.imageUrls : status.imageUrl ? [status.imageUrl] : [])
-  const body: GenerationOutput = { success: status.status !== 'failed', status: status.status, provider: 'meigen', urls, ...context, mediaType,
+  const body: GenerationOutput = { ...(status.status === 'completed' && vector.success ? { vectorOutput: vector.data } : {}), success: status.status !== 'failed', status: status.status, provider: 'meigen', urls, ...context, mediaType,
     ...(draft.success ? { seedanceDraft: draft.data } : {}),
     ...(status.generationId ? { generationId: status.generationId } : {}), ...(status.modelId ? { modelId: status.modelId } : {}),
     ...(typeof status.creditsUsed === 'number' ? { creditsUsed: status.creditsUsed } : {}), ...(status.creditsStatus ? { creditsStatus: status.creditsStatus } : {}),
@@ -106,7 +111,7 @@ export function generationStatusOutput(status: MeiGenGenerationStatus, context: 
 
 async function saveGenerationResult(body: GenerationOutput, signal?: AbortSignal): Promise<string> {
   const video = body.mediaType === 'video'
-  const url = publicReferenceUrl(body.urls[0])
+  const url = publicReferenceUrl(body.vectorOutput?.url ?? body.urls[0])
   const custom = video ? process.env.MEIGEN_VIDEO_OUTPUT_DIR : process.env.MEIGEN_OUTPUT_DIR
   const xdg = video ? process.env.XDG_VIDEOS_DIR : process.env.XDG_PICTURES_DIR
   const expand = (path: string) => path.startsWith('~/') ? join(homedir(), path.slice(2)) : path
@@ -115,7 +120,7 @@ async function saveGenerationResult(body: GenerationOutput, signal?: AbortSignal
   return await withHttpResponse(url, { redirect: 'error' }, video ? 120_000 : 30_000, async (response, downloadSignal) => {
     if (!response.ok) throw new GenerationError(`Result download failed (${response.status}).`, 'download_failed', response.status, true)
     const type = response.headers.get('content-type') ?? ''
-    const extension = video ? 'mp4' : type.includes('png') ? 'png' : type.includes('webp') ? 'webp' : 'jpg'
+    const extension = video ? 'mp4' : body.vectorOutput ? 'svg' : type.includes('gif') || new URL(url).pathname.endsWith('.gif') ? 'gif' : type.includes('png') ? 'png' : type.includes('webp') ? 'webp' : 'jpg'
     const path = join(directory, `${new Date().toISOString().slice(0, 10)}_${randomUUID()}.${extension}`)
     await streamResponseToFile(response, path, video ? 512 * 1024 * 1024 : 64 * 1024 * 1024, downloadSignal)
     return path
@@ -162,6 +167,8 @@ export async function runMeiGenGeneration(mediaType: 'image' | 'video', input: G
     }
     const fingerprintParameters = {
       ...parameters,
+      ...(parameters.gifOptions ? { gifOptions: { frameSize: parameters.gifOptions.frameSize,
+        frameCount: parameters.gifOptions.frameCount, frameDurationMs: parameters.gifOptions.frameDurationMs } } : {}),
       ...(parameters.niji7Options ? { niji7Options: Object.fromEntries(Object.entries(parameters.niji7Options).sort(([left], [right]) => left.localeCompare(right))) } : {}),
     }
     const canonicalParameters = Object.fromEntries(Object.entries(fingerprintParameters).filter(([, value]) => value !== undefined).sort(([left], [right]) => left.localeCompare(right)))

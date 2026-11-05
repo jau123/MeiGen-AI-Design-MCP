@@ -48,7 +48,7 @@ Existing local API keys remain compatible with generation, public search and Ski
 1. Add the remote URL above and sign in through the host's OAuth flow.
 2. Approve the requested account access. Private library access is only available with this OAuth connection.
 3. Ask “Show available Skills and their current prices.” This public lookup does not generate or spend credits, and alone does not prove account authorization.
-4. Continue the user's authorized creation request. If credits are needed, use [Profile → Top Up](https://www.meigen.ai/profile) on the connected account. Never send credentials in chat.
+4. Continue the user's authorized creation request. If credits are needed, use [Billing & credits → Top Up](https://www.meigen.ai/profile/billing) on the connected account. Never send credentials in chat.
 
 API generation uses **purchased credits only**. Daily free credits and Web free attempts do not apply. The five Skills require MeiGen Cloud even if OpenAI is configured.
 
@@ -108,7 +108,7 @@ These commands belong to the Claude plugin; a bare MCP connection does not insta
 | Tools not available | Restart/reconnect. Local: confirm `meigen@3.3.3`. Remote: refresh after backend deployment. npm installation alone does not deploy the APIs. |
 | New connection asks for a MeiGen key | Use the remote OAuth connection above and sign in through the host. Do not create a new key. |
 | Existing legacy configuration has an invalid/missing key | Restore the existing `MEIGEN_API_TOKEN` in private connection settings, then restart/reconnect. If that key is no longer available, switch to remote OAuth. Keep credentials out of chat. |
-| Insufficient credits | API calls only use purchased credits. Top up the same account through [Profile](https://www.meigen.ai/profile) or [mobile Premium](https://www.meigen.ai/m/premium), then ask to continue. Do not poll a rejected request. |
+| Insufficient credits | API calls only use purchased credits. Top up the same account through [Billing & credits](https://www.meigen.ai/profile/billing) or [mobile Premium](https://www.meigen.ai/m/premium), then ask to continue. Do not poll a rejected request. |
 | Image upload failed | Check format, size and source accessibility. Remote MCP cannot read a local path; use actual attachment bytes or a direct image URL. No generation started if upload failed. |
 | Tool timeout or host restart | Recover using `check_skill` for Skills or `check_generation` for general generation. Do not submit a new paid attempt automatically. Increase a 60-second host timeout when needed; 240 seconds is a useful Skill-submission setting. |
 | Some modules failed | Keep completed images, show failed modules and reported refund states, and avoid automatically replacing the whole batch. |

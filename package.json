@@ -1,6 +1,7 @@
 {
   "name": "meigen",
-  "version": "3.3.3",
+  "version": "3.4.0",
+  "config": { "distributionNpmVersion": "3.3.3" },
   "description": "Composable image and video generation tools, reusable visual skills, and optional creative workflows for MCP clients",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -24,7 +25,8 @@
     "RELEASE_NOTES_3.3.0.md",
     "RELEASE_NOTES_3.3.1.md",
     "RELEASE_NOTES_3.3.2.md",
-    "RELEASE_NOTES_3.3.3.md"
+    "RELEASE_NOTES_3.3.3.md",
+    "RELEASE_NOTES_3.4.0.md"
   ],
   "scripts": {
     "build": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\" && tsc",
