@@ -59,6 +59,7 @@ export function registerListModels(server: McpServer, apiClient: MeiGenApiClient
             formatModelPromotion(cfg),
             tags ? `   Status: ${tags}` : '',
             resolutions ? `   Resolutions: ${resolutions}` : `   4K: ${m.supports_4k ? 'Yes' : 'No'}`,
+            m.capabilities?.imageOutput && typeof m.max_reference_images === 'number' ? `   Reference images: up to ${m.max_reference_images} via referenceImages` : '',
             m.capabilities?.imageOutput ? `   Image output: ${JSON.stringify(m.capabilities.imageOutput)}` : '',
             qualities ? `   Quality tiers: ${qualities}` : '',
             `   Ratios: ${m.supported_ratios.join(', ')}`,

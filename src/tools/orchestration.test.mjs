@@ -43,6 +43,7 @@ function tool(register, client=api(), extraConfig={}) {
 test('uses the GIF billing row, preserves timing, and refuses a changed retry', () => isolated(async () => {
  const image = tool(imageModule.registerGenerateImage)
  assert.match(image.schema.description, /vectorOutput.url.*动图/)
+ assert.match(image.schema.description, /saved characters, switch to the remote OAuth MCP/)
  const requestId = randomUUID(), posts = []
  const gifOptions = { frameSize: '384x384', frameCount: 8, frameDurationMs: 250 }
  globalThis.fetch = async (url, init) => {
@@ -50,10 +51,12 @@ test('uses the GIF billing row, preserves timing, and refuses a changed retry', 
    posts.push(JSON.parse(init.body))
    return Response.json({ success: true, generationId: 'gif-job', modelId: 'gpt-image-2.6-gif' })
  }
- const input = { prompt: '生成循环动图', modelId: 'gpt-image-2.6-gif', outputFormat: 'gif', gifOptions, requestId, wait: false }
+ const referenceImages = ['https://images.meigen.ai/guide.png']
+ const input = { prompt: '生成循环动图', modelId: 'gpt-image-2.6-gif', outputFormat: 'gif', referenceImages, gifOptions, requestId, wait: false }
  const result = await image.run(z.object(image.schema.inputSchema).parse(input))
  assert.equal(result.structuredContent.generationId, 'gif-job', JSON.stringify(result.structuredContent))
  assert.deepEqual(posts[0].gifOptions, gifOptions)
+ assert.deepEqual(posts[0].referenceImages, referenceImages)
  assert.equal(posts[0].outputFormat, 'gif')
  const changed = await image.run(z.object(image.schema.inputSchema).parse({ ...input, gifOptions: { ...gifOptions, frameCount: 9 } }))
  assert.equal(changed.structuredContent.error.code, 'idempotency_conflict')
