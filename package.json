@@ -1,7 +1,7 @@
 {
   "name": "meigen",
   "version": "3.4.0",
-  "config": { "distributionNpmVersion": "3.3.3" },
+  "config": { "distributionNpmVersion": "3.4.0" },
   "description": "Composable image and video generation tools, reusable visual skills, and optional creative workflows for MCP clients",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
