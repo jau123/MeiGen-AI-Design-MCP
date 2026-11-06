@@ -27,3 +27,11 @@ Account-library tools are available only through the remote OAuth connection at 
 ## Video failure details
 
 Failed video results can include optional `failureDetail`: `video_edit_duration` or `reference_video_frame_rate`, alongside the existing error and actual `creditsStatus`. Unknown future values are ignored. Editing in Seedance 2.5 preserves a 4–30 second source clip: set positive `duration` to the source’s rounded whole-second length; every candidate source must match. Continuation describes what happens next and generates new content. Do not send the internal provider value `duration=-1`. Correcting a terminal failure requires separate authorization and a new request ID; uncertain submissions retain their original ID and exact inputs. The ChatGPT Store adapter is maintained and released separately.
+
+### Annotated still-image edits
+
+For `provider=meigen`, `generate_image` accepts optional `imageMask` or `imageMarkup`, each shaped as `{ "url": "https://…/annotation.png", "width": 1024, "height": 1024 }`. Read the selected model's live `imageOutput.editing` capability first. Missing capability data does not establish support.
+
+Use the original source's public HTTPS URL as `referenceImages[0]`. Both the source and annotation must retain the same pixel dimensions. The annotation must be a PNG with transparency, at most 10 MiB. Markup additionally requires visible colored annotations and the supported official OpenAI GPT Image 2.5/2.6 route. Transparent mask pixels identify the area to edit; a mask is guidance, not a promise that all other pixels remain identical.
+
+Masks and markup are mutually exclusive. They cannot be used with GIF/SVG models, saved characters, or the local OpenAI-compatible provider mode. Local annotated source paths are rejected because ordinary uploads may resize the source. Use already-hosted original image URLs. Preserve the annotation URL and dimensions with the same `requestId` when recovering an interrupted request; changing an annotation creates a different generation.

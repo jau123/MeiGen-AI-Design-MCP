@@ -1,3 +1,4 @@
+import type { ImageEditAnnotation } from './image-edit.js'
 import type { GenerationOutput } from './generation-contract.js'
 import type { MidjourneyOptions } from './midjourney-options.js'
 /**
@@ -231,6 +232,8 @@ export class MeiGenApiClient {
     outputFormat?: 'png' | 'jpeg' | 'webp' | 'gif' | 'svg'
     imageBackground?: 'auto' | 'opaque' | 'transparent'
     imageComplexity?: 'low' | 'medium' | 'high'
+    imageMask?: ImageEditAnnotation
+    imageMarkup?: ImageEditAnnotation
     gifOptions?: { frameSize: string; frameCount: number; frameDurationMs: number }
     modelVariant?: string
     aspectRatio?: string
@@ -257,7 +260,7 @@ export class MeiGenApiClient {
     if (params.modelId) {
       body.modelId = params.modelId
     }
-    for (const key of ['outputFormat', 'imageBackground', 'imageComplexity', 'gifOptions'] as const) {
+    for (const key of ['outputFormat', 'imageBackground', 'imageComplexity', 'gifOptions', 'imageMask', 'imageMarkup'] as const) {
       if (params[key] !== undefined) body[key] = params[key]
     }
     if (params.modelVariant) body.modelVariant = params.modelVariant

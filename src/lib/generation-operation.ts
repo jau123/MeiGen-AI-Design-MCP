@@ -6,6 +6,7 @@ import type { MeiGenConfig } from '../config.js'
 import type { MidjourneyOptions } from './midjourney-options.js'
 import type { MeiGenApiClient, MeiGenGenerationStatus } from './meigen-api.js'
 import { GenerationError, draftResultSchema, vectorOutputSchema, type GenerationOutput, errorOutput, isRequestNotFound } from './generation-contract.js'
+import { imageEditInputError, type ImageEditAnnotation } from './image-edit.js'
 import { ImageUploadError } from './upload.js'
 import { withGenerationReceipt } from './generation-request-store.js'
 import {
@@ -22,6 +23,8 @@ export interface GenerationInput {
   outputFormat?: 'png' | 'jpeg' | 'webp' | 'gif' | 'svg'
   imageBackground?: 'auto' | 'opaque' | 'transparent'
   imageComplexity?: 'low' | 'medium' | 'high'
+  imageMask?: ImageEditAnnotation
+  imageMarkup?: ImageEditAnnotation
   gifOptions?: { frameSize: string; frameCount: number; frameDurationMs: number }
   modelVariant?: string
   quality?: string
@@ -143,6 +146,8 @@ export async function runMeiGenGeneration(mediaType: 'image' | 'video', input: G
     let audioReferences: MediaReference[] = []
     try {
       abortReason(signal)
+      const editError = imageEditInputError(input)
+      if (editError) throw new GenerationError(editError, 'invalid_image_edit')
       const budget = localReferenceBudget()
       references = await fingerprintReferences([...(input.referenceImages ?? []), ...(input.contentReferenceImages ?? [])], signal, budget)
       ;({ requestId: _id, wait: _wait, download: _download, referenceImages: _references, contentReferenceImages: _content, referenceVideos: _videos, referenceAudios: _audios, ...parameters } = input)
@@ -167,6 +172,8 @@ export async function runMeiGenGeneration(mediaType: 'image' | 'video', input: G
     }
     const fingerprintParameters = {
       ...parameters,
+      ...(parameters.imageMask ? { imageMask: { url: parameters.imageMask.url, width: parameters.imageMask.width, height: parameters.imageMask.height } } : {}),
+      ...(parameters.imageMarkup ? { imageMarkup: { url: parameters.imageMarkup.url, width: parameters.imageMarkup.width, height: parameters.imageMarkup.height } } : {}),
       ...(parameters.gifOptions ? { gifOptions: { frameSize: parameters.gifOptions.frameSize,
         frameCount: parameters.gifOptions.frameCount, frameDurationMs: parameters.gifOptions.frameDurationMs } } : {}),
       ...(parameters.niji7Options ? { niji7Options: Object.fromEntries(Object.entries(parameters.niji7Options).sort(([left], [right]) => left.localeCompare(right))) } : {}),

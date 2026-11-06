@@ -536,3 +536,55 @@ test('sets low moderation only for GPT Image on the official BYOK endpoint', () 
  ]) await new OpenAIProvider('local-fixture', base, model).generate({ prompt: 'a tree' })
  assert.deepEqual(bodies.map(body => body.moderation), ['low', undefined, undefined])
 }))
+
+for (const key of ['imageMask', 'imageMarkup']) {
+ test(`annotated ${key} reaches MeiGen and belongs to the durable request identity`, () => isolated(async () => {
+  const image = tool(imageModule.registerGenerateImage), requestId = randomUUID(), posts = []
+  const annotation = { url: 'https://images.meigen.ai/annotation.png', width: 1024, height: 1024 }
+  const input = { prompt: 'Change the indicated object', modelId: 'gpt-image-2.5', referenceImages: ['https://images.meigen.ai/source.png'], [key]: annotation, requestId, wait: false }
+  globalThis.fetch = async (url, init) => {
+   if (String(url).includes('/requests/')) return posts.length ? Response.json({ success: true, status: 'processing', generationId: 'annotated-job', modelId: input.modelId }) : Response.json({ success: false, code: 'request_not_found' }, { status: 404 })
+   assert.equal(String(url), 'https://api.example/api/generate/v2')
+   posts.push(JSON.parse(init.body))
+   return Response.json({ success: true, generationId: 'annotated-job', modelId: input.modelId })
+  }
+  const result = await image.run(z.object(image.schema.inputSchema).parse(input))
+  assert.equal(result.structuredContent.generationId, 'annotated-job', JSON.stringify(result))
+  assert.deepEqual(posts, [{ prompt: input.prompt, aspectRatio: 'auto', modelId: input.modelId, [key]: annotation, referenceImages: input.referenceImages, idempotencyKey: requestId }])
+  const reordered = { ...input, [key]: { height: 1024, url: annotation.url, width: 1024 } }
+  assert.equal((await runMeiGenGeneration('image', reordered, api(), config)).generationId, 'annotated-job')
+  for (const changed of [{ ...annotation, url: 'https://images.meigen.ai/other.png' }, { ...annotation, width: 512 }]) {
+   assert.equal((await runMeiGenGeneration('image', { ...input, [key]: changed }, api(), config)).error.code, 'idempotency_conflict')
+  }
+  assert.equal(posts.length, 1)
+ }))
+}
+
+test('annotated requests reject local sources and incompatible combinations before any upload or API I/O', () => isolated(async () => {
+ const image = tool(imageModule.registerGenerateImage), annotation = { url: 'https://images.meigen.ai/annotation.png', width: 1024, height: 1024 }
+ let requests = 0
+ globalThis.fetch = async () => { requests++; throw new Error('unexpected network') }
+ const input = { prompt: 'Change this', modelId: 'gpt-image-2.5', imageMarkup: annotation, referenceImages: ['https://images.meigen.ai/source.png'], requestId: randomUUID(), wait: false }
+ for (const changes of [
+  { referenceImages: ['/nonexistent/source.png'] }, { referenceImages: [] }, { imageMask: annotation },
+  { modelId: 'gpt-image-2.6-gif' }, { modelId: 'gpt-image-2.6-svg' }, { modelId: undefined },
+  { outputFormat: 'gif' }, { referenceImages: ['https://127.0.0.1/source.png'] },
+ ]) {
+  const result = await image.run(z.object(image.schema.inputSchema).parse({ ...input, ...changes }))
+  assert.equal(result.structuredContent.error.code, 'invalid_image_edit', JSON.stringify(result))
+ }
+ assert.equal(requests, 0)
+ const byok = tool(imageModule.registerGenerateImage, api(), { openaiApiKey: 'test-not-a-real-key' })
+ const result = await byok.run({ ...input, provider: 'openai' })
+ assert.equal(result.structuredContent.error.code, 'unsupported_execution_mode')
+ assert.equal(requests, 0)
+}))
+
+test('annotation schema rejects malformed metadata and public URLs without assuming PNG pixels are verified', () => {
+ const schema = z.object(imageModule.generateImageSchema)
+ const annotation = { url: 'https://images.meigen.ai/annotation.png', width: 1024, height: 1024 }
+ for (const changes of [{ width: 0 }, { height: 1.5 }, { width: 4097, height: 4096 },
+  { url: '/tmp/markup.png' }, { url: 'http://images.meigen.ai/a.png' }, { url: 'https://127.0.0.1/a.png' }, { url: 'https://user:pass@images.meigen.ai/a.png' }]) {
+  assert.equal(schema.safeParse({ prompt: 'edit', imageMarkup: { ...annotation, ...changes } }).success, false)
+ }
+})
