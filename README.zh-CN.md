@@ -170,7 +170,7 @@ openclaw plugins install clawhub:meigen-ai-design
 ## 文档
 
 - [客户端配置与常见问题](SETUP.zh-CN.md) · [4.0 发布说明](RELEASE_NOTES_4.0.0.md)
-- [视觉 Skills API 与示例](SKILLS_API.md) · [编排图片／视频工作流](COMPOSABLE_WORKFLOWS.zh-CN.md)
+- [视觉 Skills 使用指南与示例](SKILLS_API.md) · [编排图片／视频工作流](COMPOSABLE_WORKFLOWS.zh-CN.md)
 - [Claude 插件指南](plugin/README.md) · [维护者发布指南](RELEASING.md)
 
 生成中断时，先让助手查询原任务，再决定是否重新付费生成。保留原始请求 ID，并下载需要长期保存的结果。

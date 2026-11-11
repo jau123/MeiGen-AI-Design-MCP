@@ -17,7 +17,7 @@ After changing connection, reconnect and refresh tool schemas. The bridge forwar
 
 An existing MeiGen key stays on a fixed-key transport even when it fails. `--oauth` explicitly selects account sign-in and bypasses old keys/config. Switching identity or provider requires the user's choice. Invalid existing configuration fails without writing it. Do not print keys during migration. Old credentials remain intact and are not revoked by this release.
 
-If an established SSE response stream drops, the host may report its own request timeout; the bridge logs recovery guidance without failing unrelated concurrent streams. Preserve the original request ID and query status. It never automatically creates a replacement job.
+If the connection drops or times out, preserve the original request ID and query status before starting another paid task. The bridge never automatically creates a replacement job.
 
 ## Rollback
 
@@ -31,4 +31,4 @@ Public remote MCP and the official ChatGPT app remain separate products. Public 
 
 ## Client protocol note
 
-The pinned OAuth transport reserves JSON-RPC request IDs beginning with `mcp-remote-`. Standard numeric IDs and other string IDs are supported; a custom host using that reserved prefix must change its ID allocator or use native HTTP. Fixed-key mode does not have this dependency limitation. Unused loopback preconnect sockets are drained when the OAuth callback server shuts down, so they cannot stall a completed login; active callback responses are preserved.
+The pinned OAuth transport reserves JSON-RPC request IDs beginning with `mcp-remote-`. Standard numeric IDs and other string IDs are supported; a custom host using that reserved prefix must change its ID allocator or use native HTTP. Fixed-key mode does not have this dependency limitation.

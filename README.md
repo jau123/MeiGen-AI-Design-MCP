@@ -170,7 +170,7 @@ Verify with list_models and list_skills, without uploading or generating.
 ## Documentation
 
 - [Client setup & troubleshooting](SETUP.md) · [4.0 release notes](RELEASE_NOTES_4.0.0.md)
-- [Visual Skills API & examples](SKILLS_API.md) · [Compose image/video workflows](COMPOSABLE_WORKFLOWS.md)
+- [Visual Skills guide & examples](SKILLS_API.md) · [Compose image/video workflows](COMPOSABLE_WORKFLOWS.md)
 - [Claude plugin guide](plugin/README.md) · [Maintainer release guide](RELEASING.md)
 
 If a generation is interrupted, ask to check the original task before starting another paid request. Keep the original request ID and download results you want to retain.

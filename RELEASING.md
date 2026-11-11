@@ -1,14 +1,10 @@
-# Releasing MeiGen across channels
+# Maintaining the client bridge
 
-A source change is not a publication. Record the source commit, selected version, validation evidence, and result separately for each channel. Never stage, publish, approve, push, or submit an external PR merely because local validation passed.
+This repository contains the remote connection bridge and client guides. Hosted tools and the official ChatGPT app are maintained separately. Changes here do not deploy those services.
 
-## Current 4.0 release
+## Local checks
 
-The npm bridge 4.0.0 is published and `config.distributionNpmVersion` is verified as 4.0.0. The owned Claude plugin source is 4.0.0; the OpenClaw bundle candidate is 4.2.0. Marketplace publications are independent. Historical publication notes below are dated evidence, not current registry state.
-
-Verified 2026-11-11: npm latest is 4.0.0; public tarball SHA-1 `fa69aaac2cfc1842fa5887bcbfeafa85ebf02d21`, 22,824 bytes and 35 files, byte-identical to the reviewed stage. Runtime source `3f40bdd`; Linux/Windows CI passed after test-only browser-launcher correction `1c28350`. The immutable tarball retains candidate wording in its bundled guides; current GitHub guides record publication. No runtime files changed after staging.
-
-Use pnpm and Node.js 24 (minimum 22.19). The sole authoritative dependency lock is pnpm-lock.yaml; CI installs it frozen on Linux and Windows. No duplicated Web business code remains to synchronize.
+Use pnpm and Node.js 24 (minimum 22.19):
 
 ```sh
 pnpm install --frozen-lockfile
@@ -18,132 +14,17 @@ node scripts/ci/check-frontmatter.mjs
 bash scripts/ci/check-versions.sh
 bash scripts/ci/check-pinned-npm.sh
 pnpm build
-pnpm check:remote
-pnpm release:dry-run
 ```
 
-The read-only remote gate checks live discovery and public model/Skill calls, never paid generation. Separately test the packed bridge in stdio, OAuth login/refresh, existing fixed-key mode, shutdown and host schema refresh. A synthetic HTTP fixture is not real browser consent or client acceptance. Keep account identity and original request IDs during migration; do not replay paid tasks under a new ID.
+`pnpm check:remote` checks live public discovery without generating or uploading. Browser sign-in and client rendering need separate manual verification; public discovery alone does not verify account access.
 
-`dry-run` does not load private release credentials or write the registry. The package includes bin, dist, setup/migration/release notes and standard metadata. Confirm legacy tools/providers, credentials, tests and incidental worktree files are absent. Native manifests must point directly at the hosted server and contain no keys. See MIGRATION.md for retained local behavior and rollback.
+## Distribution
 
-Web public installation docs are a separate repository/deployment. After npm publication, update their stdio fallback to the verified bridge version and describe 3.4.0 only as legacy; native remote URLs do not change. Source edits do not update a host's saved configuration. Claude/OpenClaw marketplace refresh and fresh host acceptance remain separate release steps. Retain the v3.4.0 tag and old published package.
+- Prefer native remote HTTP with OAuth. Keep connection manifests free of credentials.
+- The npm package is a compatibility bridge for stdio clients. New hosted tools normally do not require an npm release; transport or security fixes may.
+- Keep version declarations consistent and inspect the package contents before publishing. Include only the bridge, required metadata and user guides.
+- Publish only an explicitly reviewed and authorized version from a clean Git tree. Keep npm credentials in private environment configuration and complete the registry's authentication requirements.
+- Verify the published artifact before changing installation guidance. npm, plugin marketplaces and the ChatGPT app have separate release lifecycles.
+- Preserve the legacy 3.4.0 tag and migration guidance. Do not silently replace existing user connections or change their billing account.
 
-## Historical release procedures and evidence
-
-The remaining notes describe earlier releases. Apply current 4.0 contracts above when a legacy tool, local provider or npm pin differs. Staged publishing below remains the required npm release procedure; do not stage without explicit authorization and a clean reviewed source snapshot.
-
-## No-key host smoke checks
-
-Use temporary Claude/OpenClaw state directories and no credentials; do not modify the operator's installed plugins. Read CLI help for the installed version before selecting state-directory options. Do not log in or start paid generations.
-
-- Claude: `claude plugin validate ./plugin`, then inspect `claude --plugin-dir ./plugin plugin details meigen`. Also install the local marketplace into the isolated state and inspect it. The local CLI **2.1.241** passed both validations on 2026-09-14. Expect one bundled MCP server, named `meigen`; do not add a duplicate manually.
-- OpenClaw: build a fresh bundle with `node scripts/build-openclaw-plugin.mjs <new-temp-directory>`, then install it in isolated state. Preserve installed ID **meigen** and distribution ID **meigen-ai-design**. The dedicated directory is a compatible Claude-format content/MCP bundle, with matching registry metadata and no Claude hooks. Verify one remote Streamable HTTP server with OAuth and all four Skill guides. Check with the current release (2026.9.9 at preparation).
-- Save the same remote server using `openclaw mcp add` before login: login only reads persisted MCP entries. Confirm that a second add fails without changing the configuration. Existing saved stdio/BYOK configurations override the bundle and must not be automatically migrated.
-- Standalone ClawHub Skill: it supplies guidance only, with modern `metadata.openclaw` and no hard dependency on mcporter/npx/node. Do not install both the standalone Skill and its bundled copy.
-
-- npm: verify the packed artifact's tool inventory and no-key public discovery; test auth rejection without sending a real secret. For this source update, expect 17 local tools and 22 remote tools after the matching API deployment. The 3.1.0 pins are release-candidate configuration; verify npm availability before directing users to install them. Local additions are `enhance_prompt` and `manage_preferences`; the five private-library tools are remote OAuth only and must be absent from stdio, even with a configured API key.
-
-Report install/manifest inspection separately from successfully connected MCP tools and real generation. A host's unavailable or outdated CLI is a verification boundary, not evidence that an advertised channel works.
-
-## Credentials and staged npm publishing
-
-Keep `NPM_TOKEN` in this repository's ignored `.env.local` or private process environment. It must be an npm credential, not a `meigen_sk_` key. Never paste it into chat, check it into Git, ship it in the package, or configure it in the Web application. `.npmrc.release` contains the literal `${NPM_TOKEN}` reference; credentialed helper modes explicitly select that file. `check` loads private credentials and runs read-only `npm whoami`; it verifies identity, not every permission.
-
-```sh
-pnpm release:check
-```
-
-After explicit authorization to upload a staged package, use the stage-only mode:
-
-```sh
-node scripts/release.mjs stage
-```
-
-It runs `npm stage publish`, requires a clean Git tree and a CLI that supports staging, and never falls back to direct publishing. Staging writes a package to the registry and reserves that version; it is not a dry run. Record the returned stage ID. A maintainer can inspect the staged artifact and, only with separate publication approval, approve it using npm's normal 2FA flow. See [npm staged publishing](https://docs.npmjs.com/cli/v11/commands/npm-stage/). The helper never auto-approves a stage or weakens account settings.
-
-`pnpm release:publish` remains an explicit direct-publication mode for an authorized workflow; it retains Git checks. Do not use it as a fallback when staging/authentication fails. Check the registry version and installed artifact after any authorized publication.
-
-## Deployment and distribution order
-
-Deploy the reviewed Web APIs first: the durable ordinary-generation request contract on `POST /api/generate/v2`, authenticated `GET /api/generate/v2/requests/{requestId}`, structured remote MCP tools, and the five Skill APIs including `upscale_image`. Verify exact-ID replay, transient in-progress 503 (including npm 1.4.0 key retention), changed-input 409, request lookup after key rotation, 402 recovery, the reference video/audio arrays and the remote catalog before distributing npm 3.1.0. Explicit local requestId calls (including wait=false) and requestId recovery depend on this endpoint. Deploying npm ahead of the matching backend blocks those calls with endpoint_unavailable / check_backend; an HTML or unrecognized JSON 404 never permits automatic submission. Known generationId status still uses the existing status endpoint. This release depends on the generation worker admission migration kept in the Web repo (`scripts/release/generation-worker-admission.sql`: the `generations.processing_claim_token` column plus the `claim_generation_worker` / `fail_generation_admission` RPCs; applied to production on 2026-09-17). Apply it to any other environment before deploying that environment's Web backend — the new `/process` refuses to run without it. It does not re-enable a global generation quota.
-
-A backend rollback must retain the compatible request-recovery and durable POST contracts. If a route becomes unavailable, restore it and verify existing IDs before resuming affected workflows. Preserve caller IDs and local receipts; do not treat a missing route as a missing job or ask every user to withdraw an already installed npm package. Include HTML/unknown-JSON 404 (zero paid POST), structured request_not_found, bounded observation retries/cancellation, and completed media-mismatch results in release smoke checks.
-
-Then, after authorization for each channel, release npm, update the self-owned Claude marketplace and chosen ClawHub artifacts, submit the separate wshobson PR, deploy bilingual `meigen-docs`, and update requested aggregators. Pins can be prepared before publication, but users must not be told an unpublished version is installable. Verify live availability at each step and record remaining channels instead of reporting one overall "published" status.
-
-Official packaging references: [Claude plugin MCP configuration](https://code.claude.com/docs/en/plugins-reference), [OpenClaw native MCP declarations](https://docs.openclaw.ai/plugins/manifest/surfaces), [OpenClaw bundle compatibility](https://docs.openclaw.ai/plugins/bundles).
-
-Standalone API image preparation requires a positive purchased-credit balance (upload itself does not charge). Upscale run additionally checks the selected live model, accepted initial price and full eligible balance before preprocessing, then rechecks price before dispatch. Session crisp retains daily credits; API calls use purchased credits only. All-channel Upscale preprocessing uses the existing 1,000-per-day ceiling and a per-instance two-operation memory guard. These are not a distributed byte budget or a charge for uploads. Both MCP Upscale schemas require `confirmedCredits` on the first call as well as retries; refresh cached tool schemas. Ship the matching App resize-confirmation UI: older App versions encountering oversized originals are told to update or confirm through the Web, without silently accepting resizing. Unlimited remains disabled; its legacy RPC bypass is tracked separately and is not part of this release.
-
-The 3.1.0 release allowlist also includes `MCP_AUTH_AND_RESULTS.md` and `RELEASE_NOTES_3.0.0.md`. CI uses Node 24 (the project runtime). Update deployed installation guidance only after registry verification. For this release, the active Web npm pin is in `src/lib/skills/mcp-guidance.ts`; search current sources rather than assuming older landing-page version fields still exist.
-
-Historical ClawHub branding update (2026-09-27): the standalone Skill and bundle plugin use display name **MeiGen** and distribution version **2.0.3**. Their install identifiers remain `creative-toolkit` and `meigen-ai-design`; the runtime stayed pinned to npm version 2.0.2 at that time. This patch changes presentation only and requires no npm release. Verify each registry publication separately.
-
-The account-library release depends on `/api/library/favorites`, `/api/library/boards`, `/api/library/history` and `/api/library/item`, plus OAuth library consent and explicit rejection of API keys. Verify API-key rejection and OAuth access boundaries, large Unicode prompt pagination, favorites quota enforcement, idempotent saves, and private-board enforcement before publishing clients. The backend database functions remain a separately approved deployment prerequisite. ComfyUI and bundled prompt data are removed; user-owned workflow files are not deleted or migrated.
-
-## OpenClaw 4.1 / Skill 3.2 distribution
-
-Publish these distribution artifacts separately from npm/Claude 3.1.0. 4.0 changes the ClawHub plugin's default connection from local npm/stdio to remote OAuth; include the migration notice in the release notes. Keep old versions available to users retaining local capabilities.
-
-Build once into a new temporary directory outside the repository. Validate that exact directory with `pnpm dlx clawhub@0.23.3 package validate <directory> --out <absolute-report-directory-outside-artifact> --json` and a real isolated OpenClaw install. Run `node --test scripts/ci/openclaw-package.test.mjs`, frontmatter and version checks. No credentials or configuration files belong in the artifact.
-
-Publish the bundle with `clawhub package publish <directory> --family bundle-plugin --bundle-format claude --host-targets openclaw --name meigen-ai-design --display-name MeiGen --owner jau123 --version 4.1.0 --tags latest --wait --json` and the standalone Skill with `clawhub skill publish ./openclaw --slug creative-toolkit --name MeiGen --owner jau123 --version 3.2.0 --tags latest --json`; supply a meaningful changelog and inspect `--dry-run` first. Use the current CLI, not the older global binary. Do not attach an old Git commit as provenance for uncommitted files.
-
-After publication, read registry version/security state and download each exact version to compare its files against the validated artifact. Installation/Inspector success does not prove private OAuth access; record discovery, consent, tool access and revocation separately. A production account acceptance run requires the user's permission and no paid generation.
-
-ClawHub CLI 0.23.3 requires `openclaw.plugin.json` even for bundle publication. Keep that catalog manifest aligned with `.claude-plugin/plugin.json` (runtime ID `meigen`) and `.mcp.json`; the packaging test enforces this. OpenClaw 2026.9.9 actually loads the directory as a Claude-format content/MCP bundle, despite documentation suggesting native-marker precedence. Do not claim a native JavaScript runtime or rely on detection without a real installation check.
-
-Acceptance on 2026-10-10: OpenClaw 2026.9.9 installed the candidate as bundle ID `meigen`, with one HTTP MCP server and four eligible Skill guides. Inspector reported zero issues or warnings. Real OpenClaw OAuth completed; its session MCP runtime listed 19 tools, called `list_skills`, and read one favorite. No generation/upload/save was performed. The temporary authorization was revoked in MeiGen and local OAuth credentials were cleared. Re-adding an existing server failed and left configuration bytes unchanged. Web/docs deployment and Git delivery are separate from ClawHub publication.
-
-Use an **absolute** Inspector output path outside the bundle. The CLI resolves relative `--out` paths inside the artifact directory. Run `node scripts/ci/check-openclaw-artifact.mjs <bundle-directory>` after validation and before publication; never ship generated Inspector reports. The 4.0.1 packaging patch removes the three generated reports included in 4.0.0; runtime behavior is unchanged.
-
-Publication verified on 2026-10-10: ClawHub `meigen-ai-design@4.0.1` and standalone `creative-toolkit@3.1.0` are both published as `latest`. Downloaded artifacts matched the reviewed files byte for byte (12 bundle files, three standalone Skill files). A fresh isolated OpenClaw 2026.9.9 installation using the unversioned `clawhub:meigen-ai-design` command resolved 4.0.1 and reported a Safe audit. Bundle ZIP SHA-256: `97bbf94b7e8ae38feb79c11fe9f112c3750c3e7d9bf8c16e27142f9b1329e193`. npm remains 3.0.0; these registry publications do not deploy the Web or docs changes.
-
-Current candidate gates: [3.1.0 release notes](RELEASE_NOTES_3.1.0.md#release-gates).
-
-
-## 2026-10-12 publication evidence
-
-npm `meigen@3.1.0` SHA-1: `eab19f529e88188fe6f3dcd3a9993b5b041e2ce7`. The actual packed server exposed 17 tools through the SDK; `list_skills` succeeded without credentials. The remote services expose 22 tools. OpenAI Platform rescanning confirmed 22 Live tools and no findings; store 1.1.0 metadata remains In review. Live tool discovery and consent are separate from that store review.
-
-ClawHub bundle 4.1.0 ZIP SHA-256: `60115f69713eac5361ec02fa0a5f14dd0dee573bdf1c8bfd4b5cce479e248645`; downloaded ZIP contents match all 12 local artifact files. Standalone Skill 3.2.0 registry digests match its three source files. OpenClaw structural inspection passed; no fresh authenticated OpenClaw session was tested for this release.
-
-The GitHub README was corrected after publication to reflect current ChatGPT library availability. The immutable 3.1.0 npm tarball retains its earlier README availability note; do not repack or replace a released version for a documentation-only correction. Use the current GitHub README and deployed docs for client availability.
-
-
-## 2026-10-14 HeyGen reference-video release
-
-npm `meigen@3.1.1` is published as `latest`. Runtime source commit: `093095bd9c658296d4e50974132324ebc38d5a77`; published SHA-1: `a07a5ae0c91ebd87d1de6a993888c28dc85ad52f`. The staged tarball was downloaded and all 148 runtime files matched the local build; SDK discovery reported version 3.1.1, 17 tools, and successful public model discovery. Linux and Windows CI passed.
-
-The patch fixes HeyGen per-clip versus aggregate reference limits and rejects incompatible video/audio inputs before a new paid submission. Existing stdio clients must update their pinned npm version and reconnect. Remote MCP uses the independently deployed Web backend. Distribution versions remain independent; no new ClawHub publication is implied.
-
-
-## 2026-10-15 Seedance draft release
-
-npm `meigen@3.2.0` is published as `latest`. Runtime source commit: `81da28d`; published SHA-1: `f529cc3eb0cf3986ddc9e17b38a3990ae9fd16e9`. The public tarball is byte-identical to the reviewed staged artifact; all 163 packaged files were checked. SDK discovery reported version 3.2.0 and 18 local tools, including `render_video_draft`; public model discovery passed without credentials. Private-library and saved-character tools remain remote OAuth only.
-
-Type checking, 246 tests, version/frontmatter checks, lockfile validation and release dry-run passed. Cross-repository guidance matches the published npm version. No paid draft-to-final generation was performed. Existing stdio users must update their package pin and restart/reconnect; hosted MCP deployment and ClawHub publications are independent.
-
-
-## 2026-10-19 Midjourney controls release
-
-npm `meigen@3.3.0` is published as `latest`. Runtime source commit: `4e35f48de15e1f59e8f7c37830a243935764e661`; published SHA-1: `61f548084bb70ac2d6a91f61ae040e3d948d0d2a`. The public 168-file tarball is byte-identical to the reviewed staged artifact. SDK discovery on that artifact reported version 3.3.0, 18 tools, and Midjourney `referenceType` / `niji7Options`, including the nested quality enum `1` / `4`. No paid generation was used for this package check.
-
-Type checking, tests, clean build, frontmatter/version/pin checks, lockfile dry-run and release dry-run passed; Windows and Ubuntu CI passed. Existing stdio users must update their package pin to 3.3.0 and restart/reconnect. Hosted Web/MCP and the independent ChatGPT adapter were deployed separately; the production Midjourney model retained ID `midjourney-v8.1`, switched to TTAPI, and now charges 12 credits at 1K / 18 at 2K per four-image batch. ChatGPT tool-definition scanning completed with no findings and its published cached schema includes the new controls. Store metadata review and ClawHub publications remain independent. No new paid production generation was performed during this release.
-
-## 2026-10-19 Midjourney naming patch
-
-npm `meigen@3.3.1` is published as `latest`. Release source commit: `f4e92f7`; published SHA-1: `4cf13e5fe1dae05f45d83c5e235a292c00faa0c2`. The public 169-file tarball is byte-identical to the reviewed staged artifact. SDK inspection verified runtime version 3.3.1, 18 local tools, the corrected Midjourney V8.2 description, preserved advanced options, and rejection without configured credentials with zero network calls.
-
-Type checking, 250 tests, frontmatter/version/pin checks, lockfile dry-run, cross-repository guidance checks and release dry-run passed. The patch updates prompt guidance and installation pins; the compatible API model ID remains `midjourney-v8.1`. Existing pinned stdio users must update to 3.3.1 and restart/reconnect. Web, ChatGPT, marketplace and ClawHub publications remain independent; no paid generation was performed for this release.
-
-
-## 2026-10-21 video failure guidance release
-
-npm `meigen@3.3.3` is published as `latest`. Runtime source commit: `8082f6bff7b137a854ca6bb7bd398f7b89bb5b02`; published SHA-1: `f135a9c718780ad816a95124628116f3e1d7ec53`. The reviewed staged artifact matches all 175 source/build files. Its SDK discovery reported version 3.3.3, 18 tools, successful no-key public model discovery and both finite video failure details. The public tarball is byte-identical to that stage. Ubuntu and Windows validation passed. No paid generation was used.
-
-The matching Web API/remote MCP was deployed from `7ed050a6bab83e16a26921c9fd3731f6d4bd06ec`; the independent ChatGPT adapter was deployed from `5d33ba5a5e4c6d664b8c7dfd404e7537fbff98fe`. Both live endpoints expose 23 tools and the new optional failure details/editing guidance. Eight bilingual video/API documentation pages were deployed separately from `1185a866af549502acb04505f926c20fba7efdb2` and read back from production. Store review, cached tool discovery, installed stdio clients and independently published plugin bundles remain separate states; existing stdio users must update their pin and restart/reconnect.
-
-### npm 3.4.0 — GIF and SVG image guides (2026-11-05)
-
-Published `meigen@3.4.0` as `latest` from `e953d4f29a432f9eecf314b59dd96e1a0d84a076`. The public registry tarball matches the reviewed stage byte for byte: 208,344 bytes, 176 files, SHA-1 `4be60c272467865ee3d6aa5235b8dd4e510d1e91`. Web and ChatGPT MCP discovery were verified before staging. Capable native generation remains gated separately from npm distribution.
+For installation and rollback, see [setup](SETUP.md) and [migration](MIGRATION.md). Earlier user-facing release notes remain in the [legacy source tag](https://github.com/jau123/MeiGen-AI-Design-MCP/tree/v3.4.0).
