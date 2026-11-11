@@ -1,7 +1,7 @@
 <h1 align="center">MeiGen AI Design MCP</h1>
 
 <p align="center">
-  <a href="SETUP.md"><img src="assets/meigen-mcp-home.jpg" alt="MeiGen MCP home with image and video creation, inspiration search, and favorites" width="900"></a>
+  <a href="SETUP.md"><img src="assets/meigen-mcp-home.jpg" alt="MeiGen MCP home with image and video creation, inspiration search, and favorites" height="360"></a>
   <br><sub>Interactive interface available in MCP Apps-compatible clients. Interface support varies by client.</sub>
 </p>
 

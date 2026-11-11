@@ -1,7 +1,7 @@
 <h1 align="center">MeiGen AI Design MCP</h1>
 
 <p align="center">
-  <a href="SETUP.md"><img src="assets/meigen-mcp-home.jpg" alt="MeiGen MCP 首页：图片与视频生成、灵感搜索和收藏" width="900"></a>
+  <a href="SETUP.md"><img src="assets/meigen-mcp-home.jpg" alt="MeiGen MCP 首页：图片与视频生成、灵感搜索和收藏" height="360"></a>
   <br><sub>交互界面适用于支持 MCP Apps 的客户端，具体支持情况因客户端而异。</sub>
 </p>
 
