@@ -76,4 +76,6 @@ jobs:
           test ! -d dist/lib
 
       - name: Check packed artifact
-        run: pnpm release:dry-run
+        # Packaging must remain testable after this version is published.
+        # publish --dry-run still queries npm and rejects an existing version.
+        run: pnpm pack --pack-destination "$RUNNER_TEMP"
