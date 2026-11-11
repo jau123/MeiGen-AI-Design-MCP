@@ -2,9 +2,11 @@
 
 A source change is not a publication. Record the source commit, selected version, validation evidence, and result separately for each channel. Never stage, publish, approve, push, or submit an external PR merely because local validation passed.
 
-## Current 4.0 candidate
+## Current 4.0 release
 
-The npm bridge is 4.0.0; the owned Claude plugin candidate is 4.0.0; the OpenClaw bundle candidate is 4.2.0. These are independent publications. `config.distributionNpmVersion` records the last verified registry version (3.4.0), not the prepared candidate. Update it only after registry read-back. Version pins in candidate examples are clearly marked not yet published. Historical publication notes below are dated evidence, not current registry state.
+The npm bridge 4.0.0 is published and `config.distributionNpmVersion` is verified as 4.0.0. The owned Claude plugin source is 4.0.0; the OpenClaw bundle candidate is 4.2.0. Marketplace publications are independent. Historical publication notes below are dated evidence, not current registry state.
+
+Verified 2026-11-11: npm latest is 4.0.0; public tarball SHA-1 `fa69aaac2cfc1842fa5887bcbfeafa85ebf02d21`, 22,824 bytes and 35 files, byte-identical to the reviewed stage. Runtime source `3f40bdd`; Linux/Windows CI passed after test-only browser-launcher correction `1c28350`. The immutable tarball retains candidate wording in its bundled guides; current GitHub guides record publication. No runtime files changed after staging.
 
 Use pnpm and Node.js 24 (minimum 22.19). The sole authoritative dependency lock is pnpm-lock.yaml; CI installs it frozen on Linux and Windows. No duplicated Web business code remains to synchronize.
 

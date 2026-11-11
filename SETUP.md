@@ -13,7 +13,7 @@ Check `list_models` and `list_skills` without generating. Public discovery prove
 
 ## npm fallback for stdio hosts
 
-The prepared 4.0.0 bridge requires Node.js 22.19+ (24 recommended). **Publish before using this registry command:**
+The published 4.0.0 bridge requires Node.js 22.19+ (24 recommended):
 
 ```json
 {"mcpServers":{"meigen":{"command":"npx","args":["-y","meigen@4.0.0"]}}}
@@ -27,7 +27,7 @@ BYOK-only configuration stops with migration guidance. No key or credential is s
 
 ## Optional configuration helper
 
-After publication, `npx -y meigen@4.0.0 init cursor` (or `vscode`, `claude`) can add a native HTTP entry. It never converts an existing stdio/wrapper/key entry automatically. Existing matching HTTP entries are kept byte-for-byte. Other client settings are preserved and a private backup is made before adding to an existing config. JSONC is not rewritten: edit comments/trailing commas through your host instead.
+`npx -y meigen@4.0.0 init cursor` (or `vscode`, `claude`) can add a native HTTP entry. It never converts an existing stdio/wrapper/key entry automatically. Existing matching HTTP entries are kept byte-for-byte. Other client settings are preserved and a private backup is made before adding to an existing config. JSONC is not rewritten: edit comments/trailing commas through your host instead.
 
 ## Files, recovery and legacy use
 

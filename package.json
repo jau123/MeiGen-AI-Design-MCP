@@ -2,7 +2,7 @@
   "name": "meigen",
   "version": "4.0.0",
   "config": {
-    "distributionNpmVersion": "3.4.0",
+    "distributionNpmVersion": "4.0.0",
     "legacyNpmVersion": "3.4.0",
     "remoteMcpUrl": "https://www.meigen.ai/api/mcp"
   },

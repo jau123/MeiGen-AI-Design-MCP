@@ -24,7 +24,7 @@ For VS Code, put the same entry under `servers` in `.vscode/mcp.json`. Verify wi
 
 ## Final npm bridge
 
-**4.0.0 is the prepared release candidate, not a claim of registry publication.** After publication, hosts requiring stdio can keep the existing command shape:
+**meigen@4.0.0 is published.** Hosts requiring stdio can keep the existing command shape:
 
 ```json
 {"mcpServers":{"meigen":{"command":"npx","args":["-y","meigen@4.0.0"]}}}

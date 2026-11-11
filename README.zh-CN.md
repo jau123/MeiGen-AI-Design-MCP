@@ -24,7 +24,7 @@ VS Code 将同一条目放入 `.vscode/mcp.json` 的 `servers`。用 `list_model
 
 ## 最后一版 npm 连接桥
 
-**4.0.0 目前是待发布候选，不表示 npm 已上线。** 发布后，仍要求 stdio 的客户端可使用：
+**meigen@4.0.0 已发布。** 仍要求 stdio 的客户端可使用：
 
 ```json
 {"mcpServers":{"meigen":{"command":"npx","args":["-y","meigen@4.0.0"]}}}

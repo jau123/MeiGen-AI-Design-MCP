@@ -1,6 +1,6 @@
 # Migrating to remote MeiGen (4.0)
 
-4.0.0 is a prepared major-version candidate. Registry publication is a separate release step. Native remote connections can already use `https://www.meigen.ai/api/mcp` without waiting for npm.
+4.0.0 is published on npm. It is a major-version migration. Native remote connections can already use `https://www.meigen.ai/api/mcp` without waiting for npm.
 
 | Existing installation | Action | Account / behavior |
 | --- | --- | --- |

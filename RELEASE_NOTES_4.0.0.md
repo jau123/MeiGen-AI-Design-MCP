@@ -1,6 +1,6 @@
-# MeiGen 4.0.0 — final npm feature release candidate
+# MeiGen 4.0.0 — final npm feature release
 
-Status: prepared locally; publication is not implied.
+Status: published on npm on 2026-11-11. SHA-1: `fa69aaac2cfc1842fa5887bcbfeafa85ebf02d21`. The public 35-file tarball matches the reviewed stage byte for byte; Linux and Windows CI passed.
 
 - `meigen` and `meigen-mcp` become stdio bridges to the hosted Streamable HTTP endpoint.
 - Tools, schemas, instructions and results come from the remote server. Generation/search/billing are no longer reimplemented in npm.

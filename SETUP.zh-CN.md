@@ -11,7 +11,7 @@
 
 ## 需要 stdio 的客户端
 
-4.0.0 是待发布候选。**发布后**可使用 `npx -y meigen@4.0.0`；需要 Node.js 22.19+，推荐 24。命令仍是 `meigen` / `meigen-mcp`，实际工具均来自远程。
+4.0.0 已发布，可使用 `npx -y meigen@4.0.0`；需要 Node.js 22.19+，推荐 24。命令仍是 `meigen` / `meigen-mcp`，实际工具均来自远程。
 
 新连接按提示在浏览器完成 OAuth。固定版本的 `mcp-remote` 管理登录缓存，默认目录 `~/.mcp-auth`，也可设置 `MCP_REMOTE_CONFIG_DIR`。OAuth 传输支持 `HTTP_PROXY`、`HTTPS_PROXY`、`NO_PROXY`；API Key 通道使用 Node fetch，不保证各 Node 版本都支持代理环境变量。
 
@@ -19,7 +19,7 @@
 
 仅检测到 BYOK 时会停止并给出迁移说明；不支持自定义 `MEIGEN_BASE_URL`。需要这些能力时保留旧版。不要把第三方供应商任务默默换成消耗 MeiGen 积分的请求。
 
-发布后可用 `npx -y meigen@4.0.0 init cursor`（或 `vscode`、`claude`）添加原生 HTTP 配置。已存在的 stdio/包装命令不自动替换；已有正确远程条目保持原样。添加条目保留其他设置并备份现有文件。JSONC 不自动改写。
+可用 `npx -y meigen@4.0.0 init cursor`（或 `vscode`、`claude`）添加原生 HTTP 配置。已存在的 stdio/包装命令不自动替换；已有正确远程条目保持原样。添加条目保留其他设置并备份现有文件。JSONC 不自动改写。
 
 远程端不能读取本机路径，也不会自动保存结果。使用真实 HTTPS URL 或工具支持的上传方式，按实时 schema 校验参考文件。生成只消耗购买积分。请求中断后保留原 requestId，先查询任务状态，不要新建付费任务验证连接。
 
