@@ -1,6 +1,11 @@
 <h1 align="center">MeiGen AI Design MCP</h1>
 
 <p align="center">
+  <a href="SETUP.md"><img src="assets/meigen-mcp-home.jpg" alt="MeiGen MCP 首页：图片与视频生成、灵感搜索和收藏" width="900"></a>
+  <br><sub>交互界面适用于支持 MCP Apps 的客户端，具体支持情况因客户端而异。</sub>
+</p>
+
+<p align="center">
   发现灵感，使用最新 AI 模型创建图片和视频。<br>
   为 ChatGPT、Claude、Cursor、OpenClaw 及其他 AI 助手提供开源 MCP 工具。
 </p>

@@ -1,6 +1,11 @@
 <h1 align="center">MeiGen AI Design MCP</h1>
 
 <p align="center">
+  <a href="SETUP.md"><img src="assets/meigen-mcp-home.jpg" alt="MeiGen MCP home with image and video creation, inspiration search, and favorites" width="900"></a>
+  <br><sub>Interactive interface available in MCP Apps-compatible clients. Interface support varies by client.</sub>
+</p>
+
+<p align="center">
   Discover inspiration. Create images and videos with the latest AI models.<br>
   Open-source MCP tools for ChatGPT, Claude, Cursor, OpenClaw and other AI assistants.
 </p>
