@@ -67,7 +67,11 @@ const readAttempts=async()=>[...new Map([...stderr.matchAll(/^MeiGen sign-in: (.
 const authorize=async number=>{
  const attempt=await wait(async()=>{const all=await readAttempts();return all[number-1]});
  const url=attempt.url;const auth=new URL(url),redirect=new URL(auth.searchParams.get('redirect_uri'));redirect.searchParams.set('code','offline-code-'+number);redirect.searchParams.set('state',auth.searchParams.get('state'));redirect.searchParams.set('iss',origin);
- requestedScopes.push(auth.searchParams.get('scope'));await wait(()=>stderr.includes(auth.searchParams.get('state')));const response=await fetch(redirect);await response.text();return {scope:auth.searchParams.get('scope'),printedUrlHasMatchingState:stderr.includes(auth.searchParams.get('state')),callbackStatus:response.status};
+ requestedScopes.push(auth.searchParams.get('scope'));await wait(()=>stderr.includes(auth.searchParams.get('state')));
+ // GET 405 discovery can print the manual URL before lazy callback listen.
+ // Wait without an authorization code; never replay a callback/code on failure.
+ await wait(async()=>{try{const ready=await fetch(new URL('/',redirect),{method:'HEAD',signal:AbortSignal.timeout(1000)});await ready.body?.cancel();return true}catch{return false}});
+ const response=await fetch(redirect);await response.text();return {scope:auth.searchParams.get('scope'),printedUrlHasMatchingState:stderr.includes(auth.searchParams.get('state')),callbackStatus:response.status};
 };
 const result={};
 try{
@@ -89,7 +93,7 @@ try{
  result.reconnectedToolSucceeded=!!(await wait(()=>received.find(x=>x.id===5))).result;
  result.extraAuthorizationOnReconnect=(await readAttempts()).length-authorizationCount;
  result.privateMarkerVisible=(stderr+JSON.stringify(failed)).includes('PRIVATE_DIAGNOSTIC_MARKER');result.fakeAuthUrlVisible=stderr.includes('FAKE_ATTACKER_STATE');result.sanitizedRpcError=failed.error;result.literalBackslashN=stderr.includes('\\n');result.tokenExchanges=tokens;result.toolDispatches=toolDispatches;result.paths=paths;
-}catch(error){result.reviewError=error.message;result.requestedScopes=requestedScopes;result.neededScope=requiredScope;result.paths=paths;result.tokenExchanges=tokens;result.protocol=received;result.stderr=stderr;}
+}catch(error){result.reviewError=error.message;result.reviewCause=error.cause?.code;result.requestedScopes=requestedScopes;result.neededScope=requiredScope;result.paths=paths;result.tokenExchanges=tokens;result.protocol=received;result.stderr=stderr;}
 finally{child.kill('SIGTERM');await new Promise(resolve=>child.once('exit',resolve));lines.close();server.closeAllConnections();await new Promise(resolve=>server.close(resolve));}
 assert.equal(result.reviewError,undefined,JSON.stringify(result));
 assert.equal(result.initialized,true);
