@@ -9,7 +9,7 @@
       "name": "meigen",
       "source": "./plugin",
       "description": "MeiGen remote tools and visual creative guidance.",
-      "version": "4.0.0",
+      "version": "4.0.1",
       "author": {
         "name": "MeiGen"
       },

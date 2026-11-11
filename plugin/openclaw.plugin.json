@@ -2,7 +2,7 @@
   "id": "meigen-ai-design",
   "name": "MeiGen",
   "description": "MeiGen remote image and video workflows with OAuth and purchased credits.",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "skills": [
     "./skills"
   ],
