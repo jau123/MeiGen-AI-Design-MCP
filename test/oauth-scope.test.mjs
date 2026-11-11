@@ -61,10 +61,12 @@ let child=spawn(process.execPath,['-e',code],{env:{PATH:process.env.PATH,HOME:di
 let stderr='';child.stderr.on('data',d=>stderr+=d);let lines=createInterface({input:child.stdout});const received=[];lines.on('line',line=>received.push(JSON.parse(line)));
 const wait=async fn=>{for(let n=0;n<120;n++){const value=await fn();if(value)return value;await new Promise(resolve=>setTimeout(resolve,100));}throw new Error('timeout')};
 const call=(id,method,params)=>child.stdin.write(JSON.stringify({jsonrpc:'2.0',id,method,params})+'\n');
-const readAttempts=async()=>{try{return (await readFile(dir+'/browser-attempt.jsonl','utf8')).trim().split('\n').map(x=>JSON.parse(x));}catch{return []}};
+// Browser launchers retry commands on Linux and encode arguments on Windows.
+// Exercise the public manual-login URL, counting authorizations by OAuth state.
+const readAttempts=async()=>[...new Map([...stderr.matchAll(/^MeiGen sign-in: (.+)\n/gm)].map(match=>{const url=new URL(match[1]);return [url.searchParams.get('state'),{url:url.href}]})).values()];
 const authorize=async number=>{
  const attempt=await wait(async()=>{const all=await readAttempts();return all[number-1]});
- const url=attempt.args.find(x=>x.includes(origin+'/authorize?'));const auth=new URL(url),redirect=new URL(auth.searchParams.get('redirect_uri'));redirect.searchParams.set('code','offline-code-'+number);redirect.searchParams.set('state',auth.searchParams.get('state'));redirect.searchParams.set('iss',origin);
+ const url=attempt.url;const auth=new URL(url),redirect=new URL(auth.searchParams.get('redirect_uri'));redirect.searchParams.set('code','offline-code-'+number);redirect.searchParams.set('state',auth.searchParams.get('state'));redirect.searchParams.set('iss',origin);
  requestedScopes.push(auth.searchParams.get('scope'));await wait(()=>stderr.includes(auth.searchParams.get('state')));const response=await fetch(redirect);await response.text();return {scope:auth.searchParams.get('scope'),printedUrlHasMatchingState:stderr.includes(auth.searchParams.get('state')),callbackStatus:response.status};
 };
 const result={};
