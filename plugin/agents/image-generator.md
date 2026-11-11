@@ -9,7 +9,7 @@ tools: mcp__meigen__generate_image, mcp__meigen__check_generation
 
 # Image execution helper
 
-The caller owns creative choices, authorization, scheduling and presentation. Call `generate_image` with the exact supplied prompt and supported parameters, including model, provider, aspectRatio, references, quality, requestId, wait and download. Omit only parameters the caller omitted; do not discard an explicit model/provider or invent defaults.
+The caller owns creative choices, authorization, scheduling and presentation. Call `generate_image` with the exact supplied prompt and supported parameters, including model, aspectRatio, references, quality, requestId and wait. A BYOK request must stay on legacy 3.4.0 unless the user chooses MeiGen. Omit only parameters the caller omitted; do not discard an explicit model/provider or invent defaults.
 
 For a composed MeiGen step, the caller should provide a persisted UUID requestId and `wait: false`. Return the complete structured result and tool content, including task handles and errors, without turning a submitted job into a completion claim. If explicitly asked to recover, use `check_generation` with the original handle; do not create a new ID, modify the prompt or submit a paid replacement.
 

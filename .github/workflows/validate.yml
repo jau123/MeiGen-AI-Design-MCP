@@ -50,16 +50,9 @@ jobs:
           node-version: '24'
 
       - uses: pnpm/action-setup@v4
-        with:
-          version: 10
-
-      - name: Validate npm lock before import
-        run: npm ci --dry-run --ignore-scripts
 
       - name: Install locked deps
-        run: |
-          pnpm import
-          pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Typecheck
         run: pnpm typecheck
@@ -77,4 +70,10 @@ jobs:
           pnpm build
           test -f dist/index.js
           test -f dist/cli/init.js
-          test -f dist/cli/gen.js
+          test -f dist/oauth-bridge.js
+          test -f dist/token-bridge.js
+          test ! -d dist/tools
+          test ! -d dist/lib
+
+      - name: Check packed artifact
+        run: pnpm release:dry-run

@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# Runtime pins follow npm. Distribution versions are independently owned.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT"
@@ -7,26 +6,20 @@ node --input-type=module <<'NODE'
 import { readFileSync } from 'node:fs'
 const json = path => JSON.parse(readFileSync(path, 'utf8'))
 const pkg = json('package.json')
-const lock = json('package-lock.json')
 const plugin = json('plugin/.claude-plugin/plugin.json')
 const entry = json('.claude-plugin/marketplace.json').plugins.find(p => p.name === plugin.name)
-const openclaw = json('openclaw-plugin/package.json')
-const openclawManifest = json('openclaw-plugin/.claude-plugin/plugin.json')
-if (openclaw.version !== openclawManifest.version) throw new Error('OpenClaw package and bundle manifest versions differ')
-const server = readFileSync('src/server.ts', 'utf8').match(/version:\s*['"]([0-9]+\.[0-9]+\.[0-9]+)['"]/)?.[1]
-const skill = readFileSync('openclaw/SKILL.md', 'utf8').match(/^version:\s*(\S+)/m)?.[1]
-const semver = /^\d+\.\d+\.\d+(?:-[\w.-]+)?(?:\+[\w.-]+)?$/
-const fail = message => { console.error(`::error::${message}`); process.exitCode = 1 }
-if (lock.version !== pkg.version || lock.packages?.['']?.version !== pkg.version) fail('npm lockfile version must match package.json')
-if (server !== pkg.version) fail(`MCP runtime ${server} differs from npm ${pkg.version}`)
-if (!entry || entry.version !== plugin.version) fail('Self-owned Claude marketplace entry must match its plugin manifest version')
-for (const [name, version] of [['npm', pkg.version], ['installed npm', pkg.config.distributionNpmVersion], ['Claude plugin', plugin.version], ['OpenClaw plugin', openclaw.version], ['ClawHub standalone Skill', skill]]) {
-  if (!version || !semver.test(version)) fail(`${name} has an invalid or missing version`)
-  console.log(`${name}: ${version}`)
+const claw = json('openclaw-plugin/package.json')
+const version = readFileSync('src/config.ts', 'utf8').match(/BRIDGE_VERSION = '([^']+)'/)?.[1]
+if (version !== pkg.version) throw new Error('Bridge and npm versions differ')
+if (entry?.version !== plugin.version || json('plugin/openclaw.plugin.json').version !== plugin.version) throw new Error('Owned plugin manifest versions differ')
+for (const file of ['openclaw-plugin/.claude-plugin/plugin.json', 'openclaw-plugin/openclaw.plugin.json']) {
+  if (json(file).version !== claw.version) throw new Error(`OpenClaw version mismatch: ${file}`)
 }
-for (const [path, servers] of [['plugin/.mcp.json', json('plugin/.mcp.json').mcpServers], ['plugin/openclaw.plugin.json', json('plugin/openclaw.plugin.json').mcpServers]]) {
-  const server = servers?.meigen
-  if (server?.command !== 'npx' || !server.args?.includes(`meigen@${pkg.config.distributionNpmVersion}`)) fail(`${path} must declare the pinned meigen npm server`)
+for (const file of ['plugin/.mcp.json', 'plugin/openclaw.plugin.json', 'openclaw-plugin/.mcp.json', 'openclaw-plugin/openclaw.plugin.json']) {
+  const server = json(file).mcpServers?.meigen
+  if (server?.url !== pkg.config.remoteMcpUrl || server.command || server.args || server.headers) throw new Error(`Expected credential-free native remote manifest: ${file}`)
+  if (file === 'plugin/.mcp.json' ? server.type !== 'http' : server.transport !== 'streamable-http' || server.auth !== 'oauth') throw new Error(`Remote transport mismatch: ${file}`)
 }
-if (!process.exitCode) console.log('Runtime pins and independently versioned distribution manifests are coherent.')
+for (const value of [pkg.version, pkg.config.distributionNpmVersion, pkg.config.legacyNpmVersion, plugin.version, claw.version]) if (!/^\d+\.\d+\.\d+$/.test(value)) throw new Error('Invalid channel version')
+console.log(`Prepared npm ${pkg.version}; published pin ${pkg.config.distributionNpmVersion}; legacy ${pkg.config.legacyNpmVersion}; Claude ${plugin.version}; OpenClaw ${claw.version}`)
 NODE

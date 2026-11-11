@@ -2,45 +2,33 @@
 
 A source change is not a publication. Record the source commit, selected version, validation evidence, and result separately for each channel. Never stage, publish, approve, push, or submit an external PR merely because local validation passed.
 
-## Independent release versions
+## Current 4.0 candidate
 
-| Channel | Source and version | Release boundary |
-|---|---|---|
-| npm `meigen` | `package.json`, lockfile, runtime server version | Registry package; Install commands follow the published config.distributionNpmVersion |
-| Self-owned Claude marketplace | `.claude-plugin/marketplace.json` entry and `plugin/.claude-plugin/plugin.json` | Keep these two versions equal; they may differ from npm |
-| ClawHub standalone Skill `creative-toolkit` | `openclaw/SKILL.md` and `openclaw/references/` | Independent Skill version **3.2.0**; verify publication status |
-| ClawHub plugin `meigen-ai-design` | `openclaw-plugin/` + shared Skill sources via `scripts/build-openclaw-plugin.mjs` | Independent plugin version **4.1.0**; remote OAuth, no npm pin |
-| `wshobson/agents` | Upstream's `plugins/meigen-ai-design` and marketplace entry | Separate reviewed PR; verify that upstream checkout's packaging and version |
-| `meigen-docs` | English and Chinese public documentation | Separate deployment and link/API contract checks |
-| Aggregator listings | Each site's listing | Separate submission/update; do not infer completion from GitHub or npm |
-| Web/remote MCP | Web deployment | Separate API deployment; refresh the host's remote tool list afterward |
+The npm bridge is 4.0.0; the owned Claude plugin candidate is 4.0.0; the OpenClaw bundle candidate is 4.2.0. These are independent publications. `config.distributionNpmVersion` records the last verified registry version (3.4.0), not the prepared candidate. Update it only after registry read-back. Version pins in candidate examples are clearly marked not yet published. Historical publication notes below are dated evidence, not current registry state.
 
-npm **3.1.0** was published as `latest` on 2026-10-12, with matching owned distribution manifests. ClawHub plugin **4.1.0** and standalone Skill **3.2.0** are also published as `latest`; platform scans are clean and all published files match the reviewed sources. Advance `config.distributionNpmVersion` and static install commands together after verifying the new version in the registry. Each channel has an independent publication boundary. Read [the migration notes](RELEASE_NOTES_3.0.0.md) before upgrading from 2.x. Before an authorized release, verify the destination's versions and record acceptance separately.
-
-## Validate before requesting a release
-
-Use pnpm and the project's configured Node version. Do not change `engines` as a publishing workaround.
+Use pnpm and Node.js 24 (minimum 22.19). The sole authoritative dependency lock is pnpm-lock.yaml; CI installs it frozen on Linux and Windows. No duplicated Web business code remains to synchronize.
 
 ```sh
+pnpm install --frozen-lockfile
 pnpm typecheck
 pnpm test
 node scripts/ci/check-frontmatter.mjs
 bash scripts/ci/check-versions.sh
 bash scripts/ci/check-pinned-npm.sh
+pnpm build
+pnpm check:remote
 pnpm release:dry-run
 ```
 
-CI first validates package.json against package-lock.json with `npm ci --dry-run --ignore-scripts`, then imports the existing npm lockfile with `pnpm import` and installs using the resulting frozen pnpm lock. A failed locked install is a failure, not permission to fall back to an unlocked install.
+The read-only remote gate checks live discovery and public model/Skill calls, never paid generation. Separately test the packed bridge in stdio, OAuth login/refresh, existing fixed-key mode, shutdown and host schema refresh. A synthetic HTTP fixture is not real browser consent or client acceptance. Keep account identity and original request IDs during migration; do not replay paid tasks under a new ID.
 
-`dry-run` runs package packing without registry writes or loading `.env.local`; it bypasses pnpm's clean-tree requirement only for the dry run. `prepack` rebuilds `dist`. Review the file listing: the package allowlist is `bin`, `dist`, `SETUP.md`, `SETUP.zh-CN.md`, `RELEASE_NOTES_3.0.0.md`, `RELEASE_NOTES_3.1.0.md`, `SKILLS_API.md`, `COMPOSABLE_WORKFLOWS.md`, `COMPOSABLE_WORKFLOWS.zh-CN.md`, and `MCP_AUTH_AND_RESULTS.md`, plus standard package metadata/docs. Secrets, private npm config, tests, and unrelated worktree files must stay out. A local dry run does not prove registry authentication, available version, or publishing rights.
+`dry-run` does not load private release credentials or write the registry. The package includes bin, dist, setup/migration/release notes and standard metadata. Confirm legacy tools/providers, credentials, tests and incidental worktree files are absent. Native manifests must point directly at the hosted server and contain no keys. See MIGRATION.md for retained local behavior and rollback.
 
-For a release involving both repositories, explicitly run this additional check with the actual Web checkout path:
+Web public installation docs are a separate repository/deployment. After npm publication, update their stdio fallback to the verified bridge version and describe 3.4.0 only as legacy; native remote URLs do not change. Source edits do not update a host's saved configuration. Claude/OpenClaw marketplace refresh and fresh host acceptance remain separate release steps. Retain the v3.4.0 tag and old published package.
 
-```sh
-node scripts/ci/check-guidance-sync.mjs /path/to/meigen-web --published
-```
+## Historical release procedures and evidence
 
-It compares npm `src/lib/skill-guidance.ts` with Web `src/lib/skills/mcp-guidance.ts` and checks the Web npm pin. It is intentionally not a default CI requirement: an independent npm clone does not need a sibling Web checkout. Both repositories still need their own tests and deployment review.
+The remaining notes describe earlier releases. Apply current 4.0 contracts above when a legacy tool, local provider or npm pin differs. Staged publishing below remains the required npm release procedure; do not stage without explicit authorization and a clean reviewed source snapshot.
 
 ## No-key host smoke checks
 

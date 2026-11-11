@@ -1,10 +1,16 @@
 {
   "id": "meigen",
   "name": "MeiGen",
-  "version": "4.1.0",
+  "version": "4.2.0",
   "description": "Visual inspiration, image and video creation, and your MeiGen library through OAuth.",
-  "skills": ["./skills"],
-  "configSchema": { "type": "object", "properties": {}, "additionalProperties": false },
+  "skills": [
+    "./skills"
+  ],
+  "configSchema": {
+    "type": "object",
+    "properties": {},
+    "additionalProperties": false
+  },
   "mcpServers": {
     "meigen": {
       "url": "https://www.meigen.ai/api/mcp",

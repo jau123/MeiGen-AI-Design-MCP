@@ -1,18 +1,18 @@
-FROM node:20-slim AS builder
+FROM node:24-slim AS builder
 WORKDIR /app
-COPY package*.json ./
-COPY tsconfig.json ./
-RUN npm install
+RUN corepack enable
+COPY package.json pnpm-lock.yaml tsconfig.json ./
+RUN pnpm install --frozen-lockfile
 COPY src/ ./src/
-COPY data/ ./data/
-RUN npm run build
+RUN pnpm build
 
-FROM node:20-slim
+FROM node:24-slim
 WORKDIR /app
+RUN corepack enable
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --prod --frozen-lockfile
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/data ./data
-COPY --from=builder /app/node_modules ./node_modules
-COPY package*.json ./
 COPY bin/ ./bin/
 ENV NODE_ENV=production
+USER node
 ENTRYPOINT ["node", "bin/meigen-mcp.js"]

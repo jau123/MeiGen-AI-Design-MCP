@@ -1,3 +1,5 @@
+> Historical 3.x design/reference. For the current remote bridge use [MIGRATION.md](MIGRATION.md) and the live remote tool schemas. Local-only features below are not part of npm 4.0.
+
 # MeiGen Optimization Roadmap
 
 > Based on comparison with [ui-ux-pro-max-skill](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) — 2026-02-10

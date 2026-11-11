@@ -8,8 +8,8 @@
     {
       "name": "meigen",
       "source": "./plugin",
-      "description": "MeiGen MCP: AI-powered visual creative expert — search inspiration, enhance prompts, and generate images",
-      "version": "3.1.0",
+      "description": "MeiGen remote tools and visual creative guidance.",
+      "version": "4.0.0",
       "author": {
         "name": "MeiGen"
       },

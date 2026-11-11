@@ -1,3 +1,5 @@
+> Historical 3.x design/reference. For the current remote bridge use [MIGRATION.md](MIGRATION.md) and the live remote tool schemas. Local-only features below are not part of npm 4.0.
+
 # Authentication and result compatibility
 
 The local npm MCP keeps API Key authentication, local file preparation/saving, BYOK and local preferences. No embedded OAuth client secret, browser login command or forced credential migration is added. Interactive remote clients may use OAuth through the Web `/api/mcp` endpoint once its separately reviewed deployment and registered client configuration are enabled. Existing local API keys remain compatible with generation, public search and Skills, but cannot access the private library. New connections use remote OAuth.

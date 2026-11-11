@@ -1,77 +1,30 @@
-/**
- * MeiGen MCP Server configuration
- * Priority: environment variables > ~/.config/meigen/config.json > defaults
- */
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { homedir } from 'node:os'
 
-import { readFileSync } from 'fs'
-import { join } from 'path'
-import { homedir } from 'os'
+export const REMOTE_URL = 'https://www.meigen.ai/api/mcp'
+export const BRIDGE_VERSION = '4.0.0'
+export const LEGACY_VERSION = '3.4.0'
 
-export interface MeiGenConfig {
-  // MeiGen platform mode
-  meigenApiToken?: string
-
-  // OpenAI-compatible mode (user's own key)
-  openaiApiKey?: string
-  openaiBaseUrl: string
-  openaiModel: string
-
-  // MeiGen API base URL
-  meigenBaseUrl: string
-
-  // Upload gateway (for reference image upload to R2)
-  uploadGatewayUrl: string
-}
-
-export type ProviderType = 'openai' | 'meigen'
-
-interface ConfigFile {
-  meigenApiToken?: string
-  openaiApiKey?: string
-  openaiBaseUrl?: string
-  openaiModel?: string
-  uploadGatewayUrl?: string
-}
-
-function loadConfigFile(): ConfigFile {
+/** Read only the existing config; never migrate or rewrite credentials on startup. */
+export function connectionConfig(env: NodeJS.ProcessEnv = process.env, configPath = join(homedir(), '.config/meigen/config.json'), oauthOnly = false) {
+  if (env.MEIGEN_BASE_URL && env.MEIGEN_BASE_URL.replace(/\/$/, '') !== 'https://www.meigen.ai') {
+    throw new Error('Custom MEIGEN_BASE_URL is not supported by the remote bridge. Preserve this connection on meigen@3.4.0 or configure its remote URL directly in your host.')
+  }
+  if (oauthOnly) return { mode: 'oauth' as const, url: REMOTE_URL }
+  let file: Record<string, unknown> = {}
   try {
-    const configPath = join(homedir(), '.config', 'meigen', 'config.json')
-    const content = readFileSync(configPath, 'utf-8')
-    return JSON.parse(content) as ConfigFile
-  } catch {
-    return {}
+    const data: unknown = JSON.parse(readFileSync(configPath, 'utf8'))
+    if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('Invalid config')
+    file = data as Record<string, unknown>
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw new Error('Cannot read the existing MeiGen configuration. Nothing was changed. Check it privately, or use --oauth to select account sign-in explicitly.')
   }
-}
-
-export function loadConfig(): MeiGenConfig {
-  const file = loadConfigFile()
-  return {
-    meigenApiToken: process.env.MEIGEN_API_TOKEN || file.meigenApiToken,
-
-    openaiApiKey: process.env.OPENAI_API_KEY || file.openaiApiKey,
-    openaiBaseUrl: process.env.OPENAI_BASE_URL || file.openaiBaseUrl || 'https://api.openai.com',
-    openaiModel: process.env.OPENAI_MODEL || file.openaiModel || 'gpt-image-2',
-
-    meigenBaseUrl: process.env.MEIGEN_BASE_URL || 'https://www.meigen.ai',
-
-    uploadGatewayUrl: process.env.UPLOAD_GATEWAY_URL || file.uploadGatewayUrl || 'https://gen.meigen.ai',
+  const token = env.MEIGEN_API_TOKEN || file.meigenApiToken
+  if (token !== undefined && token !== '') {
+    if (typeof token !== 'string' || !/^meigen_sk_[A-Za-z0-9_-]+$/.test(token) || token.length > 16384) throw new Error('The configured MeiGen API token is invalid. Check it privately or select --oauth. Credentials were not sent.')
+    return { mode: 'api-key' as const, url: REMOTE_URL, token }
   }
-}
-
-/**
- * Detect available providers.
- * Priority: meigen > openai
- */
-export function getAvailableProviders(config: MeiGenConfig): ProviderType[] {
-  const providers: ProviderType[] = []
-  if (config.meigenApiToken) providers.push('meigen')
-  if (config.openaiApiKey) providers.push('openai')
-  return providers
-}
-
-/** Get default provider (by priority) */
-export function getDefaultProvider(config: MeiGenConfig): ProviderType | null {
-  if (config.meigenApiToken) return 'meigen'
-  if (config.openaiApiKey) return 'openai'
-  return null
+  if (env.OPENAI_API_KEY || file.openaiApiKey) throw new Error('An existing BYOK configuration was found. Keep meigen@3.4.0 for that provider, or select --oauth to connect to MeiGen explicitly. No provider or billing account was changed.')
+  return { mode: 'oauth' as const, url: REMOTE_URL }
 }

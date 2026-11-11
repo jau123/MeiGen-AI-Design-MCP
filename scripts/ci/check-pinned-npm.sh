@@ -1,63 +1,18 @@
 #!/usr/bin/env bash
-# Verify every distribution doc that pins `meigen@<ver>` matches package.json,
-# and that no doc accidentally uses `meigen@latest` (supply-chain risk).
-#
-# Exception: src/cli/init.ts intentionally uses `meigen@latest` because it generates
-# end-user MCP configs — those should auto-update via npm.
-
 set -euo pipefail
-
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT"
-
-PKG_VER=$(node -p "require('./package.json').config.distributionNpmVersion")
-EXPECTED="meigen@${PKG_VER}"
-
-# Files that MUST pin the current version. Edit when adding new distribution docs.
-DIST_FILES=(
-  "README.md"
-  "README.zh-CN.md"
-  "COMPOSABLE_WORKFLOWS.md"
-  "COMPOSABLE_WORKFLOWS.zh-CN.md"
-  "plugin/README.md"
-  "plugin/.mcp.json"
-  "plugin/openclaw.plugin.json"
-  "src/server.ts"
-  "src/lib/skill-guidance.ts"
-  "openclaw/SKILL.md"
-  "openclaw/references/troubleshooting.md"
-)
-
-FAIL=0
-for f in "${DIST_FILES[@]}"; do
-  if [[ ! -f "$f" ]]; then
-    echo "::error::Required distribution file missing: $f"
-    FAIL=1
-    continue
-  fi
-
-  # Find every meigen@<ver> reference.
-  HITS=$(grep -oE 'meigen@[0-9]+\.[0-9]+\.[0-9]+|meigen@latest' "$f" || true)
-
-  if [[ -z "$HITS" ]]; then
-    echo "::error::$f has no meigen@<version> pin — should reference $EXPECTED"
-    FAIL=1
-    continue
-  fi
-
-  while IFS= read -r hit; do
-    if [[ "$hit" == "meigen@latest" ]]; then
-      echo "::error::$f uses 'meigen@latest' — pin to $EXPECTED instead"
-      FAIL=1
-    elif [[ "$hit" != "$EXPECTED" ]]; then
-      echo "::error::$f pins '$hit' but should pin '$EXPECTED'"
-      FAIL=1
-    fi
-  done <<< "$HITS"
-done
-
-if [[ $FAIL -eq 1 ]]; then
-  exit 1
-fi
-
-echo "All distribution docs pin $EXPECTED."
+node --input-type=module <<'NODE'
+import { readFileSync, readdirSync } from 'node:fs'
+const pkg = JSON.parse(readFileSync('package.json', 'utf8'))
+const walk = root => readdirSync(root, { withFileTypes: true }).flatMap(e => e.isDirectory() ? walk(`${root}/${e.name}`) : [`${root}/${e.name}`])
+const files = ['README.md','README.zh-CN.md','SETUP.md','SETUP.zh-CN.md','MIGRATION.md','COMPOSABLE_WORKFLOWS.md','COMPOSABLE_WORKFLOWS.zh-CN.md','src/cli/init.ts', ...walk('plugin'), ...walk('openclaw'), ...walk('openclaw-plugin')]
+const allowed = new Set([pkg.version, pkg.config.legacyNpmVersion])
+for (const file of files) {
+  if (!/\.(md|ts|json)$/.test(file)) continue
+  for (const match of readFileSync(file, 'utf8').matchAll(/meigen@([0-9]+\.[0-9]+\.[0-9]+|latest)/g)) {
+    if (!allowed.has(match[1])) throw new Error(`Unexpected npm pin ${match[0]} in ${file}`)
+  }
+}
+console.log('Active guidance uses only the prepared bridge or explicitly retained legacy pin.')
+NODE

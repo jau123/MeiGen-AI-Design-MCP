@@ -1,11 +1,8 @@
 {
   "mcpServers": {
     "meigen": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "meigen@3.4.0"
-      ]
+      "type": "http",
+      "url": "https://www.meigen.ai/api/mcp"
     }
   }
 }

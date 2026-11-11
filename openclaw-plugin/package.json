@@ -1,9 +1,16 @@
 {
   "name": "meigen-ai-design",
-  "version": "4.1.0",
+  "version": "4.2.0",
   "description": "MeiGen for OpenClaw: visual inspiration, image and video creation, and your personal library through OAuth.",
   "license": "MIT",
   "homepage": "https://www.meigen.ai/mcp?tab=openclaw",
   "repository": "https://github.com/jau123/MeiGen-AI-Design-MCP",
-  "files": ["openclaw.plugin.json", ".claude-plugin/", ".mcp.json", "skills/", "README.md", "LICENSE"]
+  "files": [
+    "openclaw.plugin.json",
+    ".claude-plugin/",
+    ".mcp.json",
+    "skills/",
+    "README.md",
+    "LICENSE"
+  ]
 }

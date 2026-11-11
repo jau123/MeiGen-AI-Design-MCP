@@ -1,8 +1,12 @@
 {
   "name": "meigen",
-  "version": "3.4.0",
-  "config": { "distributionNpmVersion": "3.4.0" },
-  "description": "Composable image and video generation tools, reusable visual skills, and optional creative workflows for MCP clients",
+  "version": "4.0.0",
+  "config": {
+    "distributionNpmVersion": "3.4.0",
+    "legacyNpmVersion": "3.4.0",
+    "remoteMcpUrl": "https://www.meigen.ai/api/mcp"
+  },
+  "description": "Remote MeiGen MCP connection bridge: hosted tools, OAuth and legacy API-key compatibility",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
@@ -14,30 +18,20 @@
     "dist/",
     "SETUP.md",
     "SETUP.zh-CN.md",
-    "SKILLS_API.md",
-    "COMPOSABLE_WORKFLOWS.md",
-    "COMPOSABLE_WORKFLOWS.zh-CN.md",
-    "MCP_AUTH_AND_RESULTS.md",
-    "RELEASE_NOTES_3.0.0.md",
-    "RELEASE_NOTES_3.1.0.md",
-    "RELEASE_NOTES_3.1.1.md",
-    "RELEASE_NOTES_3.2.0.md",
-    "RELEASE_NOTES_3.3.0.md",
-    "RELEASE_NOTES_3.3.1.md",
-    "RELEASE_NOTES_3.3.2.md",
-    "RELEASE_NOTES_3.3.3.md",
-    "RELEASE_NOTES_3.4.0.md"
+    "RELEASE_NOTES_4.0.0.md",
+    "MIGRATION.md"
   ],
   "scripts": {
     "build": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\" && tsc",
-    "dev": "tsx src/index.ts",
+    "dev": "tsx -e \"import { main } from './src/index.ts'; void main(process.argv.slice(1))\"",
     "typecheck": "tsc --noEmit",
-    "test": "node --import tsx --test src/lib/*.test.mjs && node --import tsx --test src/tools/*.test.mjs && node --test scripts/ci/*.test.mjs",
+    "test": "pnpm run build && node --import tsx --test test/*.test.mjs && node --test scripts/ci/*.test.mjs",
     "prepack": "pnpm run build",
     "release:check": "node scripts/release.mjs check",
     "release:dry-run": "node scripts/release.mjs dry-run",
     "release:publish": "node scripts/release.mjs publish",
-    "release:stage": "node scripts/release.mjs stage"
+    "release:stage": "node scripts/release.mjs stage",
+    "check:remote": "node scripts/ci/check-remote.mjs"
   },
   "keywords": [
     "mcp",
@@ -61,20 +55,20 @@
   "homepage": "https://github.com/jau123/MeiGen-AI-Design-MCP#readme",
   "license": "MIT",
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=22.19.0"
   },
   "volta": {
     "node": "24.19.0"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.30.1",
-    "sharp": "^0.34.5",
-    "zod": "^3.25.0"
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "mcp-remote": "0.16.5",
+    "zod": "4.6.6"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
-    "@types/sharp": "^0.31.1",
     "tsx": "^4.0.0",
     "typescript": "^5.0.0"
-  }
+  },
+  "packageManager": "pnpm@10.18.3"
 }

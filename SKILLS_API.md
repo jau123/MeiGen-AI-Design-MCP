@@ -1,3 +1,5 @@
+> Historical 3.x design/reference. For the current remote bridge use [MIGRATION.md](MIGRATION.md) and the live remote tool schemas. Local-only features below are not part of npm 4.0.
+
 # MeiGen Skills HTTP API
 
 These endpoints power both remote MCP and the local **meigen** package. Backend deployment makes the HTTP features available; publishing npm alone does not enable them. See the [English](README.md#skills) / [中文](README.zh-CN.md#skills) tutorials for AI-client setup and examples in natural language.

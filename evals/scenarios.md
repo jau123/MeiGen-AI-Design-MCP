@@ -1,3 +1,5 @@
+> Historical 3.x design/reference. For the current remote bridge use [MIGRATION.md](../MIGRATION.md) and the live remote tool schemas. Local-only features below are not part of npm 4.0.
+
 # Eval scenarios
 
 Manual host-level checks complement `pnpm test`; run with the locally built 3.0.0 package and a controlled backend before public release. Use current tool schemas, server instructions and [the workflow contract](../COMPOSABLE_WORKFLOWS.md). Real paid-provider checks require an explicitly approved scope and budget.

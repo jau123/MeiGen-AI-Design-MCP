@@ -8,7 +8,7 @@ description: >-
   directions (lifestyle scene, macro detail, scale/context, marketing layout)
   from one reference image. NOT for: portraits, generic illustration, logo
   design, video creation — use other skills or generate_image directly.
-version: 0.1.0
+version: 4.0.0
 ---
 
 # Product Photoshoot Workflow
@@ -25,9 +25,9 @@ When choosing a tool for an unresolved request, prefer the dedicated workflow: f
 
 Use `list_skills` for current inputs, defaults and prices. Ask only for missing required information or unresolved output scope. An explicit requested count/modules/quality already authorizes that scope; do not reconfirm it or add paid images. Product Detail MCP requires explicit `modules` (use `[]` for custom modules only); each selected module is one image. Posters need only a subject; images and copy are optional. Use defaults for unspecified settings and never invent product facts, dates or discounts.
 
-Use real accessible images only. Both remote and local connections expose `upload_skill_image`; local npm also accepts real file paths for the four ordinary image-input workflows. If the host cannot read an attachment, ask for a public direct HTTPS image URL; never invent paths or base64.
+Use real accessible images only. Use `upload_skill_image` with supported readable bytes, or real public direct HTTPS image URLs. Remote tools cannot read local paths. If the host cannot read an attachment, ask for a public direct HTTPS image URL; never invent paths or base64.
 
-**Upscale is a separate original-image path:** pass the original public direct HTTPS PNG/JPEG/WebP URL as `imageUrl`, at most 64 MiB and 64 MP. Local npm also accepts an actual original PNG/JPEG/WebP path in `imageUrl` through its dedicated upload route, preserving source dimensions. For readable attachment bytes, call `upload_skill_image` with `purpose: "upscale"` (base64 up to 3 MiB decoded); use the returned `imageUrl`. Do not use `purpose: "reference"` or generic reference compression for Upscale. If the host cannot read the attachment, request a real public original-image URL. On every MCP submission, including the first, pass `confirmedCredits` from the live `list_skills` quote within the user or upstream workflow accepted budget; reuse an already explicit acceptance. This pre-dispatch recheck is not an atomic spending cap. Use `mode: "crisp"` (default) or `"creative"` as offered by `list_skills`. `allowDownscale` is opt-in: explain that it permits preprocessing to at most 4096px/16 MP and the final output can be smaller than the original; set it only after the user explicitly accepts that tradeoff. Upscale accepts still images, not video. For `upscale_resize_required` or `price_changed`, return the resize/cost decision to the caller. Reuse an already explicit acceptance; otherwise obtain acceptance of the new tradeoff or price before submitting a new `requestId` with accepted `allowDownscale` and `confirmedCredits`. These are changed, confirmed inputs—not a blind retry of an interrupted submission.
+**Upscale is a separate original-image path:** pass the original public direct HTTPS PNG/JPEG/WebP URL as `imageUrl`, at most 64 MiB and 64 MP. For readable attachment bytes, call `upload_skill_image` with `purpose: "upscale"` (base64 up to 3 MiB decoded); use the returned `imageUrl`. Do not use `purpose: "reference"` or generic reference compression for Upscale. If the host cannot read the attachment, request a real public original-image URL. On every MCP submission, including the first, pass `confirmedCredits` from the live `list_skills` quote within the user or upstream workflow accepted budget; reuse an already explicit acceptance. This pre-dispatch recheck is not an atomic spending cap. Use `mode: "crisp"` (default) or `"creative"` as offered by `list_skills`. `allowDownscale` is opt-in: explain that it permits preprocessing to at most 4096px/16 MP and the final output can be smaller than the original; set it only after the user explicitly accepts that tradeoff. Upscale accepts still images, not video. For `upscale_resize_required` or `price_changed`, return the resize/cost decision to the caller. Reuse an already explicit acceptance; otherwise obtain acceptance of the new tradeoff or price before submitting a new `requestId` with accepted `allowDownscale` and `confirmedCredits`. These are changed, confirmed inputs—not a blind retry of an interrupted submission.
 
 The caller generates and persists `requestId` for each logical step. For interrupted submissions, call `check_skill` with the original skill/ID before retrying. Follow `nextAction`, including waiting `afterSeconds`; retry only when instructed, using its exact original ID and parameters. Never use a new ID as a blind retry or automatically pay for failed-module replacements. Auth/payment/input rejections require their indicated action instead of polling. Return structured status, task handles and completed image URLs to the caller, with failed modules and refund states separately. The caller owns display and downloads; end users do not need to manage technical IDs.
 
@@ -39,8 +39,8 @@ The caller generates and persists `requestId` for each logical step. For interru
 
 ## Prerequisites
 
-1. **A reference image is required** — the user MUST provide a product photo (URL or local path). If they have not, ask once: "Please share the product photo you want me to work from." Do NOT try to invent a product without a reference.
-2. For the generic photoshoot below, check the installed connection first: remote MeiGen uses OAuth; existing local npm may use MeiGen or OpenAI-compatible credentials. Dedicated Skills require MeiGen. If disconnected, follow the host-specific setup guide; `/meigen:setup` is available only in the Claude plugin.
+1. **A reference image is required** — the user MUST provide a product photo (accessible URL or readable host attachment). If they have not, ask once: "Please share the product photo you want me to work from." Do NOT try to invent a product without a reference.
+2. For the generic photoshoot below, check the installed connection first: remote MeiGen uses OAuth; npm 4.0 forwards to the same server. Keep an explicitly requested BYOK workflow on legacy 3.4.0. Dedicated Skills require MeiGen. If disconnected, follow the host-specific setup guide; `/meigen:setup` is available only in the Claude plugin.
 
 ## The 4 directions
 
@@ -55,7 +55,7 @@ These four directions are optional starting points. Match the requested count an
 
 ## Generation flow
 
-1. **Read user intent** — product type, brand mood (luxury? playful? minimalist?), color palette. Use `search_gallery(category="Product & Brand")` if you need style references.
+1. **Read user intent** — product type, brand mood (luxury? playful? minimalist?), color palette. Use `search_gallery(query="Product & Brand", limit=3)` if you need style references.
 2. **Plan and present** — write the requested prompts (distinct, not just one tweaked four ways) and show them to the user. Each prompt MUST:
    - Reference the input image's product
    - Specify the direction's intent (lifestyle / macro / scale / marketing)

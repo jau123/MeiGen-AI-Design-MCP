@@ -1,8 +1,8 @@
 {
   "id": "meigen-ai-design",
   "name": "MeiGen",
-  "description": "Five dedicated MeiGen image workflows plus ordinary image/video generation through MCP. Requires MeiGen purchased credits for dedicated workflows; ordinary images also support configured BYOK.",
-  "version": "3.1.0",
+  "description": "MeiGen remote image and video workflows with OAuth and purchased credits.",
+  "version": "4.0.0",
   "skills": [
     "./skills"
   ],
@@ -13,12 +13,10 @@
   },
   "mcpServers": {
     "meigen": {
-      "transport": "stdio",
-      "command": "npx",
-      "args": [
-        "-y",
-        "meigen@3.4.0"
-      ]
+      "url": "https://www.meigen.ai/api/mcp",
+      "transport": "streamable-http",
+      "auth": "oauth",
+      "requestTimeoutMs": 240000
     }
   }
 }

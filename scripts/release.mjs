@@ -23,7 +23,7 @@ function run() {
     if (status.stdout.trim()) throw new Error('Stage/publish requires a clean Git working tree. Review and commit explicitly; use dry-run for uncommitted changes.')
   }
   if (process.argv[2] === 'stage') {
-    const support = spawnSync('npm', ['stage', '--help'], { cwd: root, encoding: 'utf8' })
+    const support = spawnSync('npm', ['stage', '--help'], { cwd: root, encoding: 'utf8', shell: process.platform === 'win32' })
     if (support.error || support.status !== 0 || !support.stdout.includes('stage publish')) {
       throw new Error('This npm CLI does not support npm stage publish. Use a CLI with staged publishing support; do not fall back to direct publish.')
     }
@@ -40,7 +40,8 @@ function run() {
   }
   const env = { ...process.env }
   if (plan.credentials) env.npm_config_userconfig = resolve(root, '.npmrc.release')
-  const result = spawnSync(plan.command, plan.args, { cwd: root, env, stdio: 'inherit' })
+  // npm/pnpm are .cmd shims on Windows. Commands/args are constants selected above, never user shell text.
+  const result = spawnSync(plan.command, plan.args, { cwd: root, env, stdio: 'inherit', shell: process.platform === 'win32' })
   if (result.error) throw new Error(`Could not start ${plan.command}: ${result.error.message}`)
   return result.status ?? 1
 }

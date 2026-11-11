@@ -1,3 +1,5 @@
+> Historical 3.x design/reference. For the current remote bridge use [MIGRATION.md](MIGRATION.md) and the live remote tool schemas. Local-only features below are not part of npm 4.0.
+
 # Key Decisions (Do Not Revisit Without Data)
 
 This file records load-bearing design decisions and their rationale. **Each entry should be a defended choice — preferably backed by an incident, a number, or a stakeholder constraint.** Adding to this list means the next contributor cannot revert without showing other numbers or surfacing a new incident.

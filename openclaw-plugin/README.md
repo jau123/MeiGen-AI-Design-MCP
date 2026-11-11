@@ -1,6 +1,6 @@
 # MeiGen for OpenClaw
 
-> 4.1.0 adds media preparation and saved-character guidance. The bundled Skill targets the matching remote media/character deployment. Verify runtime tool discovery before use.
+> 4.2.0 is the prepared guidance update for the unified remote connection. Publication is a separate step. The bundled Skill targets the matching remote media/character deployment. Verify runtime tool discovery before use.
 
 Find inspiration, create images and videos with the latest AI models, and continue from your MeiGen favorites, boards and past creations.
 
@@ -41,9 +41,9 @@ Generation uses purchased credits, not daily free credits. Saving requires your 
 
 **4.0 changes the default from local npm/stdio to remote OAuth.** The ClawHub package stays `meigen-ai-design`; the installed bundle ID stays `meigen`. No npm update is required. The Claude marketplace plugin is a separate distribution.
 
-Before updating, back up your OpenClaw configuration. A saved `mcp.servers.meigen` entry overrides the bundle default and is never migrated by this package. If it uses stdio, an API key, a wrapper or BYOK, choose whether to keep it. Retaining that configuration keeps local-only capabilities but cannot enable the private library. To switch, preserve the old entry and credentials in your private backup, deliberately remove the old active entry, then use the new-connection commands above. Keep one active MeiGen connection. Do not silently replace an OpenAI-compatible provider with paid MeiGen generation.
+Before updating, back up your OpenClaw configuration. A saved `mcp.servers.meigen` entry overrides the bundle default and is never migrated by this package. If it uses stdio, an API key, a wrapper or BYOK, choose whether to keep it. Retaining a pinned 3.4.0 configuration keeps local-only capabilities but cannot enable the private library. The 4.0 npm bridge is remote and supports account tools through OAuth. To switch, preserve the old entry and credentials in your private backup, deliberately remove the old active entry, then use the new-connection commands above. Keep one active MeiGen connection. Do not silently replace an OpenAI-compatible provider with paid MeiGen generation.
 
-Remote MCP returns URLs and cannot directly read local files. Use an accessible reference URL or supported attachment upload. Local prompt enhancement, local preferences, BYOK and automatic local-file handling remain in [legacy npm](https://github.com/jau123/MeiGen-AI-Design-MCP/blob/main/SETUP.md), not this remote connection.
+Remote MCP returns URLs and cannot directly read local files. Use an accessible reference URL or supported attachment upload. Local prompt enhancement, local preferences, BYOK and automatic local-file handling remain in [legacy npm](https://github.com/jau123/MeiGen-AI-Design-MCP/blob/v3.4.0/SETUP.md), not this remote connection.
 
 The standalone [creative-toolkit Skill](https://clawhub.ai/jau123/skills/creative-toolkit) contains instructions only. It is optional for an existing connection; do not install both copies of the same guidance. This package is a supported content/MCP bundle, not a JavaScript runtime plugin; it makes no claim to execute Claude hooks.
 
