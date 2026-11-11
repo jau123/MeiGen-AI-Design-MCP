@@ -1,50 +1,43 @@
 # MeiGen for OpenClaw
 
-> 4.2.0 is the prepared guidance update for the unified remote connection. Publication is a separate step. The bundled Skill targets the matching remote media/character deployment. Verify runtime tool discovery before use.
-
-Find inspiration, create images and videos with the latest AI models, and continue from your MeiGen favorites, boards and past creations.
+Find visual inspiration, create images and videos, and continue from your MeiGen favorites, boards and characters.
 
 ## Install and connect
-
-Use a current OpenClaw release with native HTTP MCP and OAuth support (validated with 2026.9.9). Install from [ClawHub](https://clawhub.ai/plugins/meigen-ai-design):
 
 ```bash
 openclaw plugins install clawhub:meigen-ai-design
 ```
 
-For a **new connection**, save the server before signing in:
+Use OpenClaw's MCP connection settings to sign in to MeiGen through browser OAuth. Reuse an existing remote connection. Installation alone does not prove account access.
+
+Start with: **“Use MeiGen to find product photography inspiration.”** For a connection check, ask to list available models and Skills without generating or uploading.
+
+<details>
+<summary>Manual connection or migration</summary>
+
+For a new saved connection on an OpenClaw version supporting HTTP MCP and OAuth:
 
 ```bash
 openclaw mcp add meigen --url https://www.meigen.ai/api/mcp --transport streamable-http --auth oauth --timeout 240
 openclaw mcp login meigen
-```
-
-Complete MeiGen sign-in and approve the permissions yourself in the browser. Never send a key or token in chat. The bundle supplies the remote server; OpenClaw's login command also needs the same server saved in `mcp.servers`. The saved entry takes precedence, so this does not create a second set of tools.
-
-If `meigen` already exists, `mcp add` stops without overwriting it. Inspect the existing connection privately. Reuse a matching remote OAuth entry and run `mcp login meigen`. Do not use `mcp set` blindly: it replaces the entry. See migration below for local connections.
-
-```bash
 openclaw mcp doctor meigen --probe
 ```
 
-Start a new conversation and ask: **“Use MeiGen to list available Skills and current prices. Only query; do not generate or spend credits.”** A successful tool call verifies access. Plugin installation alone does not prove sign-in or private-library access.
+Login needs a saved MCP entry; the saved entry overrides the matching bundle default. If `meigen` already exists, inspect and reuse it instead of overwriting it. Preserve old stdio, API-key and BYOK settings privately until you choose to migrate. Keep one active connection. Never paste credentials into chat.
 
-## Included
+[Migration guide](https://github.com/jau123/MeiGen-AI-Design-MCP/blob/main/MIGRATION.md)
 
-- Remote MCP tools for inspiration, images, videos and five image workflows.
-- OAuth-only favorites, boards, generation history, prompt retrieval and saving favorites. Approve the additional library permissions when requested.
-- Creative guides for visual work, product photos and social thumbnails.
+</details>
 
-Generation uses purchased credits, not daily free credits. Saving requires your request or prior opt-in; liking an output alone does not authorize a save. Reference uploads receive publicly accessible links. Check current tool schemas and prices before paid work. Search/account limits and library permissions still apply.
+## What is included
 
-## Upgrading from the 3.x ClawHub plugin
+- A remote MCP connection to `https://www.meigen.ai/api/mcp`.
+- One short guide for using the installed tools, with connection and recovery help.
 
-**4.0 changes the default from local npm/stdio to remote OAuth.** The ClawHub package stays `meigen-ai-design`; the installed bundle ID stays `meigen`. No npm update is required. The Claude marketplace plugin is a separate distribution.
+The service supplies current tools, models, prices and result pages. This package has no local generation engine, creative agents or custom commands. Generation uses purchased credits only, not daily free credits. Private-library operations request their own OAuth permissions. Uploads can create public links; share only intended references. Interactive pages and downloads depend on the host.
 
-Before updating, back up your OpenClaw configuration. A saved `mcp.servers.meigen` entry overrides the bundle default and is never migrated by this package. If it uses stdio, an API key, a wrapper or BYOK, choose whether to keep it. Retaining a pinned 3.4.0 configuration keeps local-only capabilities but cannot enable the private library. The 4.0 npm bridge is remote and supports account tools through OAuth. To switch, preserve the old entry and credentials in your private backup, deliberately remove the old active entry, then use the new-connection commands above. Keep one active MeiGen connection. Do not silently replace an OpenAI-compatible provider with paid MeiGen generation.
+The existing `creative-toolkit` Skill uses the same guide. Do not install both. Its users can keep a working remote connection; new users should choose this plugin.
 
-Remote MCP returns URLs and cannot directly read local files. Use an accessible reference URL or supported attachment upload. Local prompt enhancement, local preferences, BYOK and automatic local-file handling remain in [legacy npm](https://github.com/jau123/MeiGen-AI-Design-MCP/blob/v3.4.0/SETUP.md), not this remote connection.
-
-The standalone [creative-toolkit Skill](https://clawhub.ai/jau123/skills/creative-toolkit) contains instructions only. It is optional for an existing connection; do not install both copies of the same guidance. This package is a supported content/MCP bundle, not a JavaScript runtime plugin; it makes no claim to execute Claude hooks.
+Plugin 4.3.0 simplifies the previous four-guide bundle. The package name `meigen-ai-design`, runtime ID `meigen`, endpoint and OAuth connection are unchanged. The dedicated Claude plugin is retired; the compatibility manifest here is only an OpenClaw bundle-format marker.
 
 [Connection guide](https://docs.meigen.ai/en/mcp/remote#openclaw) · [Manage access](https://www.meigen.ai/oauth/connections)

@@ -1,15 +1,7 @@
 #!/usr/bin/env node
-/**
- * Lint frontmatter on agents/commands/skills.
- *
- * Repository frontmatter conventions:
- *  - Agents (plugin/agents/*.md): MUST have description; MUST NOT have `name:` (derived from filename).
- *  - Commands (plugin/commands/*.md): MUST have description; MUST NOT have `name:` (derived from filename).
- *  - Skills (plugin/skills/.../SKILL.md, openclaw/SKILL.md): MUST have name + description + version.
- *  - All frontmatter MUST be valid YAML-ish (between leading `---` markers).
- */
+/** Validate the maintained OpenClaw Skill frontmatter. */
 
-import { readFileSync, readdirSync, statSync } from 'node:fs'
+import { readFileSync, statSync } from 'node:fs'
 import { join, relative, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -36,48 +28,9 @@ function parseFrontmatter(file) {
   return fields
 }
 
-function walk(dir) {
-  const out = []
-  if (!statSync(dir, { throwIfNoEntry: false })) return out
-  for (const entry of readdirSync(dir)) {
-    const full = join(dir, entry)
-    const st = statSync(full)
-    if (st.isDirectory()) out.push(...walk(full))
-    else if (entry.endsWith('.md')) out.push(full)
-  }
-  return out
-}
-
-function checkAgents() {
-  const dir = join(ROOT, 'plugin', 'agents')
-  for (const file of walk(dir)) {
-    const fm = parseFrontmatter(file)
-    if (!fm) {
-      fail(file, 'Missing frontmatter (---...---)')
-      continue
-    }
-    if (!fm.description) fail(file, 'Agent frontmatter missing required field: description')
-    if (fm.name) fail(file, 'Agent frontmatter must NOT contain `name:` — derived from filename')
-  }
-}
-
-function checkCommands() {
-  const dir = join(ROOT, 'plugin', 'commands')
-  for (const file of walk(dir)) {
-    const fm = parseFrontmatter(file)
-    if (!fm) {
-      fail(file, 'Missing frontmatter (---...---)')
-      continue
-    }
-    if (!fm.description) fail(file, 'Command frontmatter missing required field: description')
-    if (fm.name) fail(file, 'Command frontmatter must NOT contain `name:` — derived from filename')
-  }
-}
-
 function checkSkills() {
-  // Plugin skills
+  // OpenClaw guides
   const skillFiles = [
-    ...walk(join(ROOT, 'plugin', 'skills')).filter((f) => f.endsWith('SKILL.md')),
     join(ROOT, 'openclaw', 'SKILL.md'),
   ]
   for (const file of skillFiles) {
@@ -93,8 +46,6 @@ function checkSkills() {
   }
 }
 
-checkAgents()
-checkCommands()
 checkSkills()
 
 if (errors) {

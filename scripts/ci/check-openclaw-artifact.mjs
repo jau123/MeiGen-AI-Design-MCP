@@ -12,9 +12,8 @@ function files(dir, prefix = '') {
   })
 }
 const expected = [
-  '.claude-plugin/plugin.json', '.mcp.json', 'LICENSE', 'README.md', 'openclaw.plugin.json', 'package.json',
-  'skills/MeiGen/SKILL.md', 'skills/MeiGen/references/providers.md', 'skills/MeiGen/references/troubleshooting.md',
-  'skills/product-photoshoot/SKILL.md', 'skills/social-thumbnail/SKILL.md', 'skills/visual-creative/SKILL.md',
+  '.claude-plugin/plugin.json', '.mcp.json', 'LICENSE', 'README.md', 'openclaw.plugin.json', 'package.json', 'assets/icon.png',
+  'skills/MeiGen/SKILL.md', 'skills/MeiGen/references/connection.md', 'skills/MeiGen/references/troubleshooting.md',
 ]
 assert.deepEqual(files(root).sort(), expected.sort(), 'Unexpected artifact contents; keep validation reports and local files outside the bundle.')
 console.log(`OpenClaw artifact allowlist passed: ${expected.length} files.`)

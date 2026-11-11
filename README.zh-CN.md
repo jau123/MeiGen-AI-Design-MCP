@@ -39,7 +39,7 @@
 | 客户端 | 开始使用 |
 |---|---|
 | **ChatGPT** | [从 ChatGPT 官方商店安装](https://chatgpt.com/plugins/plugin_asdk_app_6ab66d24f56481919361b6c33f7c1928)，然后登录 MeiGen。 |
-| **Claude** | [连接远程 MCP](#remote-mcp)，或安装附带创作命令和指南的 [Claude 插件](#claude-code)。 |
+| **Claude** | [连接远程 MCP](#remote-mcp)并登录，无需专用 Claude 插件。 |
 | **Cursor / VS Code / Codex** | [添加远程 MCP 地址](#remote-mcp)并登录。[客户端配置 →](SETUP.zh-CN.md) |
 | **OpenClaw** | [从 ClawHub 安装](#openclaw)，然后连接 MeiGen 账号。 |
 | **其他 MCP 客户端** | 使用[远程 MCP](#remote-mcp)；仅支持 stdio 的客户端可用 [npm 连接桥](#npm-bridge)。 |
@@ -118,19 +118,7 @@ https://www.meigen.ai/api/mcp
 
 <a id="claude-code"></a>
 
-<details>
-<summary><strong>Claude 插件 — 创作命令和指南</strong></summary>
-
-在 Claude 内运行以下命令，然后重启并连接 MeiGen 账号：
-
-```text
-/plugin marketplace add jau123/MeiGen-AI-Design-MCP
-/plugin install meigen@meigen-marketplace
-```
-
-插件现已使用原生远程 MCP，提供 `/meigen:setup`、`/meigen:gen`、`/meigen:find`、`/meigen:models` 和创作指南。切换时复用已有的 MeiGen 连接。[插件指南 →](plugin/README.md)
-
-</details>
+专用 Claude 插件已停止维护。已安装用户请[迁移到远程 MCP](plugin/README.md)，保留原有配置并避免重复连接。
 
 <a id="openclaw"></a>
 
@@ -143,7 +131,7 @@ https://www.meigen.ai/api/mcp
 openclaw plugins install clawhub:meigen-ai-design
 ```
 
-插件包含创作指南和远程工具。ClawHub 版本与 npm 独立发布；安装插件后无需重复安装独立的 `creative-toolkit` Skill。[连接指南 →](SETUP.zh-CN.md)
+插件仅包含远程连接和一份简短使用指南。ClawHub 版本与 npm 独立发布；安装插件后无需重复安装独立的 `creative-toolkit` Skill。[连接指南 →](SETUP.zh-CN.md)
 
 </details>
 
@@ -171,7 +159,7 @@ openclaw plugins install clawhub:meigen-ai-design
 
 - [客户端配置与常见问题](SETUP.zh-CN.md) · [4.0 发布说明](RELEASE_NOTES_4.0.0.md)
 - [视觉 Skills 使用指南与示例](SKILLS_API.md) · [编排图片／视频工作流](COMPOSABLE_WORKFLOWS.zh-CN.md)
-- [Claude 插件指南](plugin/README.md) · [维护者发布指南](RELEASING.md)
+- [旧 Claude 插件迁移](plugin/README.md) · [维护者发布指南](RELEASING.md)
 
 生成中断时，先让助手查询原任务，再决定是否重新付费生成。保留原始请求 ID，并下载需要长期保存的结果。
 
@@ -179,6 +167,6 @@ openclaw plugins install clawhub:meigen-ai-design
 
 [Discord](https://discord.gg/uX6rnersUx) · [问题反馈](https://github.com/jau123/MeiGen-AI-Design-MCP/issues) · [MeiGen](https://www.meigen.ai) · [隐私政策](https://www.meigen.ai/privacy-policy-zh)
 
-MCP 社区：[Awesome MCP Servers](https://github.com/punkpeye/awesome-mcp-servers) · [wshobson/agents 中的 MeiGen](https://github.com/wshobson/agents/tree/main/plugins/meigen-ai-design)。
+MCP 社区：[Awesome MCP Servers](https://github.com/punkpeye/awesome-mcp-servers)。
 
 客户端连接桥与创作指南使用 [MIT](LICENSE) 许可。托管服务实现独立维护，云端生成使用购买积分。

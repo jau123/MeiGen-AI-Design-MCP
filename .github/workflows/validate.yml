@@ -13,14 +13,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check npm/plugin version coherence
+      - name: Check bridge/OpenClaw version coherence
         run: bash scripts/ci/check-versions.sh
 
       - name: Check pinned npm version coherence
         run: bash scripts/ci/check-pinned-npm.sh
 
   frontmatter-lint:
-    name: Frontmatter rules for agents/commands/skills
+    name: Frontmatter rules for OpenClaw skills
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

@@ -1,9 +1,0 @@
-{
-  "name": "meigen",
-  "description": "MeiGen remote tools: find inspiration, create images and videos, and use your account library through OAuth.",
-  "version": "4.0.1",
-  "author": {
-    "name": "MeiGen",
-    "url": "https://www.meigen.ai"
-  }
-}

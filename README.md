@@ -39,7 +39,7 @@ Bring MeiGen into the AI tool you already use:
 | Client | Get started |
 |---|---|
 | **ChatGPT** | [Install from the official ChatGPT store](https://chatgpt.com/plugins/plugin_asdk_app_6ab66d24f56481919361b6c33f7c1928), then sign in to MeiGen. |
-| **Claude** | [Connect remote MCP](#remote-mcp), or install the [Claude plugin](#claude-code) for creative commands and guides. |
+| **Claude** | [Connect remote MCP](#remote-mcp) and sign in; no dedicated Claude plugin is needed. |
 | **Cursor / VS Code / Codex** | [Add the remote MCP URL](#remote-mcp) and sign in. [Client setup →](SETUP.md) |
 | **OpenClaw** | [Install from ClawHub](#openclaw) and connect your MeiGen account. |
 | **Other MCP clients** | Use [remote MCP](#remote-mcp), or the [npm bridge](#npm-bridge) if your client requires stdio. |
@@ -118,19 +118,7 @@ Routine model and tool updates now arrive from the remote service. Refresh your 
 
 <a id="claude-code"></a>
 
-<details>
-<summary><strong>Claude plugin — creative commands and guides</strong></summary>
-
-Run inside Claude, then restart and connect your MeiGen account:
-
-```text
-/plugin marketplace add jau123/MeiGen-AI-Design-MCP
-/plugin install meigen@meigen-marketplace
-```
-
-The plugin now uses native remote MCP. It adds `/meigen:setup`, `/meigen:gen`, `/meigen:find`, `/meigen:models` and creative guides. Reuse an existing MeiGen connection when switching. [Plugin guide →](plugin/README.md)
-
-</details>
+The dedicated Claude plugin is retired. Existing users can [migrate to remote MCP](plugin/README.md), preserving their configuration and avoiding duplicate connections.
 
 <a id="openclaw"></a>
 
@@ -143,7 +131,7 @@ Install [MeiGen from ClawHub](https://clawhub.ai/plugins/meigen-ai-design), then
 openclaw plugins install clawhub:meigen-ai-design
 ```
 
-The plugin combines creative guides with remote tools. Its ClawHub version is independent of npm; the standalone `creative-toolkit` Skill is not needed alongside it. [Connection guide →](SETUP.md)
+The plugin contains the remote connection and one short usage guide. Its ClawHub version is independent of npm; the standalone `creative-toolkit` Skill is not needed alongside it. [Connection guide →](SETUP.md)
 
 </details>
 
@@ -171,7 +159,7 @@ Verify with list_models and list_skills, without uploading or generating.
 
 - [Client setup & troubleshooting](SETUP.md) · [4.0 release notes](RELEASE_NOTES_4.0.0.md)
 - [Visual Skills guide & examples](SKILLS_API.md) · [Compose image/video workflows](COMPOSABLE_WORKFLOWS.md)
-- [Claude plugin guide](plugin/README.md) · [Maintainer release guide](RELEASING.md)
+- [Retired Claude plugin migration](plugin/README.md) · [Maintainer release guide](RELEASING.md)
 
 If a generation is interrupted, ask to check the original task before starting another paid request. Keep the original request ID and download results you want to retain.
 
@@ -179,6 +167,6 @@ If a generation is interrupted, ask to check the original task before starting a
 
 [Discord](https://discord.gg/uX6rnersUx) · [Issues](https://github.com/jau123/MeiGen-AI-Design-MCP/issues) · [MeiGen](https://www.meigen.ai) · [Privacy policy](https://www.meigen.ai/privacy-policy)
 
-MCP community: [Awesome MCP Servers](https://github.com/punkpeye/awesome-mcp-servers) · [MeiGen in wshobson/agents](https://github.com/wshobson/agents/tree/main/plugins/meigen-ai-design).
+MCP community: [Awesome MCP Servers](https://github.com/punkpeye/awesome-mcp-servers).
 
 [MIT](LICENSE) licensed client bridge and creative guides. Hosted service implementation is separate; cloud generation uses paid credits.

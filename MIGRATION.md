@@ -9,7 +9,7 @@
 | npm without keys | Use native HTTP, or 4.0.0 browser OAuth | Sign in to the intended account |
 | npm with BYOK or custom endpoint | Keep `meigen@3.4.0`, or explicitly choose MeiGen OAuth | Never silently redirect provider billing |
 | npm with local files, auto-downloads, preferences, prompt enhancement or `gen` | Keep `meigen@3.4.0` until the caller is adapted | Remote returns URLs; no local file processor |
-| Claude/OpenClaw bundle with saved local overrides | Back up and deliberately replace the active override | Bundles cannot rewrite host-owned saved entries |
+| OpenClaw bundle with saved local overrides | Back up and deliberately replace the active override | Bundles cannot rewrite host-owned saved entries |
 
 Before migration, finish pending jobs or retain their original request IDs, generation IDs and exact inputs. Do not resubmit them with new IDs on another connection. Verify the same account and query task status. Public discovery succeeds without authentication and does not prove balance/library access.
 
@@ -18,6 +18,10 @@ After changing connection, reconnect and refresh tool schemas. The bridge forwar
 An existing MeiGen key stays on a fixed-key transport even when it fails. `--oauth` explicitly selects account sign-in and bypasses old keys/config. Switching identity or provider requires the user's choice. Invalid existing configuration fails without writing it. Do not print keys during migration. Old credentials remain intact and are not revoked by this release.
 
 If the connection drops or times out, preserve the original request ID and query status before starting another paid task. The bridge never automatically creates a replacement job.
+
+## Retired Claude plugin
+
+The dedicated Claude plugin is no longer maintained or distributed. Move to native remote MCP; the server continues to provide tools without plugin-specific commands or agents. See the [migration steps](https://github.com/jau123/MeiGen-AI-Design-MCP/blob/main/plugin/README.md). Existing cached installations are not automatically removed, and authorizations are not revoked. Preserve legacy provider settings and keep one active connection.
 
 ## Rollback
 
